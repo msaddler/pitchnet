@@ -1,0 +1,54 @@
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Packages #
+############
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Logs and databases #
+######################
+*.log
+*.sql
+*.sqlite
+*.hdf5
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# MATLAB specific #
+###################
+*.m~
+*.mat
+*.fig
+
+# OTHER #
+#########
+.ipynb_checkpoints*
+.nfs*
+*.out
+__pycache__
+*~
+*.json
+felix-cache*
+*.??#
+=*
