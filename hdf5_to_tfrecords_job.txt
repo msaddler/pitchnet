@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-##SBATCH --qos=mcdermott
+#SBATCH --qos=mcdermott
 #SBATCH --job-name=hdf5_to_tfrecords
 #SBATCH --out="trash/slurm-%A_%a.out"
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=2500
 #SBATCH --nodes=1
 #SBATCH --time=0-0:10:00
-#SBATCH --array=0-116
+#SBATCH --array=0-96
 ##SBATCH --dependency=afterok:12702768
 
 module add openmind/singularity
@@ -15,4 +15,4 @@ module add openmind/singularity
 offset=0
 job_id=$(($SLURM_ARRAY_TASK_ID + $offset))
 
-singularity exec --nv -B /om -B /om2 -B /nobackup /om2/user/msaddler/tensorflow-1.5.0-gpu-py3.img python -u hdf5_to_tfrecords.py $job_id
+singularity exec --nv -B /om -B /om2 -B /nobackup /om2/user/msaddler/singularity-images/tensorflow-1.13.1-gpu-py3.img python -u hdf5_to_tfrecords.py $job_id

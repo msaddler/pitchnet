@@ -6,6 +6,7 @@ import dask.array as da
 import bez2018model.core
 
 
+
 def write_example_to_hdf5(f, out, idx,
                           main_key_list=['meanrates','pin','f0'],
                           augmentation_key_list=['snr','meanrates_clip_indexes','pin_clip_indexes','pin_dBSPL']):
@@ -21,8 +22,6 @@ def write_example_to_hdf5(f, out, idx,
     Returns:
         None
     '''
-    main_key_list=['meanrates', 'pin', 'f0']
-    augmentation_key_list = ['snr', 'meanrates_clip_indexes', 'pin_clip_indexes', 'pin_dBSPL']
     for key in main_key_list:
         f[key][idx] = np.array(out[key])
     for key in augmentation_key_list:
@@ -109,8 +108,7 @@ def combine_signal_and_noise(signal, noise, snr, rms_mask=None):
     '''FROM RAY email 2018.11.05'''
     rms_mask = np.full(len(signal), True, dtype=bool) if rms_mask is None else rms_mask
     signal = signal / rms(signal[rms_mask])
-    # sf = np.power(10, snr / 10)
-    sf = np.power(10, snr / 20) # Mar 15, 2018
+    sf = np.power(10, snr / 20)
     signal_rms = rms(signal[rms_mask])
     noise = noise * ((signal_rms / rms(noise[rms_mask])) / sf)
     signal_and_noise = signal + noise
@@ -164,10 +162,10 @@ def harmonic_stack(f0, fs, dur, phase_mode):
     return signal
 
 
-def modify_signal_and_recombine_noise(signal, noise, snr, fs, filter_params = {}):
-    ''''''
-    ''' INSERT SIGNAL MODIFICATIONS HERE '''
-    ''''''
+def modify_signal_and_recombine_noise(signal, noise, snr, fs, filter_params={}):
+    '''
+    === DEFINE MODIFICATION APPLIED TO SIGNAL HERE ===
+    '''
     modified_signal = signal
 
     #f0 = filter_params['f0']
@@ -186,7 +184,7 @@ def modify_signal_and_recombine_noise(signal, noise, snr, fs, filter_params = {}
 
 
 def generate_training_data(filename, inputs, output_params,
-                           ANmodel_params, manipulation_params = {}):
+                           ANmodel_params, manipulation_params={}):
     '''
     Generates ANmodel nervegrams for each signal in inputs dict.
     Writes training examples to hdf5 file specified by filename.
@@ -212,13 +210,13 @@ def generate_training_data(filename, inputs, output_params,
     ### Start MATLAB engine and iterate through signals ###
     eng = bez2018model.core.start_matlab_engine() # Start matlab engine
     for idx in range(start_index, N):
-        ### ^^^ APPLY MODIFICATION TO SIGNAL ^^^
+        ### === APPLY MODIFICATION TO SIGNAL ===
         signal = inputs['signal_list'][idx]
         snr = inputs['snr'][idx]
         if 'noise_list' in inputs.keys():
             noise = inputs['noise_list'][idx]
             signal = modify_signal_and_recombine_noise(signal, noise, snr, signal_Fs)
-        ### ^^^ APPLY MODIFICATION TO SIGNAL ^^^
+        ### === APPLY MODIFICATION TO SIGNAL ===
         
         ### Set individual output_params and run the auditory nerve model ###
         if 'pin_dBSPL' in inputs.keys():
@@ -259,14 +257,10 @@ if __name__ == "__main__":
 
     # + + + Source signals filename + + +
     source_filename_list = [
-        '/om/scratch/Tue/msaddler/train_all_subsets_nsynth-rwc-timit-wsj_texture_ANv2.h5',
-        '/om/scratch/Tue/msaddler/test_all_subsets_nsynth-rwc-timit-wsj_texture_ANv2.h5',
-        '/om/scratch/Tue/msaddler/bernox2005_stimuli/bernox2005stim_2018-11-29-1930.hdf5',
+        '/om/scratch/Wed/msaddler/bernox2005_stimuli/bernox2005stim_2018-11-29-1930.hdf5',
     ]
     filename_list = [
-        '/om/user/msaddler/data_pitch50ms_bez2018/NRTW-jwss_trainset_CF50-SR70-sp2-cohc00_filt00_30-90dB_{:06}-{:06}.hdf5',
-        '/om/user/msaddler/data_pitch50ms_bez2018/NRTW-jwss_valset_CF50-SR70-sp2-cohc00_filt00_30-90dB_{:06}-{:06}.hdf5',
-        '/om/user/msaddler/data_pitch50ms_bez2018/bernox2005stimset_2018-11-29-1930_CF50-SR70-sp2-cohc00_filt00_thresh33dB_{:06}-{:06}.hdf5',
+        '/om/user/msaddler/data_tmp/bernox2005stimset_2018-11-29-1930_CF50-SR70-sp2-cohc00_filt00_thresh33dB_{:06}-{:06}.hdf5',
     ]
     source_filename = source_filename_list[dset_id]
     filename = filename_list[dset_id]
@@ -309,9 +303,9 @@ if __name__ == "__main__":
 
     # + + + Specify ANmodel parameters: ANmodel_params + + +
     ANmodel_params = {}
-    ANmodel_params['CF_list'] = get_ERB_CF_list(50, min_CF = 125., max_CF = 10e3)
+    ANmodel_params['CF_list'] = get_ERB_CF_list(50, min_CF=125., max_CF=10e3)
     ANmodel_params['spont_list'] = [70.0] #[70.0, 4.0, 0.1] # HSR, MSR, LSR fibers according to BEZ2018
-    ANmodel_params['cohc'] = 0.
+    ANmodel_params['cohc'] = 1.
     ANmodel_params['cihc'] = 1.
     if 'sp1' in filename:
         print('>>> SPECIES 1 <<<')
@@ -320,7 +314,7 @@ if __name__ == "__main__":
         print('>>> SPECIES 2 <<<')
         ANmodel_params['species'] = 2. # (2 = Shera BW humans, 1 = cat)
 
-    # + + + Specify cochlear manip. parameters: manipulation_params + + +
+    # + + + Specify cochlear manipulation parameters: manipulation_params + + +
     manipulation_params = {}
     manipulation_params['manipulation_flag'] = 0 # Must be 1 to apply cochlear manipulation
     manipulation_params['filt_cutoff'] = 0 # Low-pass filter cutoff (Hz)
@@ -338,7 +332,7 @@ if __name__ == "__main__":
         for key in DIAG.keys():
             key_str = 'diagnostic/' + key # Create .hdf5 path for output filename
             key_dset = DIAG[key][idx_start : idx_end] # Select diagnostic info for desired signals
-            key_arr = da.from_array(key_dset, chunks = key_dset.shape) # Store as dask array
+            key_arr = da.from_array(key_dset, chunks=key_dset.shape) # Store as dask array
             diag_arrays[key_str] = key_arr # Create a dictionary of dask arrays for conversion back to hdf5
             print('... including:', key_str)
         da.to_hdf5(filename, diag_arrays)

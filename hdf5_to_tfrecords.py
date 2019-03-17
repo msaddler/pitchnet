@@ -3,9 +3,10 @@ import tensorflow as tf
 import numpy as np
 import sys
 import glob
+import json
 
 
-# Tensorflow datatype conversion functions
+### Tensorflow datatype conversion functions ###
 def _bytes_feature(value):
     """Returns a bytes_list from a string / byte."""
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
@@ -16,7 +17,7 @@ def _float_feature(value):
 
 def _int64_feature(value):
     """Returns an int64_list from a bool / enum / int / uint."""
-    return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
+    return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))    
 
 
 def create_record(output_fn, source_file, feature_paths):
@@ -57,8 +58,7 @@ if __name__ == "__main__":
     dset_id = int(sys.argv[1])
 
     # Filename handling: provide source filename regex and specify output filename
-    source_regex = '/om/scratch/Tue/msaddler/ANmodel_data_BEZ_10kHz/pitchdatasetsSoundDetection/bernox2005_puretone_detection_threshold_expt_f0s0200-6000Hz-cutoff-300Hz-rolloff-4_CF50-SR70-0fGn_sp2_filt00_*.hdf5'
-    #source_regex = '/om/scratch/Tue/msaddler/JSIN_all__run_*.h5'
+    source_regex = '/om/user/msaddler/data_tmp/bernox2005stimset_2018-11-29-1930_CF50-SR70-sp2-cohc00_filt00_thresh33dB_*.hdf5'
     source_fn_list =  sorted(glob.glob(source_regex))
     source_fn = source_fn_list[dset_id]
     output_fn = source_fn.replace('.hdf5', '.tfrecords') # <--- Set how .tfrecords output_fn is set from source_fn
@@ -71,13 +71,13 @@ if __name__ == "__main__":
         ('/meanrates', '/meanrates'),
     ]
     feature_paths['int_list'] = [
-        ('/sound_detection/present_flag', '/sound_detection/present_flag')
+        ('/diagnostic/low_harm', '/diagnostic/low_harm'),
+        ('/diagnostic/phase_mode', '/diagnostic/phase_mode'),
     ]
     feature_paths['float_list'] = [
         ('/f0', '/f0'),
         ('/augmentation/snr', '/augmentation/snr'),
         ('/augmentation/pin_dBSPL', '/augmentation/pin_dBSPL'),
-        ('/diagnostic/signal_dBSPL', '/diagnostic/signal_dBSPL'),
     ]
 
     # Open the source hdf5 file
