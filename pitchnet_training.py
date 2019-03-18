@@ -4,10 +4,13 @@ from tensorflow.python.ops import math_ops
 import numpy as np
 import glob
 import os
-import pickle
+
+sys.path.append('/om2/user/msaddler/phaselocking_pitchnet/netBuilder') # Add Ray's netBuilder to path
+import dill # Required to load Ray's pickled networks
+from netBuilder import layerGeneratorMotif # Required to load Ray's pickled networks
 
 
-def build_net_from_pickle(tensor_input, model_pkl_file, bnorm_training=True, dropout_keep_prob=0.5):
+def OOC_build_net_from_pickle(tensor_input, model_pkl_file, bnorm_training=True, dropout_keep_prob=0.5):
     ''' TEMPORARY UNTIL I CAN LOAD PICKLE FILES FROM INSIDE CONTAINER '''
     x = tensor_input
     num_classes=257
@@ -65,7 +68,6 @@ def build_net_from_pickle(tensor_input, model_pkl_file, bnorm_training=True, dro
 
 
 
-
 def get_f0_bins(f0_min=100.0, f0_max=252.0, binwidth_in_octaves=1/192):
     '''
     Get f0 bins for digitizing f0 values to log-spaced bins.
@@ -94,8 +96,8 @@ def bin_labels_to_f0(labels_tensor, bins):
     return tf.gather(bins.tolist(), labels_tensor)
 
 
-def OOC_build_net_from_pickle(tensor_input, model_pkl_file, bnorm_training=True, dropout_keep_prob=0.5):
-    net = pickle.load(open(model_pkl_file, 'rb'))
+def build_net_from_pickle(tensor_input, model_pkl_file, bnorm_training=True, dropout_keep_prob=0.5):
+    net = dill.load(open(model_pkl_file, 'rb'))
     assert len(tensor_input.shape) == 4, 'Batch input shape must be [?, freq, time, channels]'
     tensor_logits, net_ops_list = net(tensor_input, return_net_ops_list=True,
                                      bnorm_training=bnorm_training,
@@ -170,16 +172,32 @@ def build_input_iterator(tfrecords_regex, feature_parsing_dict={}, iterator_type
     return iterator, dataset
 
 
-def build_pitchnet_graph(model_pkl_file, tensor_dict, f0_bin_parameters={},
+def build_pitchnet_graph(model_pkl_file, input_tensor_dict, f0_bin_parameters={},
                          feature_input_path='/meanrates', feature_labels_path='/f0'):
+    '''
+    This function assembles the network and returns a dictionary of tensors.
+    
+    Args
+    ----
+    model_pkl_file (str): filename of pickled function to build network architecture
+    input_tensor_dict (dict): dictionary of tensors returned by the iterator
+    f0_bin_parameters (dict): dictionary of `get_f0_bins` kwargs
+    feature_input_path (str): key in input_tensor_dict that points to network input
+    feature_label_path (str): key in input_tensor_dict that points to training labels
+        Note: currently labels must be F0 values, which are converted to F0 bin labels
+    
+    Returns
+    -------
+    tensors (dict): dictionary of useful tensors (i.e. loss, accuracy, predictions, etc.)
+    '''
     
     assert feature_labels_path == '/f0', 'Only F0-based labels/training is currently supported'
     # TODO: number of classes should be input to net builder, bnorm_training + dropout need to be controlled by variables
     
     bins = get_f0_bins(**f0_bin_parameters)
     tensors = {}
-    tensors['input'] = tensor_dict[feature_input_path]
-    tensors['f0'] = tensor_dict[feature_labels_path]
+    tensors['input'] = input_tensor_dict[feature_input_path]
+    tensors['f0'] = input_tensor_dict[feature_labels_path]
     tensors['labels'] = f0_to_bin_labels(tensors['f0'], bins)
     tensors['logits'] = build_net_from_pickle(tensors['input'], model_pkl_file,
                                               bnorm_training=True, dropout_keep_prob=0.5)
@@ -231,6 +249,39 @@ def build_saver(sess, var_list, output_dir, ckpt_prefix='model.ckpt', ckpt_num=N
     return saver, ckpt_fn_fmt, ckpt_num
 
 
+def run_validation(sess, valid_feed_dict, valid_init_op, tensors_to_eval={}):
+    '''
+    This function performs one sweep through the validation dataset.
+    
+    Args
+    ----
+    sess (tf session object): active tensorflow session
+    valid_feed_dict (dict): feed_dict to pass to sess.run (switch to validation iterator)
+    valid_init_op (iterator.intializer op): initializer op for the validation iterator
+    tensors_to_eval (dict): dictionary of tensors to evaluate during validation
+    
+    Returns
+    -------
+    n_examples (int): keeps count of number of examples in validation epoch
+    n_correct (int): keeps count of number of correct predictions
+    
+    #TODO: save validation metrics to a file?
+    #TODO: all sanity checks indicate that batchnorm moving mean/var are not changing
+    #TODO: should it be possible to enable/disable dropout?
+    #TODO: figure out why validation acc << training batch acc on same data
+    '''
+    sess.run(valid_init_op) # Validation iterator is an initializeable iterator
+    (n_examples, n_correct) = (0, 0)
+    while True:
+        try:
+            evaluated_tensors = sess.run(tensors_to_eval, feed_dict=valid_feed_dict)
+            n_examples += len(evaluated_tensors['correct'])
+            n_correct += np.sum(evaluated_tensors['correct'])
+        except tf.errors.OutOfRangeError:
+            break
+    return n_examples, n_correct
+
+
 def training_routine(output_dir, ckpt_prefix='model.ckpt', ckpt_num=None,
                      model_pkl_file='/om/user/msaddler/models_pitch50ms_bez2018/arch160/net.pkl',
                      train_tfrecords_regex=None, valid_tfrecords_regex=None, feature_parsing_dict={},
@@ -254,11 +305,11 @@ def training_routine(output_dir, ckpt_prefix='model.ckpt', ckpt_num=None,
     iterator = tf.data.Iterator.from_string_handle(iterator_handle,
                                                    train_dataset.output_types,
                                                    train_dataset.output_shapes)
-    tensor_dict = iterator.get_next()
+    input_tensor_dict = iterator.get_next()
     
     ### Build the model graph and optimizer
     with tf.variable_scope('pitchnet'):
-        tensors = build_pitchnet_graph(model_pkl_file, tensor_dict,
+        tensors = build_pitchnet_graph(model_pkl_file, input_tensor_dict,
                                        f0_bin_parameters=f0_bin_parameters,
                                        feature_input_path=feature_input_path,
                                        feature_labels_path=feature_labels_path)
@@ -288,39 +339,36 @@ def training_routine(output_dir, ckpt_prefix='model.ckpt', ckpt_num=None,
     
     ### Main routine loop
     step = ckpt_num
+    display_tensors = {
+        'train_op': train_op,
+        'accuracy': tensors['accuracy'],
+        'loss':tensors['loss'],
+        'pred_labels': tensors['pred_labels'],
+    }
+    validation_tensors = {
+        'correct': tensors['correct'],
+    }
     try:
         while not coord.should_stop():
             if step % save_step == 0:
                 print('### SAVING MODEL CHECKPOINT: {}'.format(ckpt_fn_fmt.format(step)))
                 save_path = saver.save(sess, ckpt_fn_fmt.format(step), write_meta_graph=False)
                 
-                # TODO: put the validation check in a separate function and ensure batch norm is off
+                n_examples, n_correct = run_validation(sess, valid_feed_dict, valid_iterator.initializer,
+                                                    tensors_to_eval=validation_tensors)
+                print('### VALIDATION SET = {} of {} correct ({}%)'.format(n_correct, n_examples, 100*n_correct/n_examples))
+                # TODO: put the validation check in a separate function and ensure batch norm is off (OK)
                 # and save outputs to file
                 # WHY IS VALIDATION ACCURACY HALF AS HIGH AS TRAINING ACC ON SAME DATA????
-                run_valid = True
-                sess.run(valid_iterator.initializer)
-                total_examples = 0
-                total_correct = 0
-                while run_valid:
-                    try:
-                        corr = sess.run(tensors['correct'], feed_dict=valid_feed_dict)
-                        total_examples += len(corr)
-                        total_correct += np.sum(corr)
-                    except tf.errors.OutOfRangeError:
-                        print('### VALIDATION SET = {} of {} correct ({}%)'.format(
-                            total_correct, total_examples, 100*total_correct/total_examples))
-                        run_valid = False
-                        break
+
             
             if step % disp_step == 0:
-                _, acc, loss, pred = sess.run([train_op, tensors['accuracy'],
-                                               tensors['loss'], tensors['pred_labels']],
-                                              feed_dict=train_feed_dict)
-                print('# step={:06}, acc={:.3f}, loss={:.3f}'.format(step, acc, loss))
-            
+                disp_dict = sess.run(display_tensors, feed_dict=train_feed_dict)
+                print('# step={:06}, acc={:.3f}, loss={:.3f}'.format(step, disp_dict['accuracy'], disp_dict['loss']))            
             else: sess.run(train_op, feed_dict=train_feed_dict)
             step += 1
-    except:
+    except Exception as e:
+        print(e)
         coord.request_stop()
     finally:
         print('### SAVING FINAL MODEL CHECKPOINT: {}'.format(ckpt_fn_fmt.format(step)))
