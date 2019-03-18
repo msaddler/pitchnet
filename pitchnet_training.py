@@ -1,9 +1,69 @@
 import sys
 import tensorflow as tf
+from tensorflow.python.ops import math_ops
 import numpy as np
 import glob
 import os
-# import dill
+import pickle
+
+
+def build_net_from_pickle(tensor_input, model_pkl_file, bnorm_training=True, dropout_keep_prob=0.5):
+    ''' TEMPORARY UNTIL I CAN LOAD PICKLE FILES FROM INSIDE CONTAINER '''
+    x = tensor_input
+    num_classes=257
+    is_training = bnorm_training
+    keep_prob = dropout_keep_prob
+    ''' Build the tensorflow graph for network '''
+    
+    kernel_shapes = [(3,75), (3,25), (5,9), (3,5), (3,3)]
+    pooling_sizes = [(1,5), (1,2), (2,2), (2,2), (2,2)]
+    batch_norm_flags = [1, 1, 1, 1, 1]
+    layer_nfilts = [32, 64, 128, 256, 512]
+    
+    # Reshape input to use within network
+    with tf.variable_scope('input') as varscope:
+        y = tf.reshape(x, [-1, x.shape[1].value, x.shape[2].value, 1])
+        print(varscope.name, y.shape)
+    
+    # Build conv-pooling-normalization layers
+    for itr0 in range(len(layer_nfilts)):
+        with tf.variable_scope('conv{}'.format(itr0 + 1)) as varscope:
+            kernel_shape = [kernel_shapes[itr0][0], kernel_shapes[itr0][1],
+                            y.shape[3].value, layer_nfilts[itr0]]
+            pooling_size = [1, pooling_sizes[itr0][0], pooling_sizes[itr0][1], 1]
+            W = tf.Variable(tf.truncated_normal(kernel_shape, stddev = 0.1), name = 'W')
+            b = tf.Variable(tf.constant(0.1, shape = [layer_nfilts[itr0]]), name = 'b')
+            y = tf.nn.conv2d(y, W, strides = [1, 1, 1, 1], padding = 'SAME', name = 'conv')
+            y = tf.nn.max_pool(y, ksize = pooling_size, strides = pooling_size, padding = 'SAME', name = 'max_pool')
+            y = tf.nn.relu(y + b, name = 'relu') ### Moved this after max pool (MS 2018.11.05)
+            if batch_norm_flags[itr0]:
+                y = tf.layers.batch_normalization(y, training = is_training, name = 'batch_norm')
+            print(varscope.name, y.shape, W.name, W.shape)
+            
+    # Fully connected layer
+    with tf.variable_scope('fc1') as varscope:
+        fc1_channels = y.shape[3].value
+        kernel_shape = [y.shape[1].value * y.shape[2].value * y.shape[3].value, fc1_channels]
+        W = tf.Variable(tf.truncated_normal(kernel_shape, stddev = 0.1), name = 'W')
+        b = tf.Variable(tf.constant(0.1, shape = [fc1_channels]), name = 'b')
+        y = tf.reshape(y, [-1, y.shape[1].value * y.shape[2].value * y.shape[3].value])
+        y = tf.identity(tf.matmul(y, W) + b, name = 'fc1')
+        print(varscope.name, y.shape)
+        
+    # Dropout layer and readout layer
+    with tf.variable_scope('fc2') as varscope:   
+        y = tf.nn.dropout(y, keep_prob)
+        kernel_shape = [y.shape[1].value, num_classes]
+        W = tf.Variable(tf.truncated_normal(kernel_shape, stddev = 0.1), name = 'W')
+        b = tf.Variable(tf.constant(0.1, shape = [num_classes]), name = 'b')
+        y = tf.matmul(y, W) + b
+        print(varscope.name, y.shape)
+
+    return y
+
+
+
+
 
 
 def get_f0_bins(f0_min=100.0, f0_max=252.0, binwidth_in_octaves=1/192):
@@ -26,27 +86,33 @@ def get_f0_bins(f0_min=100.0, f0_max=252.0, binwidth_in_octaves=1/192):
     return bins
 
 
-def build_net_from_pickle(batch_input, model_pkl_file='/om/user/msaddler/models_pitch50ms_bez2018/arch160/net.pkl',
-                          bnorm_training=True, dropout_keep_prob=0.5):
-    with open(model_pkl_file, 'rb') as file:
-        net = dill.load(file)
-    assert len(batch_input.shape) == 4, 'Batch input shape must be [?, freq, time, channels]'
-    batch_logits, net_ops_list = net(batch_input, return_net_ops_list=True,
+def f0_to_bin_labels(f0_tensor, bins):
+    return math_ops._bucketize(f0_tensor, bins.tolist())
+
+
+def bin_labels_to_f0(labels_tensor, bins):
+    return tf.gather(bins.tolist(), labels_tensor)
+
+
+def OOC_build_net_from_pickle(tensor_input, model_pkl_file, bnorm_training=True, dropout_keep_prob=0.5):
+    net = pickle.load(open(model_pkl_file, 'rb'))
+    assert len(tensor_input.shape) == 4, 'Batch input shape must be [?, freq, time, channels]'
+    tensor_logits, net_ops_list = net(tensor_input, return_net_ops_list=True,
                                      bnorm_training=bnorm_training,
                                      dropout_keep_prob=dropout_keep_prob)
-    return batch_logits
+    return tensor_logits
 
 
 def build_input_iterator(tfrecords_regex, feature_parsing_dict={}, iterator_type='one-shot',
-                         num_epochs=1, batch_size=256, n_prefetch=1, buffer=1000):
+                         num_epochs=1, batch_size=128, n_prefetch=1, buffer=1000):
     '''
     Builds tensorflow iterator for feeding graph with data from tfrecords.
     
     Args
     ----
-    tfrecords_regex (string):
+    tfrecords_regex (str):
     feature_parsing_dict (dict):
-    iterator_type (string):
+    iterator_type (str):
     num_epochs (int):
     batch_size (int):
     n_prefetch (int):
@@ -90,7 +156,7 @@ def build_input_iterator(tfrecords_regex, feature_parsing_dict={}, iterator_type
     dataset = dataset.apply(tf.data.experimental.parallel_interleave(lambda x:tf.data.TFRecordDataset(x,
                             compression_type="GZIP").map(parse_tfrecord_example, num_parallel_calls=1),
                             cycle_length=10, block_length=16))
-    if num_epochs > 1: dataset = dataset.apply(tf.experimental.data.shuffle_and_repeat(buffer, num_epochs))
+    if num_epochs > 1: dataset = dataset.apply(tf.data.experimental.shuffle_and_repeat(buffer, num_epochs))
     dataset = dataset.batch(batch_size)
     dataset = dataset.prefetch(n_prefetch)
     
@@ -101,148 +167,187 @@ def build_input_iterator(tfrecords_regex, feature_parsing_dict={}, iterator_type
         iterator = dataset.make_initializable_iterator()
     else:
         assert False, 'iterator type not supported: use one-shot or initializeable'
-
     return iterator, dataset
 
 
-
-
-def train(model_fn, train_data_fn_list, label_path, meanrates_path, num_classes, hyperparameters = {}):
+def build_pitchnet_graph(model_pkl_file, tensor_dict, f0_bin_parameters={},
+                         feature_input_path='/meanrates', feature_labels_path='/f0'):
     
-    # Training hyperparameters
-    learning_rate = hyperparameters.get('learning_rate', 1e-4)
-    batch_size = hyperparameters.get('batch_size', 128)
-    num_epochs = hyperparameters.get('num_epochs', 1)
-    batches_per_epoch = hyperparameters.get('batches_per_epoch', int(480000 / batch_size))
-
-    # Reset default tensorflow graph
-    tf.reset_default_graph()
+    assert feature_labels_path == '/f0', 'Only F0-based labels/training is currently supported'
+    # TODO: number of classes should be input to net builder, bnorm_training + dropout need to be controlled by variables
     
-    # Assemble and batch training dataset from list of .tfrecords filenames
-    print('TRAINING DATA FN LIST:', len(train_data_fn_list))
-    print(train_data_fn_list[0])
-    print('...')
-    print(train_data_fn_list[-1])
-    batch_meanrates, batch_labels = assemble_input_pipeline(train_data_fn_list, label_path, meanrates_path,
-                                                            batch_size = batch_size, num_epochs = num_epochs)
-    
-    # Assemble model graph, loss function, and optimizer
-    y = build_model(batch_meanrates, num_classes, is_training = True) # Build tf graph
-    loss = tf.reduce_sum(tf.nn.sparse_softmax_cross_entropy_with_logits(labels = batch_labels, logits = y)) # Loss function
-    pred = tf.cast(tf.argmax(y, axis=1), tf.int64)
-    acc = tf.reduce_mean(tf.cast(tf.equal(pred, tf.cast(batch_labels, tf.int64)), tf.float32))
-    extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS) # <-- required to use tf.layers.batch_normalization
-    with tf.control_dependencies(extra_update_ops): # <-- required to use tf.layers.batch_normalization
-        train_step = tf.train.AdamOptimizer(learning_rate).minimize(loss) # Train step
-        
-    # Training routine
-    saver = tf.train.Saver(max_to_keep = 0) # Initialize saver
-    disp_step = 50 # Number of batches after which to display batch loss / training acc
-    with tf.Session() as sess:
-        sess.run(tf.local_variables_initializer())
-        sess.run(tf.global_variables_initializer())
-        coord = tf.train.Coordinator()
-        threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+    bins = get_f0_bins(**f0_bin_parameters)
+    tensors = {}
+    tensors['input'] = tensor_dict[feature_input_path]
+    tensors['f0'] = tensor_dict[feature_labels_path]
+    tensors['labels'] = f0_to_bin_labels(tensors['f0'], bins)
+    tensors['logits'] = build_net_from_pickle(tensors['input'], model_pkl_file,
+                                              bnorm_training=True, dropout_keep_prob=0.5)
+    tensors['loss'] = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels=tensors['labels'],
+                                                                                    logits=tensors['logits']))
+    tensors['softmax'] = tf.nn.softmax(tensors['logits'])
+    tensors['pred_labels'] = tf.cast(tf.argmax(tensors['logits'], axis=1), tensors['labels'].dtype)
+    tensors['pred_f0'] = bin_labels_to_f0(tensors['pred_labels'], bins)
+    tensors['correct'] = tf.equal(tensors['labels'], tensors['pred_labels'])
+    tensors['accuracy'] = tf.reduce_mean(tf.cast(tensors['correct'], tensors['logits'].dtype))
+    return tensors
 
-        if tf.train.checkpoint_exists(model_fn + '*'):
-            saved_checkpoints = sorted(glob.glob(model_fn + '*.index'))
-            saved_checkpoint_numbers = []
-            for s in saved_checkpoints:
-                s = s.replace(model_fn + '-', '')
-                s = s.replace('.index', '')
-                saved_checkpoint_numbers.append(int(s))
-            current_epoch = max(saved_checkpoint_numbers)
-            assert(current_epoch < num_epochs)
-            restore_fn = model_fn + '-{}'.format(current_epoch)
-            saver.restore(sess, restore_fn)
-            print('... [LOADING]: {}'.format(restore_fn))
+
+def build_saver(sess, var_list, output_dir, ckpt_prefix='model.ckpt', ckpt_num=None):
+    '''
+    This function creates a saver object and attempts to load a checkpoint.
+    If no restore_ckpt_num is specified, attempt to load latest checkpoint.
+    If no checkpoints are found, no checkpoint is loaded.
+    
+    Args
+    ----
+    sess (tf session object)
+    var_list (list): list of variables for tf saver object
+    output_dir (str): directory for model checkpoints
+    ckpt_prefix (str): filename for checkpoints in output_dir
+    ckpt_num (int or None): checkpoint number to load (None loads latest)
+    
+    Returns
+    -------
+    saver (tf saver object): saver for specified var_list
+    ckpt_fn_fmt (str): formattable ckpt filename (ends with `-{}` for ckpt_num)
+    ckpt_num (int): loaded ckpt_num (0 if no checkpoint loaded)
+    '''
+    ckpt_fn_fmt = os.path.join(output_dir, ckpt_prefix + '-{:06}')
+    saver = tf.train.Saver(var_list=var_list, max_to_keep=0)
+    if not ckpt_num == None:
+        print('### Loading variables from specified checkpoint: {}'.format(ckpt_fn_fmt.format(ckpt_num)))
+        saver.restore(sess, ckpt_fn_fmt.format(ckpt_num))
+    else:
+        saved_checkpoints = sorted(glob.glob(ckpt_fn_fmt[:ckpt_fn_fmt.find('-{')]  + '*.index'))
+        saved_checkpoint_numbers = [int(s.split('-')[-1].split('.')[0]) for s in saved_checkpoints]
+        if len(saved_checkpoint_numbers) > 0:
+            ckpt_num = np.max(saved_checkpoint_numbers)
+            print('### Loading variables from latest checkpoint: {}'.format(ckpt_fn_fmt.format(ckpt_num)))
+            saver.restore(sess, ckpt_fn_fmt.format(ckpt_num))
         else:
-            print('... NO saved checkpoint found: {}'.format(model_fn))
-            current_epoch = 0
-            
-        batch_count = current_epoch * batches_per_epoch
-        while not coord.should_stop(): 
-            if batch_count % batches_per_epoch == 0: # SAVE MODEL CHECKPOINT
-                current_epoch = int(np.floor(batch_count / batches_per_epoch))
-                save_path = saver.save(sess, model_fn, global_step = current_epoch)
-                print('... [SAVED]: {}'.format(save_path))
-            try: # EXECUTE TRAINING STEP
-                if batch_count % disp_step == 0:
-                    [tmp_loss, tmp_pred, tmp_acc, tmp_labels, _] = sess.run([loss, pred, acc, batch_labels, train_step])
-                    tmp = np.abs(tmp_pred - tmp_labels)
-                    print('  | step: {:^8} | loss: {:^8.1f} | acc: {:^8.4f}'.format(batch_count, tmp_loss, tmp_acc))
-                    print('__| ({},{},{},{}) of {} within (0,1,5,10) classes of true class'.format(
-                        np.sum(tmp <= 0), np.sum(tmp <= 1), np.sum(tmp <= 5), np.sum(tmp <= 10), batch_size))
-                    print('...', tmp_pred[0:16])
-                else:
-                    sess.run(train_step)
-                batch_count += 1
-            except tf.errors.OutOfRangeError:
-                coord.request_stop()
+            print('### No previous checkpoint found, restarting training: {}'.format(output_dir))
+            ckpt_num = 0
+    return saver, ckpt_fn_fmt, ckpt_num
+
+
+def training_routine(output_dir, ckpt_prefix='model.ckpt', ckpt_num=None,
+                     model_pkl_file='/om/user/msaddler/models_pitch50ms_bez2018/arch160/net.pkl',
+                     train_tfrecords_regex=None, valid_tfrecords_regex=None, feature_parsing_dict={},
+                     feature_input_path='/meanrates', feature_labels_path='/f0',
+                     learning_rate=1e-4, batch_size=128, num_epochs=1, save_step=3750, disp_step=100,
+                     f0_bin_parameters={}, random_seed=517, **kwargs):
+    
+    ### Reset default graph and set random seeds
+    tf.reset_default_graph()
+    tf.random.set_random_seed(random_seed)
+    np.random.seed(random_seed)
+    
+    ### Build input pipelines
+    train_iterator, train_dataset = build_input_iterator(train_tfrecords_regex,
+                                        feature_parsing_dict=feature_parsing_dict,
+                                        iterator_type='one-shot', num_epochs=num_epochs, batch_size=batch_size)
+    valid_iterator, train_dataset = build_input_iterator(valid_tfrecords_regex,
+                                        feature_parsing_dict=feature_parsing_dict,
+                                        iterator_type='initializable', num_epochs=1, batch_size=batch_size)
+    iterator_handle = tf.placeholder(tf.string, shape=[])
+    iterator = tf.data.Iterator.from_string_handle(iterator_handle,
+                                                   train_dataset.output_types,
+                                                   train_dataset.output_shapes)
+    tensor_dict = iterator.get_next()
+    
+    ### Build the model graph and optimizer
+    with tf.variable_scope('pitchnet'):
+        tensors = build_pitchnet_graph(model_pkl_file, tensor_dict,
+                                       f0_bin_parameters=f0_bin_parameters,
+                                       feature_input_path=feature_input_path,
+                                       feature_labels_path=feature_labels_path)
+    update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+    trainable_vars = tf.trainable_variables(scope='pitchnet')
+    with tf.control_dependencies(update_ops + trainable_vars):
+        train_op = tf.train.AdamOptimizer(learning_rate).minimize(tensors['loss'])
+
+    ### Start the tensorflow session, initialize graph, prepare iterator handles
+    init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
+    config = tf.ConfigProto(allow_soft_placement=True, inter_op_parallelism_threads=0, intra_op_parallelism_threads=0)
+    run_metadata = tf.RunMetadata()
+    options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+    sess = tf.Session(config=config)
+    sess.run(init_op)
+    train_handle = sess.run(train_iterator.string_handle())
+    valid_handle = sess.run(valid_iterator.string_handle())
+    train_feed_dict = {iterator_handle: train_handle}
+    valid_feed_dict = {iterator_handle: valid_handle}
+    coord = tf.train.Coordinator()
+    
+    ### Build saver and attempt to restore variables from checkpoint
+    pitchnet_globals = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='pitchnet')
+    pitchnet_locals = tf.get_collection(tf.GraphKeys.LOCAL_VARIABLES, scope='pitchnet')
+    saver, ckpt_fn_fmt, ckpt_num = build_saver(sess, pitchnet_globals+pitchnet_locals,
+                                               output_dir, ckpt_prefix=ckpt_prefix, ckpt_num=ckpt_num)
+    
+    ### Main routine loop
+    step = ckpt_num
+    try:
+        while not coord.should_stop():
+            if step % save_step == 0:
+                print('### SAVING MODEL CHECKPOINT: {}'.format(ckpt_fn_fmt.format(step)))
+                save_path = saver.save(sess, ckpt_fn_fmt.format(step), write_meta_graph=False)
                 
+                # TODO: put the validation check in a separate function and ensure batch norm is off
+                # and save outputs to file
+                # WHY IS VALIDATION ACCURACY HALF AS HIGH AS TRAINING ACC ON SAME DATA????
+                run_valid = True
+                sess.run(valid_iterator.initializer)
+                total_examples = 0
+                total_correct = 0
+                while run_valid:
+                    try:
+                        corr = sess.run(tensors['correct'], feed_dict=valid_feed_dict)
+                        total_examples += len(corr)
+                        total_correct += np.sum(corr)
+                    except tf.errors.OutOfRangeError:
+                        print('### VALIDATION SET = {} of {} correct ({}%)'.format(
+                            total_correct, total_examples, 100*total_correct/total_examples))
+                        run_valid = False
+                        break
+            
+            if step % disp_step == 0:
+                _, acc, loss, pred = sess.run([train_op, tensors['accuracy'],
+                                               tensors['loss'], tensors['pred_labels']],
+                                              feed_dict=train_feed_dict)
+                print('# step={:06}, acc={:.3f}, loss={:.3f}'.format(step, acc, loss))
+            
+            else: sess.run(train_op, feed_dict=train_feed_dict)
+            step += 1
+    except:
         coord.request_stop()
-        coord.join(threads)
-        current_epoch = int(np.floor(batch_count / batches_per_epoch))
-        save_path = saver.save(sess, model_fn, global_step = current_epoch)
-        print('... [SAVED]: {}'.format(save_path))
-        sess.close()
+    finally:
+        print('### SAVING FINAL MODEL CHECKPOINT: {}'.format(ckpt_fn_fmt.format(step)))
+        save_path = saver.save(sess, ckpt_fn_fmt.format(step), write_meta_graph=False)
+        
+    sess.close()
+    tf.reset_default_graph()
+    return
+
 
 
 if __name__ == "__main__":
-    # SET UP SCRIPT TO RUN FROM COMMAND LINE
+    train_tfrecords_regex = '/om/user/msaddler/data_tmp/bernox2005stimset_2018-11-29-1930_CF50-SR70-sp2-cohc00_filt00_thresh33dB_00*.tfrecords'
+    valid_tfrecords_regex = '/om/user/msaddler/data_tmp/bernox2005stimset_2018-11-29-1930_CF50-SR70-sp2-cohc00_filt00_thresh33dB_00*.tfrecords'
+    
+    output_dir = '/om/user/msaddler/tmp_model'
+    feature_parsing_dict = {
+        '/meanrates': {'dtype': tf.float32, 'shape':[50, 500, 1]},
+        '/f0': {'dtype': tf.float32},
+    }
 
-    if not len(sys.argv) == 2:
-        print('COMMAND LINE USAGE: run <script_name.py> <job_id>')
-        assert(False)
-
-    # Filenames for saving tensorflow models (.ckpt files)
-    list_model_fn = [
-        # 0-2 Species 2
-        '/om/user/msaddler/models_pitch50ms_bez2018/arch160/NRTW-jwss_train_CF50-SR70-sp2_filt00_30-90dB_meanrates0.ckpt',
-        '/om/user/msaddler/models_pitch50ms_bez2018/arch160/NRTW-jwss_train_CF50-SR70-sp2_filt00_30-90dB_meanrates1.ckpt',
-        '/om/user/msaddler/models_pitch50ms_bez2018/arch160/NRTW-jwss_train_CF50-SR70-sp2_filt00_30-90dB_meanrates2.ckpt',
-        # 3-5 Species 1
-        '/om/user/msaddler/models_pitch50ms_bez2018/arch160/NRTW-jwss_train_CF50-SR70-sp1_filt00_30-90dB_meanrates0.ckpt',
-        '/om/user/msaddler/models_pitch50ms_bez2018/arch160/NRTW-jwss_train_CF50-SR70-sp1_filt00_30-90dB_meanrates1.ckpt',
-        '/om/user/msaddler/models_pitch50ms_bez2018/arch160/NRTW-jwss_train_CF50-SR70-sp1_filt00_30-90dB_meanrates2.ckpt',
-        # 6-8 Species 2, cohc00
-        '/om/user/msaddler/models_pitch50ms_bez2018/arch160/NRTW-jwss_train_CF50-SR70-sp2-cohc00_filt00_30-90dB_meanrates0.ckpt',
-        '/om/user/msaddler/models_pitch50ms_bez2018/arch160/NRTW-jwss_train_CF50-SR70-sp2-cohc00_filt00_30-90dB_meanrates1.ckpt',
-        '/om/user/msaddler/models_pitch50ms_bez2018/arch160/NRTW-jwss_train_CF50-SR70-sp2-cohc00_filt00_30-90dB_meanrates2.ckpt',
-    ]
-
-    # Filenames for hdf5 training datasets
-    list_data_regex = [
-        # 0-2 Species 2
-        '/om/user/msaddler/data_pitch50ms_bez2018/NRTW-jwss_train_CF50-SR70-sp2_filt00_30-90dB_*-*.tfrecords',
-        '/om/user/msaddler/data_pitch50ms_bez2018/NRTW-jwss_train_CF50-SR70-sp2_filt00_30-90dB_*-*.tfrecords',
-        '/om/user/msaddler/data_pitch50ms_bez2018/NRTW-jwss_train_CF50-SR70-sp2_filt00_30-90dB_*-*.tfrecords',
-        # 3-5 Species 1
-        '/om/user/msaddler/data_pitch50ms_bez2018/NRTW-jwss_train_CF50-SR70-sp1_filt00_30-90dB_*-*.tfrecords',
-        '/om/user/msaddler/data_pitch50ms_bez2018/NRTW-jwss_train_CF50-SR70-sp1_filt00_30-90dB_*-*.tfrecords',
-        '/om/user/msaddler/data_pitch50ms_bez2018/NRTW-jwss_train_CF50-SR70-sp1_filt00_30-90dB_*-*.tfrecords',
-        # 6-8 Species 2, cohc00
-        '/om/user/msaddler/data_pitch50ms_bez2018/NRTW-jwss_train_CF50-SR70-sp2-cohc00_filt00_30-90dB_*-*.tfrecords',
-        '/om/user/msaddler/data_pitch50ms_bez2018/NRTW-jwss_train_CF50-SR70-sp2-cohc00_filt00_30-90dB_*-*.tfrecords',
-        '/om/user/msaddler/data_pitch50ms_bez2018/NRTW-jwss_train_CF50-SR70-sp2-cohc00_filt00_30-90dB_*-*.tfrecords',
-    ]
-
-    # Use job_id from command line argument to select filenames, dataset, and inputs
-    job_id = int(sys.argv[1])
-    model_fn = list_model_fn[job_id]
-    data_regex = list_data_regex[job_id]
-    train_data_fn_list = sorted(glob.glob(data_regex))
-
-    label_path = 'labels'
-    num_classes = 257
-    meanrates_path = 'meanrates'
-
-    hyperparameters = {'learning_rate':1e-4, 'batch_size':128, 'num_epochs':40}
-
-    print('### [START] model_fn:', model_fn)
-    print('### [START] data_regex:', data_regex)
-    print('### [START] model_input_path:', meanrates_path)
-    print('### [START] labels_path:', label_path, num_classes)
-    train(model_fn, train_data_fn_list, label_path, meanrates_path, num_classes,
-          hyperparameters = hyperparameters)
-    print('### [END] model_fn:', model_fn)
+    if not os.path.exists(output_dir): os.makedirs(output_dir)
+    training_routine(output_dir, ckpt_prefix='model.ckpt', ckpt_num=None,
+                                   model_pkl_file='/om/user/msaddler/models_pitch50ms_bez2018/arch160/net.pkl',
+                                   train_tfrecords_regex=train_tfrecords_regex,
+                                   valid_tfrecords_regex=valid_tfrecords_regex,
+                                   feature_parsing_dict=feature_parsing_dict,
+                                   feature_input_path='/meanrates', feature_labels_path='/f0',
+                                   learning_rate=1e-4, batch_size=128, num_epochs=100, save_step=250, disp_step=10,
+                                   f0_bin_parameters={}, random_seed=517)
