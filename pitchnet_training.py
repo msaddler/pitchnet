@@ -191,7 +191,7 @@ def build_pitchnet_graph(model_pkl_file, input_tensor_dict, f0_bin_parameters={}
     tensors (dict): dictionary of useful tensors (i.e. loss, accuracy, predictions, etc.)
     '''
     
-    assert feature_labels_path == '/f0', 'Only F0-based labels/training is currently supported'
+    assert 'f0' in feature_labels_path, 'Only F0-based labels/training is currently supported'
     # TODO: number of classes should be input to net builder, bnorm_training + dropout need to be controlled by variables
     
     bins = get_f0_bins(**f0_bin_parameters)
@@ -353,14 +353,13 @@ def training_routine(output_dir, ckpt_prefix='model.ckpt', ckpt_num=None,
             if step % save_step == 0:
                 print('### SAVING MODEL CHECKPOINT: {}'.format(ckpt_fn_fmt.format(step)))
                 save_path = saver.save(sess, ckpt_fn_fmt.format(step), write_meta_graph=False)
-                
+                print('### EVALUATING MODEL ON VALIDATION SET ...')
                 n_examples, n_correct = run_validation(sess, valid_feed_dict, valid_iterator.initializer,
                                                     tensors_to_eval=validation_tensors)
                 print('### VALIDATION SET = {} of {} correct ({}%)'.format(n_correct, n_examples, 100*n_correct/n_examples))
                 # TODO: put the validation check in a separate function and ensure batch norm is off (OK)
                 # and save outputs to file
                 # WHY IS VALIDATION ACCURACY HALF AS HIGH AS TRAINING ACC ON SAME DATA????
-
             
             if step % disp_step == 0:
                 disp_dict = sess.run(display_tensors, feed_dict=train_feed_dict)
@@ -381,13 +380,13 @@ def training_routine(output_dir, ckpt_prefix='model.ckpt', ckpt_num=None,
 
 
 if __name__ == "__main__":
-    train_tfrecords_regex = '/om/user/msaddler/data_tmp/bernox2005stimset_2018-11-29-1930_CF50-SR70-sp2-cohc00_filt00_thresh33dB_00*.tfrecords'
-    valid_tfrecords_regex = '/om/user/msaddler/data_tmp/bernox2005stimset_2018-11-29-1930_CF50-SR70-sp2-cohc00_filt00_thresh33dB_00*.tfrecords'
+    train_tfrecords_regex = '/om/user/msaddler/data_pitch50ms_bez2018/NRTW-jwss_train_CF50-SR70-sp2_filt00_30-90dB_*.tfrecords'
+    valid_tfrecords_regex = '/om/user/msaddler/data_pitch50ms_bez2018/NRTW-jwss_valid_CF50-SR70-sp2_filt00_30-90dB_*.tfrecords'
     
-    output_dir = '/om/user/msaddler/tmp_model'
+    output_dir = '/om/user/msaddler/test_model_f0-arch160-sp2-NRTW-jwss'
     feature_parsing_dict = {
-        '/meanrates': {'dtype': tf.float32, 'shape':[50, 500, 1]},
-        '/f0': {'dtype': tf.float32},
+        'meanrates': {'dtype': tf.float32, 'shape':[50, 500, 1]},
+        'f0': {'dtype': tf.float32},
     }
 
     if not os.path.exists(output_dir): os.makedirs(output_dir)
@@ -396,6 +395,6 @@ if __name__ == "__main__":
                                    train_tfrecords_regex=train_tfrecords_regex,
                                    valid_tfrecords_regex=valid_tfrecords_regex,
                                    feature_parsing_dict=feature_parsing_dict,
-                                   feature_input_path='/meanrates', feature_labels_path='/f0',
-                                   learning_rate=1e-4, batch_size=128, num_epochs=100, save_step=250, disp_step=10,
+                                   feature_input_path='meanrates', feature_labels_path='f0',
+                                   learning_rate=1e-4, batch_size=128, num_epochs=50, save_step=3750, disp_step=150,
                                    f0_bin_parameters={}, random_seed=517)
