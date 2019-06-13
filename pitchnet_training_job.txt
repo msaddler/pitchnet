@@ -1,0 +1,24 @@
+#!/bin/bash
+#
+#SBATCH --job-name=pitchnet_train
+
+#SBATCH --gres=gpu:GEFORCEGTX1080TI:1
+#SBATCH --nodelist=node062#node069,node070,node062,node063 # 1080 NODES
+
+###SBATCH --gres=gpu:titan-x:1
+###SBATCH --nodelist=node045,node046,node047,node048,node049 # TITAN NODES
+
+#SBATCH --mem=6000
+#SBATCH --time=0-48:00:00
+#SBATCH --time-min=0-24:00:00
+#SBATCH --array=0
+#SBATCH --qos=mcdermott
+##SBATCH --dependency=afterok:12746315
+
+module add openmind/singularity
+PYTHON="$(which python)"
+
+offset=0
+job_id=$(($SLURM_ARRAY_TASK_ID + $offset))
+
+singularity exec --nv -B /home -B /om -B /om2 -B /nobackup /om2/user/msaddler/singularity-images/tfv1.13_openmind_2019-03-18.simg $PYTHON -u pitchnet_training.py
