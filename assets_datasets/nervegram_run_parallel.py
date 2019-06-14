@@ -23,10 +23,8 @@ if __name__ == "__main__":
         'f0',
         'snr',
     ]
-    kwargs = {
-        'kwargs_nervegram_meanrates': {
-            'meanrates_params': {'dur': 0.05}
-        }
+    kwargs_nervegram_meanrates = {
+        'meanrates_params': {'dur': 0.05}
     }
     
     parallel_run_dataset_generation(source_regex, dest_filename,
@@ -34,4 +32,4 @@ if __name__ == "__main__":
                                     source_key_signal=source_key_signal,
                                     source_key_signal_fs=source_key_signal_fs,
                                     source_keys_to_copy=source_keys_to_copy,
-                                    **kwargs)
+                                    kwargs_nervegram_meanrates=kwargs_nervegram_meanrates)
