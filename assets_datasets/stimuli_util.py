@@ -159,13 +159,15 @@ def flat_spectrum_noise(fs, dur, dBHzSPL=15.):
 def modified_uniform_masking_noise(fs, dur, dBHzSPL=15., attenuation_start=600., attenuation_slope=2):
     '''
     Function for generating modified uniform masking noise as described by
-    Bernstein & Oxenham, JASA 117-6 3818 (June 2005).
+    Bernstein & Oxenham, JASA 117-6 3818 (June 2005). Long-term spectrum level
+    is flat below `attenuation_start` (Hz) and rolls off at `attenuation_slope`
+    (dB/octave) above `attenuation_start` (Hz).
     
     Args
     ----
     fs (int): sampling rate of noise (Hz)
     dur (float): duration of noise (s)
-    dBHzSPL (float): power spectral density above attenuation_start (units dB/Hz re 20e-6 Pa)
+    dBHzSPL (float): power spectral density below attenuation_start (units dB/Hz re 20e-6 Pa)
     attenuation_start (float): cutoff frequency for start of attenuation (Hz)
     attenuation_slope (float): slope in units of dB/octave above attenuation_start
     
