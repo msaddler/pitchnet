@@ -56,14 +56,15 @@ def power_spectrum(x, fs, rfft=True, dBSPL=True):
     Returns
     -------
     freqs (np array): frequency vector (Hz)
-    power_spectrum (np array): power spectrum (Pa^2 or dB SPL)
+    power_spectrum (np array): power spectrum (Pa^2/Hz or dB/Hz SPL)
     '''
     if rfft:
-        power_spectrum = np.square(np.abs(np.fft.rfft(x) / len(x)))
+        power_spectrum = np.square(np.abs(np.fft.rfft(x)))
         freqs = np.fft.rfftfreq(len(x), d=1/fs)
     else:
-        power_spectrum = np.square(np.abs(np.fft.fft(x) / len(x)))
+        power_spectrum = np.square(np.abs(np.fft.fft(x)))
         freqs = np.fft.fftfreq(len(x), d=1/fs)
+    power_spectrum = power_spectrum / (fs * len(x)) # Rescale to PSD
     if dBSPL:
         power_spectrum = 10. * np.log10(power_spectrum / np.square(20e-6)) 
     return freqs, power_spectrum
@@ -124,3 +125,61 @@ def complex_tone(f0, fs, dur, harmonic_numbers=[1], amplitudes=None, phase_mode=
             else: break
         signal += amp * np.sin(2*np.pi*f*t + phase)
     return signal
+
+
+def flat_spectrum_noise(fs, dur, dBHzSPL=15.):
+    '''
+    Function for generating random noise with a maximally flat spectrum.
+    
+    Args
+    ----
+    fs (int): sampling rate of noise (Hz)
+    dur (float): duration of noise (s)
+    dBHzSPL (float): power spectral density in units dB/Hz re 20e-6 Pa
+    
+    Returns
+    -------
+    (np array): noise waveform (Pa)
+    '''
+    # Create flat-spectrum noise in the frequency domain
+    fxx = np.ones(int(dur*fs), dtype=np.complex128)
+    Npos = int((len(fxx)-1)/2)
+    phases = np.random.uniform(low=0., high=2*np.pi, size=[Npos])
+    phases = np.cos(phases) + 1j * np.sin(phases)
+    fxx[1:Npos+1] = fxx[1:Npos+1] * phases
+    fxx[Npos+2:] = fxx[Npos+2:] * np.flip(phases, axis=0)
+    x = np.real(np.fft.ifft(fxx))
+    # Re-scale to specified PSD (in units dB/Hz SPL)
+    # dBHzSPL = 10 * np.log10 ( PSD / (20e-6 Pa)^2 ), where PSD has units Pa^2 / Hz
+    PSD = np.power(10, (dBHzSPL/10)) * np.square(20e-6)
+    A_rms = np.sqrt(PSD * fs/2)
+    return A_rms * x / rms(x)
+
+
+def modified_uniform_masking_noise(fs, dur, dBHzSPL=15., attenuation_start=600., attenuation_slope=2):
+    '''
+    Function for generating modified uniform masking noise as described by
+    Bernstein & Oxenham, JASA 117-6 3818 (June 2005).
+    
+    Args
+    ----
+    fs (int): sampling rate of noise (Hz)
+    dur (float): duration of noise (s)
+    dBHzSPL (float): power spectral density above attenuation_start (units dB/Hz re 20e-6 Pa)
+    attenuation_start (float): cutoff frequency for start of attenuation (Hz)
+    attenuation_slope (float): slope in units of dB/octave above attenuation_start
+    
+    Returns
+    -------
+    (np array): noise waveform (Pa)
+    '''
+    x = flat_spectrum_noise(fs, dur, dBHzSPL=dBHzSPL)
+    fxx = np.fft.fft(x)
+    freqs = np.fft.fftfreq(len(x), d=1/fs)
+    dB_attenuation = np.zeros_like(freqs)
+    nzidx = np.abs(freqs) > 0
+    dB_attenuation[nzidx] = -attenuation_slope * np.log2(np.abs(freqs[nzidx]) / attenuation_start)
+    dB_attenuation[dB_attenuation > 0] = 0
+    amplitudes = np.power(10, (dB_attenuation/20))
+    fxx = fxx * amplitudes
+    return np.real(np.fft.ifft(fxx))
