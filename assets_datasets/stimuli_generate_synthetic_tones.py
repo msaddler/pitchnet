@@ -132,8 +132,8 @@ def power_spectrum(x, fs, rfft=True, dBSPL=True):
 def generate_lowpass_complex_tone_dataset(hdf5_filename, N, fs=32e3, dur=0.150,
                                           disp_step=100, f0_min=80., f0_max=1e3,
                                           amp_noise=0., phase_mode_list=['sine'],
-                                          atten_start_min=8., atten_start_max=8e3,
-                                          atten_slope_min=4., atten_slope_max=40.):
+                                          atten_start_min=10., atten_start_max=4e3,
+                                          atten_slope_min=10., atten_slope_max=60.):
     '''
     Main routine for generating a dataset of randomly-sampled lowpass complex tones.
     
@@ -157,7 +157,7 @@ def generate_lowpass_complex_tone_dataset(hdf5_filename, N, fs=32e3, dur=0.150,
     f0_list = np.exp(np.random.uniform(np.log(f0_min), np.log(f0_max), size=[N]))
     phase_mode_list = np.random.choice(phase_mode_list, size=[N])
     attenuation_start_list = np.exp(np.random.uniform(np.log(atten_start_min), np.log(atten_start_max), size=[N]))
-    attenuation_slope_list = np.exp(np.random.uniform(np.log(atten_slope_min), np.log(atten_slope_max), size=[N]))
+    attenuation_slope_list = np.random.uniform(atten_slope_min, atten_slope_max, size=[N])
     # Define encoding / decoding dictionaries for phase_mode
     phase_mode_encoding = {'sine':0, 'rand':1, 'sch':2, 'cos':3, 'alt':4}
     phase_mode_decoding = {0:'sine', 1:'rand', 2:'sch', 3:'cos', 4:'alt'}
