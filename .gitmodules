@@ -1,0 +1,3 @@
+[submodule "ibmHearingAid"]
+	path = ibmHearingAid
+	url = git@github.mit.edu:jfeather/ibmHearingAid.git
