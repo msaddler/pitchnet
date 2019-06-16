@@ -100,7 +100,7 @@ def generate_lowpass_complex_tone_dataset(hdf5_filename, N, fs=32e3, dur=0.150,
                                       attenuation_slope=attenuation_slope_list[itrN],
                                       phase_mode=phase_mode_list[itrN],
                                       amp_noise=amp_noise)
-        data_dict['tone'] = signal
+        data_dict['tone'] = signal.astype(np.float32)
         data_dict['f0'] = f0_list[itrN]
         data_dict['attenuation_start'] = attenuation_start_list[itrN]
         data_dict['attenuation_slope'] = attenuation_slope_list[itrN]
@@ -114,7 +114,7 @@ def generate_lowpass_complex_tone_dataset(hdf5_filename, N, fs=32e3, dur=0.150,
             initialize_hdf5_file(hdf5_filename, N, data_dict, file_mode='w',
                                  data_key_pair_list=data_key_pair_list,
                                  config_key_pair_list=config_key_pair_list,
-                                 dtype=np.float32, cast_data=True, cast_config=False)
+                                 dtype=np.float32, cast_data=False, cast_config=False)
             hdf5_f = h5py.File(hdf5_filename, 'r+')
         # Write each data_dict to hdf5 file
         write_example_to_hdf5(hdf5_f, data_dict, itrN, data_key_pair_list=data_key_pair_list)
