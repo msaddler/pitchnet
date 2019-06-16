@@ -1,19 +1,19 @@
 import sys
 import tensorflow as tf
-from tensorflow.python.ops import math_ops
 import numpy as np
 import glob
 import os
 
-sys.path.append('/om2/user/msaddler/phaselocking_pitchnet/netBuilder') # Add Ray's netBuilder to path
-import dill # Required to load Ray's pickled networks
-from netBuilder import layerGeneratorMotif # Required to load Ray's pickled networks
+#sys.path.append('/om2/user/msaddler/phaselocking_pitchnet/netBuilder') # Add Ray's netBuilder to path
+#import dill # Required to load Ray's pickled networks
+#from netBuilder import layerGeneratorMotif # Required to load Ray's pickled networks
+
+import pdb
 
 
-def OOC_build_net_from_pickle(tensor_input, model_pkl_file, bnorm_training=True, dropout_keep_prob=0.5):
+def build_net_from_pickle(tensor_input, model_pkl_file, num_classes=700, bnorm_training=True, dropout_keep_prob=0.5):
     ''' TEMPORARY UNTIL I CAN LOAD PICKLE FILES FROM INSIDE CONTAINER '''
     x = tensor_input
-    num_classes=257
     is_training = bnorm_training
     keep_prob = dropout_keep_prob
     ''' Build the tensorflow graph for network '''
@@ -65,48 +65,20 @@ def OOC_build_net_from_pickle(tensor_input, model_pkl_file, bnorm_training=True,
     return y
 
 
-
-
-
-def get_f0_bins(f0_min=100.0, f0_max=252.0, binwidth_in_octaves=1/192):
-    '''
-    Get f0 bins for digitizing f0 values to log-spaced bins.
-    
-    Args
-    ----
-    f0_min (float): minimum f0 value, sets reference value for bins
-    f0_max (float): maximum f0 value, determines number of bins
-    binwidth_in_octaves (float): octaves above f0_min (1/192 = 1/16 semitone bins)
-    
-    Returns
-    -------
-    bins (array of float): f0 bins
-    '''
-    max_octave = np.log2(f0_max / f0_min)
-    bins = np.arange(0, max_octave, binwidth_in_octaves)
-    bins = f0_min * (np.power(2, bins))
-    return bins
-
-
-def f0_to_bin_labels(f0_tensor, bins):
-    return math_ops._bucketize(f0_tensor, bins.tolist())
-
-
-def bin_labels_to_f0(labels_tensor, bins):
-    return tf.gather(bins.tolist(), labels_tensor)
-
-
-def build_net_from_pickle(tensor_input, model_pkl_file, bnorm_training=True, dropout_keep_prob=0.5):
+def OOC_build_net_from_pickle(tensor_input, model_pkl_file, num_classes=700, bnorm_training=True, dropout_keep_prob=0.5):
+    """ DOES NOT WORK FOR num_classes != 257 """
     net = dill.load(open(model_pkl_file, 'rb'))
-    assert len(tensor_input.shape) == 4, 'Batch input shape must be [?, freq, time, channels]'
-    tensor_logits, net_ops_list = net(tensor_input, return_net_ops_list=True,
-                                     bnorm_training=bnorm_training,
-                                     dropout_keep_prob=dropout_keep_prob)
+    pdb.set_trace()
+    if len(tensor_input.shape) < 4:
+        tensor_input = tf.expand_dims(tensor_input, axis=3)
+    tensor_logits, net_ops_list = net(tensor_input, n_classes=num_classes, return_net_ops_list=True,
+                                      bnorm_training=bnorm_training,
+                                      dropout_keep_prob=dropout_keep_prob)
     return tensor_logits
 
 
 def build_input_iterator(tfrecords_regex, feature_parsing_dict={}, iterator_type='one-shot',
-                         num_epochs=1, batch_size=128, n_prefetch=1, buffer=1000):
+                         num_epochs=None, batch_size=128, n_prefetch=10, buffer=6000):
     '''
     Builds tensorflow iterator for feeding graph with data from tfrecords.
     
@@ -158,7 +130,7 @@ def build_input_iterator(tfrecords_regex, feature_parsing_dict={}, iterator_type
     dataset = dataset.apply(tf.data.experimental.parallel_interleave(lambda x:tf.data.TFRecordDataset(x,
                             compression_type="GZIP").map(parse_tfrecord_example, num_parallel_calls=1),
                             cycle_length=10, block_length=16))
-    if num_epochs > 1: dataset = dataset.apply(tf.data.experimental.shuffle_and_repeat(buffer, num_epochs))
+    if not num_epochs == 1: dataset = dataset.apply(tf.data.experimental.shuffle_and_repeat(buffer, num_epochs))
     dataset = dataset.batch(batch_size)
     dataset = dataset.prefetch(n_prefetch)
     
@@ -172,40 +144,33 @@ def build_input_iterator(tfrecords_regex, feature_parsing_dict={}, iterator_type
     return iterator, dataset
 
 
-def build_pitchnet_graph(model_pkl_file, input_tensor_dict, f0_bin_parameters={},
-                         feature_input_path='/meanrates', feature_labels_path='/f0'):
+def build_pitchnet_graph(model_pkl_file, input_tensor_dict, num_classes=700,
+                         feature_input_path='meanrates', feature_labels_path='f0_label'):
     '''
     This function assembles the network and returns a dictionary of tensors.
     
     Args
     ----
     model_pkl_file (str): filename of pickled function to build network architecture
+    num_classes (int): number of classes
     input_tensor_dict (dict): dictionary of tensors returned by the iterator
-    f0_bin_parameters (dict): dictionary of `get_f0_bins` kwargs
     feature_input_path (str): key in input_tensor_dict that points to network input
     feature_label_path (str): key in input_tensor_dict that points to training labels
-        Note: currently labels must be F0 values, which are converted to F0 bin labels
     
     Returns
     -------
     tensors (dict): dictionary of useful tensors (i.e. loss, accuracy, predictions, etc.)
     '''
     
-    assert 'f0' in feature_labels_path, 'Only F0-based labels/training is currently supported'
-    # TODO: number of classes should be input to net builder, bnorm_training + dropout need to be controlled by variables
-    
-    bins = get_f0_bins(**f0_bin_parameters)
     tensors = {}
     tensors['input'] = input_tensor_dict[feature_input_path]
-    tensors['f0'] = input_tensor_dict[feature_labels_path]
-    tensors['labels'] = f0_to_bin_labels(tensors['f0'], bins)
-    tensors['logits'] = build_net_from_pickle(tensors['input'], model_pkl_file,
+    tensors['labels'] = input_tensor_dict[feature_labels_path]
+    tensors['logits'] = build_net_from_pickle(tensors['input'], model_pkl_file, num_classes=num_classes,
                                               bnorm_training=True, dropout_keep_prob=0.5)
     tensors['loss'] = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels=tensors['labels'],
                                                                                     logits=tensors['logits']))
     tensors['softmax'] = tf.nn.softmax(tensors['logits'])
     tensors['pred_labels'] = tf.cast(tf.argmax(tensors['logits'], axis=1), tensors['labels'].dtype)
-    tensors['pred_f0'] = bin_labels_to_f0(tensors['pred_labels'], bins)
     tensors['correct'] = tf.equal(tensors['labels'], tensors['pred_labels'])
     tensors['accuracy'] = tf.reduce_mean(tf.cast(tensors['correct'], tensors['logits'].dtype))
     return tensors
@@ -285,9 +250,9 @@ def run_validation(sess, valid_feed_dict, valid_init_op, tensors_to_eval={}):
 def training_routine(output_dir, ckpt_prefix='model.ckpt', ckpt_num=None,
                      model_pkl_file='/om/user/msaddler/models_pitch50ms_bez2018/arch160/net.pkl',
                      train_tfrecords_regex=None, valid_tfrecords_regex=None, feature_parsing_dict={},
-                     feature_input_path='/meanrates', feature_labels_path='/f0',
-                     learning_rate=1e-4, batch_size=128, num_epochs=1, save_step=3750, disp_step=100,
-                     f0_bin_parameters={}, random_seed=517, **kwargs):
+                     feature_input_path='meanrates', feature_labels_path='f0_label', num_classes=700,
+                     learning_rate=1e-4, batch_size=128, num_epochs=None, save_step=4000, disp_step=100,
+                     random_seed=517, **kwargs):
     
     ### Reset default graph and set random seeds
     tf.reset_default_graph()
@@ -310,7 +275,7 @@ def training_routine(output_dir, ckpt_prefix='model.ckpt', ckpt_num=None,
     ### Build the model graph and optimizer
     with tf.variable_scope('pitchnet'):
         tensors = build_pitchnet_graph(model_pkl_file, input_tensor_dict,
-                                       f0_bin_parameters=f0_bin_parameters,
+                                       num_classes=num_classes,
                                        feature_input_path=feature_input_path,
                                        feature_labels_path=feature_labels_path)
     update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -378,23 +343,25 @@ def training_routine(output_dir, ckpt_prefix='model.ckpt', ckpt_num=None,
     return
 
 
-
 if __name__ == "__main__":
-    train_tfrecords_regex = '/om/user/msaddler/data_pitch50ms_bez2018/NRTW-jwss_train_CF50-SR70-sp2_filt00_30-90dB_*.tfrecords'
-    valid_tfrecords_regex = '/om/user/msaddler/data_pitch50ms_bez2018/NRTW-jwss_valid_CF50-SR70-sp2_filt00_30-90dB_*.tfrecords'
+    '''
+    singularity exec --nv -B /om -B /om2 -B /nobackup /om2/user/msaddler/singularity-images/tensorflow-1.13.1-gpu-py3.img python -u pitchnet_training.py
+    '''
+    train_tfrecords_regex = '/om/user/msaddler/data_pitchnet/SyntheticTonesLowpass/v1/cf050_species002_spont070/*.tfrecords'
+    valid_tfrecords_regex = '/om/user/msaddler/data_pitchnet/SyntheticTonesLowpass/v1/cf050_species002_spont070/valid/*.tfrecords'
     
-    output_dir = '/om/user/msaddler/test_model_f0-arch160-sp2-NRTW-jwss'
+    output_dir = '/om2/user/msaddler/pitchnet/test_700classes'
     feature_parsing_dict = {
-        'meanrates': {'dtype': tf.float32, 'shape':[50, 500, 1]},
-        'f0': {'dtype': tf.float32},
+        'meanrates': {'dtype': tf.float32, 'shape':[50, 500]},
+        'f0_label': {'dtype': tf.int64},
     }
-
+    
     if not os.path.exists(output_dir): os.makedirs(output_dir)
     training_routine(output_dir, ckpt_prefix='model.ckpt', ckpt_num=None,
-                                   model_pkl_file='/om/user/msaddler/models_pitch50ms_bez2018/arch160/net.pkl',
-                                   train_tfrecords_regex=train_tfrecords_regex,
-                                   valid_tfrecords_regex=valid_tfrecords_regex,
-                                   feature_parsing_dict=feature_parsing_dict,
-                                   feature_input_path='meanrates', feature_labels_path='f0',
-                                   learning_rate=1e-4, batch_size=128, num_epochs=50, save_step=3750, disp_step=150,
-                                   f0_bin_parameters={}, random_seed=517)
+                     model_pkl_file='/om/user/msaddler/models_pitch50ms_bez2018/arch160/net.pkl',
+                     train_tfrecords_regex=train_tfrecords_regex,
+                     valid_tfrecords_regex=valid_tfrecords_regex,
+                     feature_parsing_dict=feature_parsing_dict,
+                     feature_input_path='meanrates', feature_labels_path='f0_label', num_classes=700,
+                     learning_rate=1e-4, batch_size=128, num_epochs=None, save_step=4000, disp_step=100,
+                     random_seed=517)
