@@ -82,7 +82,7 @@ def complex_tone(f0, fs, dur, harmonic_numbers=[1], amplitudes=None, phase_mode=
     fs (int): sampling rate (Hz)
     dur (float): duration of tone (s)
     harmonic_numbers (list): harmonic numbers to include in complex tone (sorted lowest to highest)
-    amplitudes (list): amplitudes of individual harmonics (None = equal amplitude harmonics)
+    amplitudes (list): RMS amplitudes of individual harmonics (None = equal amplitude harmonics)
     phase_mode (str): specify relative phases (`sch` and `alt` assume contiguous harmonics)
     offset_start (bool): if True, starting phase is offset by np.random.rand()/f0
     strict_nyquist (bool): if True, function will raise ValueError if Nyquist is exceeded;
@@ -123,7 +123,13 @@ def complex_tone(f0, fs, dur, harmonic_numbers=[1], amplitudes=None, phase_mode=
         if f > fs/2:
             if strict_nyquist: raise ValueError('Nyquist frequency exceeded')
             else: break
-        signal += amp * np.sin(2*np.pi*f*t + phase)
+        component = amp * np.sqrt(2) * np.sin(2*np.pi*f*t + phase)
+        signal += component
+#         print('f = {:.1f}'.format(f),
+#               'component_dBSPL = {:.3f}'.format(20*np.log10(rms(component) / 20e-6)),
+#               'dBSPL_amp = {:.3f}'.format(20*np.log10(amp/20e-6)),
+#               'component_rms={:.5f}'.format(rms(component)),
+#               'rms_amp={:.5f}'.format(amp))
     return signal
 
 
@@ -143,11 +149,14 @@ def flat_spectrum_noise(fs, dur, dBHzSPL=15.):
     '''
     # Create flat-spectrum noise in the frequency domain
     fxx = np.ones(int(dur*fs), dtype=np.complex128)
-    Npos = int((len(fxx)-1)/2)
-    phases = np.random.uniform(low=0., high=2*np.pi, size=[Npos])
+    freqs = np.fft.fftfreq(len(fxx), d=1/fs)
+    pos_idx = np.argwhere(freqs>0).reshape([-1])
+    neg_idx = np.argwhere(freqs<0).reshape([-1])
+    if neg_idx.shape[0] > pos_idx.shape[0]: neg_idx = neg_idx[1:]
+    phases = np.random.uniform(low=0., high=2*np.pi, size=pos_idx.shape)
     phases = np.cos(phases) + 1j * np.sin(phases)
-    fxx[1:Npos+1] = fxx[1:Npos+1] * phases
-    fxx[Npos+2:] = fxx[Npos+2:] * np.flip(phases, axis=0)
+    fxx[pos_idx] = fxx[pos_idx] * phases
+    fxx[neg_idx] = fxx[neg_idx] * np.flip(phases, axis=0)
     x = np.real(np.fft.ifft(fxx))
     # Re-scale to specified PSD (in units dB/Hz SPL)
     # dBHzSPL = 10 * np.log10 ( PSD / (20e-6 Pa)^2 ), where PSD has units Pa^2 / Hz

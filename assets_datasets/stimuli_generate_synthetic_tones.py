@@ -34,15 +34,14 @@ def lowpass_complex_tone(f0, fs, dur, attenuation_start=1000., attenuation_slope
     harmonic_numbers = harmonics / f0
     dB_attenuation = -attenuation_slope * np.log2(harmonics / attenuation_start)
     dB_attenuation[dB_attenuation > 0] = 0
-    amplitudes = np.power(10, (dB_attenuation/20))
+    amplitudes = 20e-6 * np.power(10, (dB_attenuation/20))
     # Jitter the harmonic amplitudes with multiplicative noise
     if amp_noise > 0:
         amplitude_noise = np.random.uniform(1-amp_noise, 1+amp_noise, amplitudes.shape)
         amplitudes = amplitude_noise * amplitudes
     # Build and return the complex tone
     signal = complex_tone(f0, fs, dur, harmonic_numbers=harmonic_numbers,
-                          amplitudes=amplitudes,
-                          phase_mode=phase_mode,
+                          amplitudes=amplitudes, phase_mode=phase_mode,
                           offset_start=True, strict_nyquist=True)
     return signal
 
