@@ -125,11 +125,6 @@ def complex_tone(f0, fs, dur, harmonic_numbers=[1], amplitudes=None, phase_mode=
             else: break
         component = amp * np.sqrt(2) * np.sin(2*np.pi*f*t + phase)
         signal += component
-#         print('f = {:.1f}'.format(f),
-#               'component_dBSPL = {:.3f}'.format(20*np.log10(rms(component) / 20e-6)),
-#               'dBSPL_amp = {:.3f}'.format(20*np.log10(amp/20e-6)),
-#               'component_rms={:.5f}'.format(rms(component)),
-#               'rms_amp={:.5f}'.format(amp))
     return signal
 
 
@@ -165,7 +160,7 @@ def flat_spectrum_noise(fs, dur, dBHzSPL=15.):
     return A_rms * x / rms(x)
 
 
-def modified_uniform_masking_noise(fs, dur, dBHzSPL=15., attenuation_start=600., attenuation_slope=2):
+def modified_uniform_masking_noise(fs, dur, dBHzSPL=15., attenuation_start=600., attenuation_slope=2.):
     '''
     Function for generating modified uniform masking noise as described by
     Bernstein & Oxenham, JASA 117-6 3818 (June 2005). Long-term spectrum level

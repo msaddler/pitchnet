@@ -21,6 +21,10 @@ if __name__ == "__main__":
     source_key_signal_fs = 'config_tone/fs'
     source_keys_to_copy = [
         'f0',
+        'f0_label',
+        'phase_mode',
+        'low_harm',
+        'upp_harm',
         'snr',
     ]
     kwargs_nervegram_meanrates = {
