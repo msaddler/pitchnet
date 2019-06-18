@@ -297,7 +297,7 @@ def generate_bandpass_complex_tone_dataset(hdf5_filename, N, fs=32e3, dur=0.150,
                                            phase_modes=['sine', 'rand'],
                                            highpass_filter_cutoff_range=[7e1, 7e3],
                                            bandwidth_range=[7e1, 7e3],
-                                           filter_order_min=1, filter_order_max=16,
+                                           filter_order_min=1, filter_order_max=12,
                                            disp_step=100):
     '''
     '''
@@ -328,6 +328,7 @@ def generate_bandpass_complex_tone_dataset(hdf5_filename, N, fs=32e3, dur=0.150,
     config_key_pair_list = [(k, k) for k in data_dict.keys()]
     data_key_pair_list = [] # Will be populated right before initializing hdf5 file
     # Main loop to generate bandpass complex tones
+    nan_index_list = [] # ==== # === # TEMPORARY HACK TO AVOID NAN ISSUE
     for itrN in range(0, N):
         # Calculate bandpass filter frequency response function
         freq_resp_in_dB = get_bandpass_filter_frequency_response(highpass_filter_cutoff_list[itrN],
@@ -337,6 +338,21 @@ def generate_bandpass_complex_tone_dataset(hdf5_filename, N, fs=32e3, dur=0.150,
         signal, audible_harmonic_numbers = bernox2005_bandpass_complex_tone(f0_list[itrN], fs, dur,
                                                                             frequency_response_in_dB=freq_resp_in_dB,
                                                                             phase_mode=phase_mode_list[itrN])
+        # ==== # === # TEMPORARY HACK TO AVOID NAN ISSUE
+        if np.any(np.isnan(signal)):
+            nan_index_list.append(itrN)
+            filter_order_list[itrN] = filter_order_min
+            # Calculate bandpass filter frequency response function
+            freq_resp_in_dB = get_bandpass_filter_frequency_response(highpass_filter_cutoff_list[itrN],
+                                                                     lowpass_filter_cutoff_list[itrN],
+                                                                     fs=fs, order=filter_order_list[itrN])
+            # Create the bandpass filtered complex tone
+            signal, audible_harmonic_numbers = bernox2005_bandpass_complex_tone(f0_list[itrN], fs, dur,
+                                                                                frequency_response_in_dB=freq_resp_in_dB,
+                                                                                phase_mode=phase_mode_list[itrN])
+            print('NAN FOUND:', nan_index_list)
+            assert not np.any(np.isnan(signal))
+            
         data_dict['tone'] = signal.astype(np.float32)
         data_dict['f0'] = f0_list[itrN]
         data_dict['phase_mode'] = phase_mode_encoding[phase_mode_list[itrN]]
