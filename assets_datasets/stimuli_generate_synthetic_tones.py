@@ -49,7 +49,7 @@ def lowpass_complex_tone(f0, fs, dur, attenuation_start=1000., attenuation_slope
 
 def generate_lowpass_complex_tone_dataset(hdf5_filename, N, fs=32e3, dur=0.150,
                                           disp_step=100, f0_min=80., f0_max=1e3,
-                                          amp_noise=0., phase_mode_list=['sine'],
+                                          amp_noise=0., phase_modes=['sine'],
                                           atten_start_min=10., atten_start_max=4e3,
                                           atten_slope_min=10., atten_slope_max=60.):
     '''
@@ -65,7 +65,7 @@ def generate_lowpass_complex_tone_dataset(hdf5_filename, N, fs=32e3, dur=0.150,
     f0_min (float):
     f0_max (float):
     amp_noise (float):
-    phase_mode_list (list):
+    phase_modes (list):
     atten_start_min (float):
     atten_start_max (float):
     atten_slope_min (float):
@@ -73,7 +73,7 @@ def generate_lowpass_complex_tone_dataset(hdf5_filename, N, fs=32e3, dur=0.150,
     '''
     # Randomly sample f0s, phase_modes, and attenuation parameters
     f0_list = np.exp(np.random.uniform(np.log(f0_min), np.log(f0_max), size=[N]))
-    phase_mode_list = np.random.choice(phase_mode_list, size=[N])
+    phase_mode_list = np.random.choice(phase_modes, size=[N])
     attenuation_start_list = np.exp(np.random.uniform(np.log(atten_start_min), np.log(atten_start_max), size=[N]))
     attenuation_slope_list = np.random.uniform(atten_slope_min, atten_slope_max, size=[N])
     # Define encoding / decoding dictionaries for phase_mode
@@ -293,10 +293,82 @@ def generate_bernox2005_dataset(hdf5_filename, fs=32e3, dur=0.150, f0_min=80., f
     print('[END]: {}'.format(hdf5_filename))
 
 
+def generate_bandpass_complex_tone_dataset(hdf5_filename, N, fs=32e3, dur=0.150, f0_min=80., f0_max=1e3,
+                                           phase_modes=['sine', 'rand'],
+                                           highpass_filter_cutoff_range=[7e1, 7e3],
+                                           bandwidth_range=[7e1, 7e3],
+                                           filter_order_min=1, filter_order_max=16,
+                                           disp_step=100):
+    '''
+    '''
+    # Randomly sample f0s, phase_modes, and attenuation parameters
+    f0_list = np.exp(np.random.uniform(np.log(f0_min), np.log(f0_max), size=[N]))
+    phase_mode_list = np.random.choice(phase_modes, size=[N])
+    highpass_filter_cutoff_list = np.random.uniform(highpass_filter_cutoff_range[0],
+                                                    highpass_filter_cutoff_range[1], size=[N])
+    bandwidth_list = np.random.uniform(bandwidth_range[0], bandwidth_range[1], size=[N])
+    lowpass_filter_cutoff_list = highpass_filter_cutoff_list + bandwidth_list
+    filter_order_list = np.random.randint(filter_order_min, high=filter_order_max+1, size=[N])
+    # Define encoding / decoding dictionaries for phase_mode
+    phase_mode_encoding = {'sine':0, 'rand':1, 'sch':2, 'cos':3, 'alt':4}
+    phase_mode_decoding = {0:'sine', 1:'rand', 2:'sch', 3:'cos', 4:'alt'}
+    # Prepare data_dict and config_key_pair_list for hdf5 filewriting
+    data_dict = {
+        'config_tone/fs': fs,
+        'config_tone/dur': dur,
+        'config_tone/f0_min': f0_min,
+        'config_tone/f0_max': f0_max,
+        'config_tone/highpass_filter_cutoff_min': highpass_filter_cutoff_range[0],
+        'config_tone/highpass_filter_cutoff_max': highpass_filter_cutoff_range[1],
+        'config_tone/bandwidth_min': bandwidth_range[0],
+        'config_tone/bandwidth_max': bandwidth_range[0],
+        'config_tone/filter_order_min': filter_order_min,
+        'config_tone/filter_order_max': filter_order_max,
+    }
+    config_key_pair_list = [(k, k) for k in data_dict.keys()]
+    data_key_pair_list = [] # Will be populated right before initializing hdf5 file
+    # Main loop to generate bandpass complex tones
+    for itrN in range(0, N):
+        # Calculate bandpass filter frequency response function
+        freq_resp_in_dB = get_bandpass_filter_frequency_response(highpass_filter_cutoff_list[itrN],
+                                                                 lowpass_filter_cutoff_list[itrN],
+                                                                 fs=fs, order=filter_order_list[itrN])
+        # Create the bandpass filtered complex tone
+        signal, audible_harmonic_numbers = bernox2005_bandpass_complex_tone(f0_list[itrN], fs, dur,
+                                                                            frequency_response_in_dB=freq_resp_in_dB,
+                                                                            phase_mode=phase_mode_list[itrN])
+        data_dict['tone'] = signal.astype(np.float32)
+        data_dict['f0'] = f0_list[itrN]
+        data_dict['phase_mode'] = phase_mode_encoding[phase_mode_list[itrN]]
+        data_dict['filter_highpass_cutoff'] = highpass_filter_cutoff_list[itrN]
+        data_dict['filter_lowpass_cutoff'] = lowpass_filter_cutoff_list[itrN]
+        data_dict['filter_bandwidth'] = bandwidth_list[itrN]
+        data_dict['filter_order'] = filter_order_list[itrN]
+        # Initialize the hdf5 file on the first iteration
+        if itrN == 0:
+            print('[INITIALIZING]: {}'.format(hdf5_filename))
+            for k in data_dict.keys():
+                if not (k, k) in config_key_pair_list:
+                    data_key_pair_list.append((k, k))
+            initialize_hdf5_file(hdf5_filename, N, data_dict, file_mode='w',
+                                 data_key_pair_list=data_key_pair_list,
+                                 config_key_pair_list=config_key_pair_list,
+                                 dtype=np.float32, cast_data=False, cast_config=False)
+            hdf5_f = h5py.File(hdf5_filename, 'r+')
+        # Write each data_dict to hdf5 file
+        write_example_to_hdf5(hdf5_f, data_dict, itrN, data_key_pair_list=data_key_pair_list)
+        if itrN % disp_step == 0:
+            print('... signal {} of {}'.format(itrN, N))
+    # Close hdf5 file
+    hdf5_f.close()
+    print('[END]: {}'.format(hdf5_filename))
+
+
 if __name__ == "__main__":
     ''' TEMPORARY COMMAND-LINE USAGE '''
     assert len(sys.argv) == 3, "scipt usage: python <script_name> <hdf5_filename> <N>"
     hdf5_filename = str(sys.argv[1])
     N = int(sys.argv[2])
-    generate_lowpass_complex_tone_dataset(hdf5_filename, N)
+    generate_bandpass_complex_tone_dataset(hdf5_filename, N)
+#     generate_lowpass_complex_tone_dataset(hdf5_filename, N)
 #     generate_bernox2005_dataset(hdf5_filename, highpass_filter_cutoff=5e3, lowpass_filter_cutoff=7e3)
