@@ -2,6 +2,7 @@ import sys
 import os
 import json
 import numpy as np
+import pdb
 import scipy.optimize
 import scipy.stats
 
@@ -33,13 +34,14 @@ def load_f0_expt_dict_from_json(json_fn,
     expt_dict = {}
     assert f0_label_true_key in json_dict.keys(), "f0_label_true_key not found in json file"
     assert f0_label_pred_key in json_dict.keys(), "f0_label_pred_key not found in json file"
+    sort_idx = np.argsort(json_dict[f0_label_true_key])
     expt_dict = {
-        'f0_label_true': np.array(json_dict[f0_label_true_key]),
-        'f0_label_pred': np.array(json_dict[f0_label_pred_key]),
+        'f0_label_true': np.array(json_dict[f0_label_true_key])[sort_idx],
+        'f0_label_pred': np.array(json_dict[f0_label_pred_key])[sort_idx],
     }
     for key in metadata_key_list:
         assert key in json_dict.keys(), "metadata key `{}` not found in json file".format(key)
-        if isinstance(json_dict[key], list): expt_dict[key] = np.array(json_dict[key])
+        if isinstance(json_dict[key], list): expt_dict[key] = np.array(json_dict[key])[sort_idx]
         else: expt_dict[key] = json_dict[key]
     return expt_dict
 
@@ -114,7 +116,7 @@ def add_f0_judgments_to_expt_dict(expt_dict, f0_true_key='f0', f0_pred_key='f0_p
     pairwise_judgments = np.full([f0_true.shape[0], f0_true.shape[0]], np.nan, dtype=np.float32)
     # Iterate over all true f0 values
     for idx_ref in range(f0_true.shape[0]):
-        f0_ref = f0_true[idx_ref] # Each f0_ture will be used as the reference once
+        f0_ref = f0_true[idx_ref] # Each f0_true will be used as the reference once
         f0_pred_ref = f0_pred[idx_ref] # Predicted f0 for the current f0_true
         # Compute vector of pct_diffs (compare f0_ref against all of f0_true)
         pct_diffs = 100. * (f0_true - f0_ref) / f0_ref
@@ -232,6 +234,7 @@ def compute_f0_thresholds_for_each_low_harm(expt_dict, threshold_value=0.707, mu
             within_range_idxs = np.logical_not(np.isnan(pairwise_pct_diffs[idx_f0]))
             pct_diffs_list.append(pairwise_pct_diffs[idx_f0, within_range_idxs])
             judgments_list.append(pairwise_judgments[idx_f0, within_range_idxs])
+            assert not np.any(np.isnan(pairwise_judgments[idx_f0, within_range_idxs]))
         # Estimate the psychometric function from the combined judgments
         bins, bin_means = get_empirical_psychometric_function(np.concatenate(pct_diffs_list),
                                                               np.concatenate(judgments_list),
