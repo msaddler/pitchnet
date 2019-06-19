@@ -7,7 +7,7 @@
 #SBATCH --nodes=1
 #SBATCH --time=0-12:00:00
 #SBATCH --time-min=0-10:30:00
-#SBATCH --exclude=node[018-029]
+#SBATCH --exclude=node[001-029]
 #SBATCH --array=0-99
 ###SBATCH --qos=mcdermott #use-everything
 

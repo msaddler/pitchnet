@@ -94,7 +94,11 @@ def get_feature_paths_from_source_file(source_file, groups_to_search=['/']):
     key_candidate_list = []
     for group in groups_to_search:
         if group in source_file:
-            key_candidate_list.extend(list(source_file[group].keys()))
+            for key in source_file[group].keys():
+                group_key = group + '/' + key
+                while group_key[0] == '/':
+                    group_key = group_key[1:]
+                key_candidate_list.append(group_key)
     for key in key_candidate_list:
         if isinstance(source_file[key], h5py.Dataset):
             if source_file[key].shape[0] > 1:
@@ -170,4 +174,4 @@ if __name__ == "__main__":
     parallel_run_tfrecords(source_regex,
                            job_idx=job_idx,
                            jobs_per_source_file=jobs_per_source_file,
-                           groups_to_search=['/'])
+                           groups_to_search=['/', '/diagnostic'])
