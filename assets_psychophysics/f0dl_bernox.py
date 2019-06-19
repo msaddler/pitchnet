@@ -234,7 +234,6 @@ def compute_f0_thresholds_for_each_low_harm(expt_dict, threshold_value=0.707, mu
             within_range_idxs = np.logical_not(np.isnan(pairwise_pct_diffs[idx_f0]))
             pct_diffs_list.append(pairwise_pct_diffs[idx_f0, within_range_idxs])
             judgments_list.append(pairwise_judgments[idx_f0, within_range_idxs])
-            assert not np.any(np.isnan(pairwise_judgments[idx_f0, within_range_idxs]))
         # Estimate the psychometric function from the combined judgments
         bins, bin_means = get_empirical_psychometric_function(np.concatenate(pct_diffs_list),
                                                               np.concatenate(judgments_list),
