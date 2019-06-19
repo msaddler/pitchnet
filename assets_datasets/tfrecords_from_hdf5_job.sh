@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 ##SBATCH --qos=mcdermott
-#SBATCH --job-name=tfrecords_from_hdfr
+#SBATCH --job-name=tfrecords_from_hdf5
 #SBATCH --out="trash/slurm-%A_%a.out"
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=2500
