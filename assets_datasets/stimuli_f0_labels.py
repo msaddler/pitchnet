@@ -43,7 +43,7 @@ def label_to_f0(f0_labels, bins, strict_bin_minimum=True):
     return f0_values
 
 
-def normalize_f0(f0_values, f0_min=80., f0_max=1e3, log_scale=True):
+def f0_to_normalized(f0_values, f0_min=80., f0_max=1e3, log_scale=True):
     '''
     Helper function to convert f0_values to [0, 1] range for regression.
     '''
@@ -54,6 +54,17 @@ def normalize_f0(f0_values, f0_min=80., f0_max=1e3, log_scale=True):
     else:
         f0_normalized = (f0_values - f0_min) / (f0_max - f0_min)
     return f0_normalized
+
+
+def normalized_to_f0(f0_normalized, f0_min=80., f0_max=1e3, log_scale=True):
+    '''
+    Helper function to convert normalized F0 values back to Hz.
+    '''
+    if log_scale:
+        f0_values = f0_min * np.exp(f0_normalized * np.log(f0_max/f0_min))
+    else:
+        f0_values = f0_normalized * (f0_max - f0_min) + f0_min
+    return f0_values
 
 
 def add_f0_label_to_hdf5(hdf5_filename, f0_key='f0', f0_label_key='f0_label', f0_normal_key='f0_lognormal',
@@ -77,7 +88,7 @@ def add_f0_label_to_hdf5(hdf5_filename, f0_key='f0', f0_label_key='f0_label', f0
     hdf5_f = h5py.File(hdf5_filename, 'r+')
     f0_values = hdf5_f[f0_key][:]
     f0_labels = f0_to_label(f0_values, bins)
-    f0_normal = normalize_f0(f0_values, **f0_normalization_kwargs)
+    f0_normal = f0_to_normalized(f0_values, **f0_normalization_kwargs)
     # Write the f0 bin labels to hdf5 file
     if f0_label_key in hdf5_f:
         print('[OVERWRITING DATASET]: {}'.format(f0_label_key))

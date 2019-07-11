@@ -13,7 +13,7 @@ import stimuli_f0_labels
 def load_f0_expt_dict_from_json(json_fn,
                                 f0_label_true_key='f0_label:labels_true',
                                 f0_label_pred_key='f0_label:labels_pred',
-                                metadata_key_list=['low_harm', 'upp_harm', 'phase_mode', 'f0']):
+                                metadata_key_list=['low_harm', 'phase_mode', 'f0']):
     '''
     Function loads a json file and returns a dictionary with np array keys.
     
@@ -36,8 +36,8 @@ def load_f0_expt_dict_from_json(json_fn,
     assert f0_label_pred_key in json_dict.keys(), "f0_label_pred_key not found in json file"
     sort_idx = np.argsort(json_dict[f0_label_true_key])
     expt_dict = {
-        'f0_label_true': np.array(json_dict[f0_label_true_key])[sort_idx],
-        'f0_label_pred': np.array(json_dict[f0_label_pred_key])[sort_idx],
+        f0_label_true_key: np.array(json_dict[f0_label_true_key])[sort_idx],
+        f0_label_pred_key: np.array(json_dict[f0_label_pred_key])[sort_idx],
     }
     for key in metadata_key_list:
         assert key in json_dict.keys(), "metadata key `{}` not found in json file".format(key)
@@ -46,24 +46,38 @@ def load_f0_expt_dict_from_json(json_fn,
     return expt_dict
 
 
-def add_f0_estimates_to_expt_dict(expt_dict, **kwargs_f0_bins):
+def add_f0_estimates_to_expt_dict(expt_dict,
+                                  f0_label_true_key='f0_label:labels_true',
+                                  f0_label_pred_key='f0_label:labels_pred',
+                                  kwargs_f0_bins={}, kwargs_f0_normalization={}):
     '''
     Function computes f0 estimates corresponding to f0 labels in expt_dict.
     
     Args
     ----
     expt_dict (dict): f0 experiment data dict (f0 and f0_pred keys will be added)
-    **kwargs_f0_bins (kwargs): kwargs for computing f0 bins (lower bound used as estimate)
+    kwargs_f0_bins (dict): kwargs for computing f0 bins (lower bound used as estimate)
+    kwargs_f0_normalization (dict): kwargs for normalizing f0s
     
     Returns
     -------
     expt_dict (dict): f0 experiment data dict (includes f0 and f0_pred keys)
     '''
-    bins = stimuli_f0_labels.get_f0_bins(**kwargs_f0_bins)
-    if not 'f0' in expt_dict.keys():
-        expt_dict['f0'] = stimuli_f0_labels.label_to_f0(expt_dict['f0_label_true'], bins)
-    if not 'f0_pred' in expt_dict.keys():
-        expt_dict['f0_pred'] = stimuli_f0_labels.label_to_f0(expt_dict['f0_label_pred'], bins)
+    
+    if 'normal' in f0_label_pred_key:
+        if not 'f0_pred' in expt_dict.keys():
+            expt_dict['f0_pred'] = stimuli_f0_labels.normalized_to_f0(expt_dict[f0_label_pred_key],
+                                                                      **kwargs_f0_normalization)
+        if 'f0' not in expt_dict.keys():
+            expt_dict['f0'] = stimuli_f0_labels.normalized_to_f0(expt_dict[f0_label_true_key],
+                                                                 **kwargs_f0_normalization)
+    else:
+        bins = stimuli_f0_labels.get_f0_bins(**kwargs_f0_bins)
+        if not 'f0_pred' in expt_dict.keys():
+            expt_dict['f0_pred'] = stimuli_f0_labels.label_to_f0(expt_dict[f0_label_pred_key], bins)
+        if not 'f0' in expt_dict.keys():
+            expt_dict['f0'] = stimuli_f0_labels.label_to_f0(expt_dict[f0_label_true_key], bins)
+    
     return expt_dict
 
 
