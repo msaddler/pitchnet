@@ -11,7 +11,7 @@
 ##SBATCH --dependency=afterok:12702768
 
 ### Define source_regex and dest_filename here (use single quotes to prevent regex from expanding)
-source_regex='/om/user/msaddler/data_pitchnet/bernox2005/LowSpec_f0min0080_f0max1000/cf050_species002_spont070/*.hdf5'
+source_regex='/om/user/msaddler/data_pitchnet/bernox2005/SyntheticTonesBandpass/cf050_species002_spont070/*/*.hdf5'
 jobs_per_source_file=1
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))

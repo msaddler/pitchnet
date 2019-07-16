@@ -34,7 +34,7 @@ def f0_to_label(f0_values, bins):
     return f0_labels
 
 
-def label_to_f0(f0_labels, bins, strict_bin_minimum=True):
+def label_to_f0(f0_labels, bins):
     '''
     Helper function to compute f0_value estimates from f0_labels (estimate is bin lower bound).
     '''

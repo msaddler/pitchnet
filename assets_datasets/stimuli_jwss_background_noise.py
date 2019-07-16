@@ -110,7 +110,7 @@ def add_noise_to_tone_file(tone_hdf5_filename, noise_hdf5_filename, random_seed=
     clip_noise_range = [buffer_length, noise_length-buffer_length-tone_length]
     # Main loop to iterate over all signals in the tone hdf5 file
     for itrN in range(0, N):
-        # Randomly sample a noise snoise_idx and clip_start_idx
+        # Randomly sample a noise_idx and clip_start_idx
         noise_idx = np.random.randint(0, noise_N)
         clip_start_idx = np.random.randint(clip_noise_range[0], clip_noise_range[1])
         clip_end_idx = clip_start_idx + tone_length
@@ -128,8 +128,8 @@ def add_noise_to_tone_file(tone_hdf5_filename, noise_hdf5_filename, random_seed=
             output_snr_key: snr,
             output_combined_key + '_rms': rms_out,
             output_combined_key + '_dBSPL': dBSPL,
-            output_config_prefix + 'noise_idx': noise_idx,
-            output_config_prefix + 'clip_start_idx': clip_start_idx,
+            output_config_prefix + 'noise_parent_index': noise_idx,
+            output_config_prefix + 'noise_segment_start_index': clip_start_idx,
         }
         # Initialize new datasets on the first iteration
         if itrN == 0:

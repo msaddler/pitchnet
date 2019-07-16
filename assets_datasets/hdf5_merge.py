@@ -4,6 +4,7 @@ import h5py
 import dask.array
 import numpy as np
 import glob
+import pdb
 
 
 def main(hdf5_regex, output_fn=None, write_mode='w'):
@@ -59,7 +60,18 @@ def main(hdf5_regex, output_fn=None, write_mode='w'):
     f_out = h5py.File(output_fn, write_mode)
     if maindata_dask_arrays:
         print('[WRITING] maindata_dask_arrays to {}'.format(output_fn))
-        dask.array.to_hdf5(output_fn, maindata_dask_arrays)
+        for key in maindata_dask_arrays.keys():
+            if maindata_dask_arrays[key].dtype.kind is 'O':
+                # Special case of ragged Dask array --> hdf5 dtype needs to be made explicit
+                dask_dset = maindata_dask_arrays[key]
+                np_dtype = maindata_dask_arrays[key][0].compute().dtype
+                hdf5_dtype = h5py.special_dtype(vlen=np_dtype)
+                f_out.create_dataset(key, dask_dset.shape, dtype=h5py.special_dtype(vlen=np_dtype))
+                print('---|', key, dask_dset.shape, dask_dset.dtype, np_dtype, hdf5_dtype)
+                dask.array.to_hdf5(output_fn, {key: maindata_dask_arrays[key].astype(hdf5_dtype)})
+            else:
+                print('---|', key, maindata_dask_arrays[key].shape, maindata_dask_arrays[key].dtype)
+                dask.array.to_hdf5(output_fn, {key: maindata_dask_arrays[key]})
     if metadata_dask_arrays:
         print('[WRITING] metadata_dask_arrays to {}'.format(output_fn))
         dask.array.to_hdf5(output_fn, metadata_dask_arrays)
@@ -78,7 +90,7 @@ def main(hdf5_regex, output_fn=None, write_mode='w'):
 
 if __name__ == "__main__":
     ''' TEMPORARY COMMAND LINE USAGE '''
-    assert_msg = "scipt usage: python <script_name> <hdf5_regex> <output_fn (OPTIONAL) >"
+    assert_msg = "scipt usage: python <script_name> <hdf5_regex> <output_fn (OPTIONAL)>"
     assert len(sys.argv) == 2 or len(sys.argv) == 3, assert_msg
     hdf5_regex = str(sys.argv[1])
     output_fn = None
