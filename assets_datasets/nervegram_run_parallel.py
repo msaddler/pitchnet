@@ -17,8 +17,8 @@ if __name__ == "__main__":
     job_idx = int(sys.argv[3])
     jobs_per_source_file = int(sys.argv[4])
     
-    source_key_signal = 'tone_in_noise'
-    source_key_signal_fs = 'config_tone/fs'
+    source_key_signal = 'stimuli/signal_in_noise'
+    source_key_signal_fs = 'sr'
     source_keys_to_copy = [
         'f0',
         'f0_label',
@@ -26,9 +26,11 @@ if __name__ == "__main__":
         'low_harm',
         'upp_harm',
         'snr',
+        'nopad_f0_mean', 'nopad_f0_median', 'nopad_f0_stddev',
     ]
     kwargs_nervegram_meanrates = {
-        'meanrates_params': {'dur': 0.05}
+        'meanrates_params': {'dur': 0.050, 'buffer_start_dur': 0.070, 'buffer_end_dur': 0.010},
+        'ANmodel_params': {'num_cfs': 100, 'min_cf':125, 'max_cf':14e3},
     }
     
     parallel_run_dataset_generation(source_regex, dest_filename,

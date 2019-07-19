@@ -158,4 +158,10 @@ if __name__ == "__main__":
     assert len(sys.argv) == 3, "scipt usage: python <script_name> <tone_hdf5_filename> <noise_hdf5_filename>"
     tone_hdf5_filename = str(sys.argv[1])
     noise_hdf5_filename = str(sys.argv[2])
-    add_noise_to_tone_file(tone_hdf5_filename, noise_hdf5_filename)
+    add_noise_to_tone_file(tone_hdf5_filename, noise_hdf5_filename, random_seed=None,
+                           tone_signal_key='stimuli/signal', tone_fs_key='sr',
+                           noise_signal_key='signal', noise_fs_key='signal_fs',
+                           output_combined_key='stimuli/signal_in_noise', output_noise_key='stimuli/noise',
+                           output_snr_key='snr', output_config_prefix='config_noise/',
+                           buffer_dur=1., snr_range=[-10., 3.], dBSPL_range=[30., 90.],
+                           dtype=np.float32, disp_step=100)
