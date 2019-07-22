@@ -34,7 +34,7 @@ def load_f0_expt_dict_from_json(json_fn,
     expt_dict = {}
     assert f0_label_true_key in json_dict.keys(), "f0_label_true_key not found in json file"
     assert f0_label_pred_key in json_dict.keys(), "f0_label_pred_key not found in json file"
-    sort_idx = np.argsort(json_dict[f0_label_true_key])
+    sort_idx = np.argsort(json_dict['f0'])
     expt_dict = {
         f0_label_true_key: np.array(json_dict[f0_label_true_key])[sort_idx],
         f0_label_pred_key: np.array(json_dict[f0_label_pred_key])[sort_idx],
@@ -122,9 +122,9 @@ def add_f0_judgments_to_expt_dict(expt_dict, f0_true_key='f0', f0_pred_key='f0_p
     -------
     expt_dict (dict): includes large `pairwise_pct_diffs` and `pairwise_judgments` matrices
     '''
-    f0_true = expt_dict[f0_true_key]
-    f0_pred = expt_dict[f0_pred_key]
-    assert np.all(f0_true.shape == f0_pred.shape), "f0_true and f0_pred must have same shape"
+    sort_idx = np.argsort(expt_dict[f0_true_key])
+    f0_true = expt_dict[f0_true_key][sort_idx]
+    f0_pred = expt_dict[f0_pred_key][sort_idx]
     # Initialize f0 percent difference and psychophysical judgment arrays (fill with NaN)
     pairwise_pct_diffs = np.full([f0_true.shape[0], f0_true.shape[0]], np.nan, dtype=np.float32)
     pairwise_judgments = np.full([f0_true.shape[0], f0_true.shape[0]], np.nan, dtype=np.float32)
@@ -135,11 +135,11 @@ def add_f0_judgments_to_expt_dict(expt_dict, f0_true_key='f0', f0_pred_key='f0_p
         # Compute vector of pct_diffs (compare f0_ref against all of f0_true)
         pct_diffs = 100. * (f0_true - f0_ref) / f0_ref
         # Find pct_diffs within the range specified by max_pct_diff
-        within_range_idxs = np.argwhere(np.abs(pct_diffs) <= max_pct_diff).reshape([-1])
+        within_range_idxs = np.logical_and(pct_diffs >= -max_pct_diff, pct_diffs <= max_pct_diff)
         pairwise_pct_diffs[idx_ref, within_range_idxs] = pct_diffs[within_range_idxs]
         # Compute the percent differences between the predictions
         pred_pct_diffs = 100. * (f0_pred[within_range_idxs] - f0_pred_ref) / f0_pred_ref
-        pred_decision_noise = noise_stdev * np.random.randn(len(within_range_idxs))
+        pred_decision_noise = noise_stdev * np.random.randn(pred_pct_diffs.shape[0])
         # Judgment is 1. if model predicts f0_pred_ref > f0_pred
         # Judgment is 0. if model predicts f0_pred_ref < f0_pred
         # Decision stage Gaussian noise is used to break ties
@@ -257,6 +257,14 @@ def compute_f0_thresholds_for_each_low_harm(expt_dict, threshold_value=0.707, mu
         low_harm_thresholds[idx_low_harm] = scipy.stats.norm(mu, sigma_opt).ppf(threshold_value)
         psychometric_functions['sigma'].append(sigma_opt)
         psychometric_functions['sigma_cov'].append(sigma_opt_cov)
+#         # HACK BELOW
+#         above_threshold_bin_indexes = bin_means > threshold_value
+#         if np.sum(above_threshold_bin_indexes) > 0:
+#             print('USING EMPIRICAL PSYCHOMETRIC FUNCTION RATHER THAN FIT')
+#             print(bins[above_threshold_bin_indexes][0], 'inplace of', low_harm_thresholds[idx_low_harm])
+#             low_harm_thresholds[idx_low_harm] = bins[above_threshold_bin_indexes][0]
+#         else: low_harm_thresholds[idx_low_harm] = 100
+        # Save the empirical psychometric functions if specified
         if return_psychometric_functions:
             psychometric_functions['bins'].append(bins.tolist())
             psychometric_functions['bin_means'].append(bin_means.tolist())

@@ -4,6 +4,7 @@ singularity exec --nv \
 -B /home \
 -B /om \
 -B /om2 \
+-B /om4 \
 -B /om2/user/msaddler/python-packages:/python-packages \
 -B /om/user/msaddler/data_pitchnet:/data \
 -B /om2/user/$user/pitchnet/saved_models:/saved_models \
