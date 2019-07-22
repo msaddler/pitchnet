@@ -3,7 +3,11 @@ import os
 import glob
 import json
 import numpy as np
+import pdb
 import argparse
+
+import tensorflow as tf
+from google.protobuf.json_format import MessageToJson
 
 sys.path.append('/code_location/multi_gpu')
 from run_train_or_eval import run_train_or_eval
@@ -22,23 +26,30 @@ def get_best_checkpoint_number(validation_metrics_fn, metric_key='f0_label:accur
     return checkpoint_numbers[bci]
 
 
-def get_feature_parsing_dict_from_tfrecords(eval_regex):
+def get_feature_parsing_dict_from_tfrecords(eval_regex, bytesList_decoding_dict={}):
     '''
-    TODO: fix / automate this.
+    TODO: fix / automate bytesList_decoding_dict.
     '''
-    if ('bernox2005' in eval_regex) and ('cf100' in eval_regex):
-        feature_parsing_dict = {
-            "f0": { "dtype": "tf.float32", "shape": [] },
-            "f0_label": { "dtype": "tf.int64", "shape": [] },
-            "f0_lognormal": { "dtype": "tf.float32", "shape": [] },
-            "meanrates": { "dtype": "tf.float32", "shape": [100, 500] },
-            "pin_dBSPL": { "dtype": "tf.float32", "shape": [] },
-            "low_harm": { "dtype": "tf.int64", "shape": [] },
-            "upp_harm": { "dtype": "tf.int64", "shape": [] },
-            "phase_mode": { "dtype": "tf.int64", "shape": [] }
-        }
-    else:
-        raise ValueError("Unrecognized `eval_regex`: {}".format(eval_regex))
+    tfrecords_fn_list = sorted(glob.glob(eval_regex))
+    options = tf.python_io.TFRecordOptions(tf.python_io.TFRecordCompressionType.GZIP)
+    for example in tf.python_io.tf_record_iterator(tfrecords_fn_list[0], options=options):
+        jsonMessage = MessageToJson(tf.train.Example.FromString(example))
+        jsonDict = json.loads(jsonMessage)
+        break
+    raw_feature_parsing_dict = jsonDict['features']['feature']
+    feature_parsing_dict = {}
+    for key in raw_feature_parsing_dict.keys():
+        print(key, raw_feature_parsing_dict[key].keys())
+        dtype_key = list(raw_feature_parsing_dict[key].keys())[0]
+        if dtype_key == 'floatList':
+            feature_parsing_dict[key] = { "dtype": "tf.float32", "shape": [] }
+        elif dtype_key == 'int64List':
+            feature_parsing_dict[key] = { "dtype": "tf.int64", "shape": [] }
+        elif dtype_key == 'bytesList':
+            if key in bytesList_decoding_dict.keys():
+                feature_parsing_dict[key] = bytesList_decoding_dict[key]
+            else:
+                print("Ignoring tfrecords_key `{}` (not found in bytesList_decoding_dict)".format(key))
     return feature_parsing_dict
 
 
@@ -47,9 +58,17 @@ def create_temporary_config(output_directory, eval_regex,
                             temporary_config_filename='EVAL_config.json'):
     '''
     '''
+    if 'cf100' in eval_regex:
+        bytesList_decoding_dict = {"meanrates": { "dtype": "tf.float32", "shape": [100, 500] }}
+    elif 'cf50' in eval_regex:
+        bytesList_decoding_dict = {"meanrates": { "dtype": "tf.float32", "shape": [50, 500] }}
+    else:
+        bytesList_decoding_dict = {}
+        raise ValueError("`bytesList_decoding_dict` could not be determined from `eval_regex`")
+    feature_parsing_dict = get_feature_parsing_dict_from_tfrecords(eval_regex, bytesList_decoding_dict)
     with open(os.path.join(output_directory, config_filename)) as f: CONFIG = json.load(f)
-    feature_parsing_dict = get_feature_parsing_dict_from_tfrecords(eval_regex)
     CONFIG["ITERATOR_PARAMS"]["feature_parsing_dict"] = feature_parsing_dict
+    assert CONFIG["ITERATOR_PARAMS"]["feature_signal_path"] in feature_parsing_dict.keys()
     out_filename = os.path.join(output_directory, temporary_config_filename)
     print('Writing temporary eval config file: {}'.format(out_filename))
     with open(out_filename, 'w') as f: json.dump(CONFIG, f, sort_keys=True, indent=4)
