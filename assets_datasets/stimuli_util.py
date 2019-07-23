@@ -70,7 +70,7 @@ def power_spectrum(x, fs, rfft=True, dBSPL=True):
     return freqs, power_spectrum
 
 
-def complex_tone(f0, fs, dur, harmonic_numbers=[1], amplitudes=None, phase_mode='sine',
+def complex_tone(f0, fs, dur, harmonic_numbers=[1], frequencies=None, amplitudes=None, phase_mode='sine',
                  offset_start=True, strict_nyquist=True):
     '''
     Function generates a complex harmonic tone with specified relative phase
@@ -81,7 +81,8 @@ def complex_tone(f0, fs, dur, harmonic_numbers=[1], amplitudes=None, phase_mode=
     f0 (float): fundamental frequency (Hz)
     fs (int): sampling rate (Hz)
     dur (float): duration of tone (s)
-    harmonic_numbers (list): harmonic numbers to include in complex tone (sorted lowest to highest)
+    harmonic_numbers (list or None): harmonic numbers to include in complex tone (sorted lowest to highest)
+    frequencies (list or None): frequencies to include in complex tone (sorted lowest to highest)
     amplitudes (list): RMS amplitudes of individual harmonics (None = equal amplitude harmonics)
     phase_mode (str): specify relative phases (`sch` and `alt` assume contiguous harmonics)
     offset_start (bool): if True, starting phase is offset by np.random.rand()/f0
@@ -95,31 +96,37 @@ def complex_tone(f0, fs, dur, harmonic_numbers=[1], amplitudes=None, phase_mode=
     # Time vector has step size 1/fs and is of length int(dur*fs)
     t = np.arange(0, dur, 1/fs)[0:int(dur*fs)]
     if offset_start: t = t + (1/f0) * np.random.rand()
-    # Create array of harmonic_numbers and set default amplitudes if not provided
-    harmonic_numbers = np.array(harmonic_numbers).reshape([-1])
-    if amplitudes is None:
-        amplitudes = 1/len(harmonic_numbers) * np.ones_like(harmonic_numbers)
+    # Create array of frequencies (function requires either harmonic_numbers or frequencies to be specified)
+    if frequencies is None:
+        assert harmonic_numbers is not None, "cannot specify both `harmonic_numbers` and `frequencies`"
+        harmonic_numbers = np.array(harmonic_numbers).reshape([-1])
+        frequencies = harmonic_numbers * f0
     else:
-        assert_msg = "provided `amplitudes` must be same length as `harmonic_numbers`"
-        assert len(amplitudes) == len(harmonic_numbers), assert_msg
+        assert harmonic_numbers is None, "cannot specify both `harmonic_numbers` and `frequencies`"
+        frequencies = np.array(frequencies).reshape([-1])
+    # Set default amplitudes if not provided
+    if amplitudes is None:
+        amplitudes = 1/len(frequencies) * np.ones_like(frequencies)
+    else:
+        assert_msg = "provided `amplitudes` must be same length as `frequencies`"
+        assert len(amplitudes) == len(frequencies), assert_msg
     # Create array of harmonic phases using phase_mode
     if phase_mode.lower() == 'sine':
-        phase_list = np.zeros(len(harmonic_numbers))
+        phase_list = np.zeros(len(frequencies))
     elif (phase_mode.lower() == 'rand') or (phase_mode.lower() == 'random'):
-        phase_list = 2*np.pi * np.random.rand(len(harmonic_numbers))
+        phase_list = 2*np.pi * np.random.rand(len(frequencies))
     elif (phase_mode.lower() == 'sch') or (phase_mode.lower() == 'schroeder'):
-        phase_list = np.pi/2 + (np.pi * np.square(harmonic_numbers) / len(harmonic_numbers))
+        phase_list = np.pi/2 + (np.pi * np.square(frequencies) / len(frequencies))
     elif (phase_mode.lower() == 'cos') or (phase_mode.lower() == 'cosine'):
-        phase_list = np.pi/2 * np.ones(len(harmonic_numbers))
+        phase_list = np.pi/2 * np.ones(len(frequencies))
     elif (phase_mode.lower() == 'alt') or (phase_mode.lower() == 'alternating'):
-        phase_list = np.pi/2 * np.ones(len(harmonic_numbers))
+        phase_list = np.pi/2 * np.ones(len(frequencies))
         phase_list[::2] = 0
     else:
         raise ValueError('Unsupported phase_mode: {}'.format(phase_mode))
     # Build and return the complex tone
     signal = np.zeros_like(t)
-    for harm_num, amp, phase in zip(harmonic_numbers, amplitudes, phase_list):
-        f = f0 * harm_num
+    for f, amp, phase in zip(frequencies, amplitudes, phase_list):
         if f > fs/2:
             if strict_nyquist: raise ValueError('Nyquist frequency exceeded')
             else: break
