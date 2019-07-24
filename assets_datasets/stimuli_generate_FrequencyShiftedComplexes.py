@@ -5,8 +5,6 @@ import numpy as np
 import pdb
 import stimuli_util
 
-# sys.path.append('/om2/user/msaddler/python-packages/bez2018model')
-# from bez2018model_run_hdf5_dataset import initialize_hdf5_file, write_example_to_hdf5
 sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
 from dataset_util import initialize_hdf5_file, write_example_to_hdf5
 
@@ -126,7 +124,6 @@ def generate_MooreMoore2003_dataset(hdf5_filename, fs=32000, dur=0.150, dBSPL=70
                 # Generate stimulus and store alongside metadata in data_dict
                 y = get_MooreMoore2003_complex_tone(f0, f0_shift=f0_shift, spectral_envelope=spectral_envelope,
                                                     fs=fs, dur=dur, dBSPL=dBSPL, phase_mode=phase_mode)
-                y = stimuli_util.set_dBSPL(y, dBSPL)
                 data_dict = {
                     'stimuli/signal': y.astype(np.float32),
                     'f0': np.float32(f0),

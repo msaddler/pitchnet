@@ -33,6 +33,7 @@ if __name__ == "__main__":
         'nopad_f0_mean', 'nopad_f0_median', 'nopad_f0_stddev',
         'f0_shift', 'spectral_envelope_bandwidth_in_harmonics', 'spectral_envelope_centered_harmonic',
         'spectral_envelope_f_bandwidth', 'spectral_envelope_f_center',
+        'f_carrier', 'f_envelope',
     ]
     kwargs_nervegram_meanrates = {
         'meanrates_params': {'dur': 0.050, 'buffer_start_dur': 0.070, 'buffer_end_dur': 0.010},
@@ -45,3 +46,4 @@ if __name__ == "__main__":
                                     source_key_signal_fs=source_key_signal_fs,
                                     source_keys_to_copy=source_keys_to_copy,
                                     kwargs_nervegram_meanrates=kwargs_nervegram_meanrates)
+    

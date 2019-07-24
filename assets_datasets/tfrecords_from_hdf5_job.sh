@@ -6,7 +6,7 @@
 #SBATCH --mem-per-cpu=2500
 #SBATCH --nodes=1
 #SBATCH --time=0-0:30:00
-#SBATCH --array=0-9
+#SBATCH --array=0
 #SBATCH --qos=mcdermott
 ###SBATCH --qos=use-everything
 ###SBATCH --dependency=afterok:12702768
