@@ -3,6 +3,7 @@ user=$(whoami)
 singularity exec --nv \
 -B /home \
 -B /om \
+-B /nobackup \
 -B /om2 \
 -B /om4 \
 -B /om2/user/msaddler/python-packages:/python-packages \

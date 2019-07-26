@@ -5,17 +5,17 @@
 #SBATCH --cpus-per-task=2
 #SBATCH --mem-per-cpu=4000
 #SBATCH --nodes=1
-#SBATCH --time=0-6:00:00
-#SBATCH --time-min=0-3:00:00
+#SBATCH --time=0-15:00:00
+#SBATCH --time-min=0-9:00:00
 #SBATCH --exclude=node[001-029]
-#SBATCH --array=0-39
-#SBATCH --qos=mcdermott
-###SBATCH --qos=use-everything
+#SBATCH --array=0-499
+###SBATCH --qos=mcdermott
+#SBATCH --qos=use-everything
 
 ### Define source_regex and dest_filename here (use single quotes to prevent regex from expanding)
-source_regex='/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to640Hz/Oxenham2004_transposedTones_f0_080to640Hz.hdf5'
-dest_filename='/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to640Hz/cf100_species002_spont070/bez2018meanrates.hdf5'
-jobs_per_source_file=40
+source_regex='/om/scratch/Wed/msaddler/data_pitchnet/PND_v01/noise_JWSS_snr_neg10pos03/PND_sr32000_v01_*.hdf5'
+dest_filename='/om/scratch/Wed/msaddler/data_pitchnet/PND_v01/noise_JWSS_snr_neg10pos03/cf100_species002_spont070/bez2018meanrates.hdf5'
+jobs_per_source_file=5
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
 
