@@ -238,9 +238,6 @@ def bernoxMovingFilter_bandpass_complex_tone(f0, fs, dur, low_harm, frequency_re
                                        amplitudes=amplitudes, **kwargs_complex_tone)
     audible_harmonic_numbers = harmonic_numbers[harmonic_dBSPL >= threshold_dBSPL]
     # Assert that the lowest audible harmonic number is indeed the specified low_harm number
-    if not int(np.min(audible_harmonic_numbers)) == low_harm:
-        print(f0, low_harm, audible_harmonic_numbers)
-        pdb.set_trace()
     assert int(np.min(audible_harmonic_numbers)) == low_harm
     return signal, audible_harmonic_numbers
 
