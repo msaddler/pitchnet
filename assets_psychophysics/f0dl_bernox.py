@@ -63,7 +63,6 @@ def add_f0_estimates_to_expt_dict(expt_dict,
     -------
     expt_dict (dict): f0 experiment data dict (includes f0 and f0_pred keys)
     '''
-    
     if 'normal' in f0_label_pred_key:
         if not 'f0_pred' in expt_dict.keys():
             expt_dict['f0_pred'] = stimuli_f0_labels.normalized_to_f0(expt_dict[f0_label_pred_key],
@@ -77,32 +76,31 @@ def add_f0_estimates_to_expt_dict(expt_dict,
             expt_dict['f0_pred'] = stimuli_f0_labels.label_to_f0(expt_dict[f0_label_pred_key], bins)
         if not 'f0' in expt_dict.keys():
             expt_dict['f0'] = stimuli_f0_labels.label_to_f0(expt_dict[f0_label_true_key], bins)
-    
     return expt_dict
 
 
-def get_sub_expt_dict_by_key_value(expt_dict, split_key='phase_mode', split_value=0):
+def filter_expt_dict(expt_dict, filter_dict={'phase_mode': 0}):
     '''
-    Helper function for splitting experiment data dict according to key-value pair.
+    Helper function for filtering expt dict to rows that match specified values.
     
     Args
     ----
     expt_dict (dict): f0 experiment data dict (will not be modified)
-    split_key (str): points to array in expt_dict that will be used to split expt_dict
-    split_value (float or int): arrays in returned dict will only contain rows where
-        the `split_key` array is equal to `split_value`
+    filter_dict (dict): contains key-value pairs used to filter `expt_dict`
     
     Returns
     -------
-    sub_expt_dict (dict): f0 experiment data dict filtered by split_key and split_value
+    filtered_expt_dict (dict): f0 experiment dict filtered to only include matches to `filter_dict`
     '''
-    sub_expt_dict = expt_dict.copy()
-    keep_idx = np.argwhere(sub_expt_dict[split_key] == split_value).reshape([-1])
+    keep_idx = np.ones_like(expt_dict[sorted(filter_dict.keys())[0]])
+    for key in sorted(filter_dict.keys()):
+        keep_idx = np.logical_and(keep_idx, expt_dict[key] == filter_dict[key])
+    filtered_expt_dict = expt_dict.copy()
     for key in expt_dict.keys():
         if isinstance(expt_dict[key], np.ndarray):
-            if np.all(expt_dict[key].shape == expt_dict[split_key].shape):
-                sub_expt_dict[key] = sub_expt_dict[key][keep_idx]
-    return sub_expt_dict
+            if np.all(expt_dict[key].shape == keep_idx.shape):
+                filtered_expt_dict[key] = expt_dict[key][keep_idx]
+    return filtered_expt_dict
 
 
 def add_f0_judgments_to_expt_dict(expt_dict, f0_true_key='f0', f0_pred_key='f0_pred',
