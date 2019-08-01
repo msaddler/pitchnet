@@ -6,8 +6,77 @@ import pdb
 import scipy.optimize
 import scipy.stats
 
+import itertools
+import functools
+import multiprocessing
+
 sys.path.append('../assets_datasets/')
 import stimuli_f0_labels
+
+
+def bernox2005_human_results_dict():
+    '''
+    Returns psychophysical results dictionary of Bernstein & Oxenham (2005, JASA) human data
+    '''
+    ### LOW SPECTRUM CONDITION ###
+    bernox_sine_f0dl_LowSpec = [6.011, 4.6697, 4.519, 1.4067, 0.66728, 0.40106]
+    bernox_rand_f0dl_LowSpec = [12.77, 10.0439, 8.8367, 1.6546, 0.68939, 0.515]
+    bernox_sine_f0dl_stddev_LowSpec = [2.2342, 0.90965, 1.5508, 0.68285, 0.247, 0.13572]
+    bernox_rand_f0dl_stddev_LowSpec = [4.7473, 3.2346, 2.477, 0.85577, 0.2126, 0.19908]
+    unique_low_harm_list_LowSpec = 1560 / np.array([50, 75, 100, 150, 200, 300])
+    unique_phase_mode_list = [0, 1]
+    results_dict_LowSpec = {
+        'phase_mode': [],
+        'low_harm': [],
+        'f0dl': [],
+        'f0dl_stddev': [],
+    }
+    for phase_mode in unique_phase_mode_list:
+        for lhidx, low_harm in enumerate(unique_low_harm_list_LowSpec):
+            results_dict_LowSpec['phase_mode'].append(phase_mode)
+            results_dict_LowSpec['low_harm'].append(low_harm)
+            if phase_mode == 0:
+                results_dict_LowSpec['f0dl'].append(bernox_sine_f0dl_LowSpec[lhidx])
+                results_dict_LowSpec['f0dl_stddev'].append(bernox_sine_f0dl_stddev_LowSpec[lhidx])
+            elif phase_mode == 1:
+                results_dict_LowSpec['f0dl'].append(bernox_rand_f0dl_LowSpec[lhidx])
+                results_dict_LowSpec['f0dl_stddev'].append(bernox_rand_f0dl_stddev_LowSpec[lhidx])
+            else:
+                raise ValueError("ERROR OCCURRED IN `bernox2005_human_results_dict`")
+    
+    ### HIGH SPECTRUM CONDITION ###
+    bernox_sine_f0dl_HighSpec = [5.5257, 5.7834, 4.0372, 1.7769, 0.88999, 0.585]
+    bernox_rand_f0dl_HighSpec = [13.4933, 12.0717, 11.5717, 6.1242, 0.94167, 0.53161]
+    bernox_sine_f0dl_stddev_HighSpec = [2.0004, 1.4445, 1.1155, 1.0503, 0.26636, 0.16206]
+    bernox_rand_f0dl_stddev_HighSpec = [3.4807, 2.3967, 2.3512, 3.2997, 0.37501, 0.24618]
+    unique_low_harm_list_HighSpec = 3280 / np.array([100, 150, 200, 300, 400, 600])
+    unique_phase_mode_list = [0, 1]
+    results_dict_HighSpec = {
+        'phase_mode': [],
+        'low_harm': [],
+        'f0dl': [],
+        'f0dl_stddev': [],
+    }
+    for phase_mode in unique_phase_mode_list:
+        for lhidx, low_harm in enumerate(unique_low_harm_list_HighSpec):
+            results_dict_HighSpec['phase_mode'].append(phase_mode)
+            results_dict_HighSpec['low_harm'].append(low_harm)
+            if phase_mode == 0:
+                results_dict_HighSpec['f0dl'].append(bernox_sine_f0dl_HighSpec[lhidx])
+                results_dict_HighSpec['f0dl_stddev'].append(bernox_sine_f0dl_stddev_HighSpec[lhidx])
+            elif phase_mode == 1:
+                results_dict_HighSpec['f0dl'].append(bernox_rand_f0dl_HighSpec[lhidx])
+                results_dict_HighSpec['f0dl_stddev'].append(bernox_rand_f0dl_stddev_HighSpec[lhidx])
+            else:
+                raise ValueError("ERROR OCCURRED IN `bernox2005_human_results_dict`")
+    
+    results_dict = {}
+    for key in set(results_dict_LowSpec.keys()).intersection(results_dict_HighSpec.keys()):
+        results_dict[key] = results_dict_LowSpec[key] + results_dict_HighSpec[key]
+    sort_idx = np.argsort(results_dict['low_harm'])
+    for key in results_dict.keys():
+        results_dict[key] = np.array(results_dict[key])[sort_idx].tolist()
+    return results_dict
 
 
 def load_f0_expt_dict_from_json(json_fn,
@@ -61,7 +130,7 @@ def add_f0_estimates_to_expt_dict(expt_dict,
     
     Returns
     -------
-    expt_dict (dict): f0 experiment data dict (includes f0 and f0_pred keys)
+    expt_dict (dict): F0 experiment data dict (includes f0 and f0_pred keys)
     '''
     if 'normal' in f0_label_pred_key:
         if not 'f0_pred' in expt_dict.keys():
@@ -81,7 +150,8 @@ def add_f0_estimates_to_expt_dict(expt_dict,
 
 def filter_expt_dict(expt_dict, filter_dict={'phase_mode': 0}):
     '''
-    Helper function for filtering expt dict to rows that match specified values.
+    Helper function for filtering expt dict to rows that match specified values
+    or fall between specified [min, max] ranges.
     
     Args
     ----
@@ -94,7 +164,12 @@ def filter_expt_dict(expt_dict, filter_dict={'phase_mode': 0}):
     '''
     keep_idx = np.ones_like(expt_dict[sorted(filter_dict.keys())[0]])
     for key in sorted(filter_dict.keys()):
-        keep_idx = np.logical_and(keep_idx, expt_dict[key] == filter_dict[key])
+        fvalue = filter_dict[key]
+        if hasattr(fvalue, '__len__'):
+            assert len(fvalue) == 2, "filter_dict values must be single value or [min, max] range"
+            keep_idx = np.logical_and(keep_idx, np.logical_and(expt_dict[key] >= fvalue[0], expt_dict[key] <= fvalue[1]))
+        else:
+            keep_idx = np.logical_and(keep_idx, expt_dict[key] == fvalue)
     filtered_expt_dict = expt_dict.copy()
     for key in expt_dict.keys():
         if isinstance(expt_dict[key], np.ndarray):
@@ -106,7 +181,7 @@ def filter_expt_dict(expt_dict, filter_dict={'phase_mode': 0}):
 def add_f0_judgments_to_expt_dict(expt_dict, f0_true_key='f0', f0_pred_key='f0_pred',
                                   max_pct_diff=6., noise_stdev=1e-12):
     '''
-    Function simulates F0 discrimination experiment given a list of true and predicted F0s.
+    Function simulates f0 discrimination experiment given a list of true and predicted f0s.
     
     Args
     ----
@@ -199,6 +274,141 @@ def fit_normcdf(xvals, yvals, mu=0.):
     normcdf = lambda x, sigma: scipy.stats.norm(mu, sigma).cdf(x)
     sigma_opt, sigma_opt_cov = scipy.optimize.curve_fit(normcdf, xvals, yvals)
     return np.squeeze(sigma_opt), np.squeeze(sigma_opt_cov)
+
+
+def parallel_run_f0dl_experiment(par_idx, expt_dict, unique_phase_mode_list, unique_low_harm_list,
+                                 max_pct_diff=6., noise_stdev=1e-12, bin_width=1e-2,
+                                 mu=0.0, threshold_value=0.707, use_empirical_f0dl_if_possible=False):
+    '''
+    This function runs the f0 discrimination threshold experiment using a subset of the trials in
+    `expt_dict` and is designed to be parallelized over phase and lowest harmonic number conditions.
+    
+    Args
+    ----
+    par_idx (int): process index
+    expt_dict (dict): dictionary with true / predicted f0 values and metadata stored as np arrays
+    unique_phase_mode_list (np array): list of unique phase modes (i.e. [0, 1] for ['sine', 'rand'])
+    unique_low_harm_list (np array): list of unique lowest harmonic numbers
+    max_pct_diff (float): pairs of f0 predictions are only compared if their pct_diff <= max_pct_diff
+    noise_stdev (float): standard deviation of decision-stage noise
+    bin_width (float): width of bin used to digitize pct_diffs
+    mu (float): fixed mean of fitted normcdf
+    threshold_value (float): value of the fitted normcdf used to compute f0 difference limen
+    use_empirical_f0dl_if_possible (bool): if True, empirical f0dl will attempt to overwrite one computed from fit
+    
+    Returns
+    -------
+    par_idx (int): process index
+    sub_results_dict (dict): contains psychophysical results for a single phase and lowest harmonic number
+    '''
+    # Generate master list of experimental conditions and select one using `par_idx`
+    (ph, lh) = list(itertools.product(unique_phase_mode_list, unique_low_harm_list))[par_idx]
+    # Measure f0 discrimination psychometric function for single condition
+    sub_expt_dict = filter_expt_dict(expt_dict, filter_dict={'phase_mode':ph, 'low_harm':lh})
+    sub_expt_dict = add_f0_judgments_to_expt_dict(sub_expt_dict, f0_true_key='f0', f0_pred_key='f0_pred',
+                                                  max_pct_diff=max_pct_diff, noise_stdev=noise_stdev)
+    pct_diffs = sub_expt_dict['pairwise_pct_diffs'].reshape([-1])
+    pct_diffs = pct_diffs[~np.isnan(pct_diffs)]
+    judgments = sub_expt_dict['pairwise_judgments'].reshape([-1])
+    judgments = judgments[~np.isnan(judgments)]
+    # Fit the empirical psychometric function and compute a threshold
+    bins, bin_means = get_empirical_psychometric_function(pct_diffs, judgments, bin_width=bin_width)
+    sigma_opt, sigma_opt_cov = fit_normcdf(bins, bin_means, mu=mu)
+    f0dl = scipy.stats.norm(mu, sigma_opt).ppf(threshold_value)
+    # Replace fit-computed f0dl with the empirical threshold if empirical psychometric function passes threshold
+    if use_empirical_f0dl_if_possible:
+        above_threshold_bin_indexes = np.logical_and(bins >= 0, bin_means > threshold_value)
+        if np.sum(above_threshold_bin_indexes) > 0:
+            f0dl = bins[above_threshold_bin_indexes][0]
+    # Organize psychophysical results to return
+    psychometric_function_dict = {
+        'bins': bins.tolist(),
+        'bin_means': bin_means.tolist(),
+        'sigma': sigma_opt,
+        'sigma_cov': sigma_opt_cov,
+        'mu': mu,
+        'threshold_value': threshold_value,
+    }
+    sub_results_dict = {
+        'phase_mode': ph,
+        'low_harm': lh,
+        'f0dl': f0dl,
+        'psychometric_function': psychometric_function_dict
+    }
+    return par_idx, sub_results_dict
+
+
+def run_f0dl_experiment(json_fn, max_pct_diff=6., noise_stdev=1e-12, bin_width=1e-2, mu=0.0,
+                        threshold_value=0.707, use_empirical_f0dl_if_possible=False,
+                        f0_label_true_key='f0_label:labels_true', f0_label_pred_key='f0_label:labels_pred',
+                        kwargs_f0_bins={}, kwargs_f0_normalization={},
+                        f0_min=-np.inf, f0_max=np.inf, max_processes=60):
+    '''
+    Main routine for simulating f0 discrimination experiment from Bernstein & Oxenham (2005, JASA).
+    Function computes f0 discrimination thresholds as a function of lowest harmonic number and
+    phase mode.
+    
+    Args
+    ----
+    json_fn (str): json filename to load
+    max_pct_diff (float): pairs of f0 predictions are only compared if their pct_diff <= max_pct_diff
+    noise_stdev (float): standard deviation of decision-stage noise
+    bin_width (float): width of bin used to digitize pct_diffs
+    mu (float): fixed mean of fitted normcdf
+    threshold_value (float): value of the fitted normcdf used to compute f0 difference limen
+    use_empirical_f0dl_if_possible (bool): if True, empirical f0dl will attempt to overwrite one computed from fit
+    f0_label_true_key (str): key for f0_label_true in the json file
+    f0_label_pred_key (str): key for f0_label_pred in the json file
+    kwargs_f0_bins (dict): kwargs for computing f0 bins (lower bound used as estimate)
+    kwargs_f0_normalization (dict): kwargs for normalizing f0s
+    f0_min (float): use this argument to limit the f0 range used to compute thresholds (Hz)
+    f0_max (float): use this argument to limit the f0 range used to compute thresholds (Hz)
+    max_processes (int): use this argument to cap the number of parallel processes
+    
+    Returns
+    -------
+    results_dict (dict): contains lists of thresholds and psychometric functions for all conditions
+    '''
+    # Load JSON file of model predictions into `expt_dict`
+    expt_dict = load_f0_expt_dict_from_json(json_fn,
+                                            f0_label_true_key=f0_label_true_key,
+                                            f0_label_pred_key=f0_label_pred_key,
+                                            metadata_key_list=['low_harm', 'phase_mode', 'f0'])
+    expt_dict = add_f0_estimates_to_expt_dict(expt_dict,
+                                              f0_label_true_key=f0_label_true_key,
+                                              f0_label_pred_key=f0_label_pred_key,
+                                              kwargs_f0_bins=kwargs_f0_bins,
+                                              kwargs_f0_normalization=kwargs_f0_normalization)
+    expt_dict = filter_expt_dict(expt_dict, filter_dict={'f0':[f0_min, f0_max]})
+    unique_phase_mode_list = np.unique(expt_dict['phase_mode'])
+    unique_low_harm_list = np.unique(expt_dict['low_harm'])
+    N = len(unique_phase_mode_list) * len(unique_low_harm_list)
+    # Initialize dictionary to hold psychophysical results
+    results_dict = {
+        'phase_mode': [None]*N,
+        'low_harm': [None]*N,
+        'f0dl': [None]*N,
+        'psychometric_function': [None]*N,
+    }
+    # Define a pickle-able wrapper for `parallel_run_f0dl_experiment` using functools
+    parallel_run_wrapper = functools.partial(parallel_run_f0dl_experiment,
+                                             expt_dict=expt_dict,
+                                             unique_phase_mode_list=unique_phase_mode_list,
+                                             unique_low_harm_list=unique_low_harm_list,
+                                             max_pct_diff=max_pct_diff,
+                                             noise_stdev=noise_stdev,
+                                             bin_width=bin_width,
+                                             mu=mu,
+                                             threshold_value=threshold_value,
+                                             use_empirical_f0dl_if_possible=use_empirical_f0dl_if_possible)
+    # Call the wrapper in parallel processes using multiprocessing.Pool
+    with multiprocessing.Pool(processes=np.min([N, max_processes])) as pool:    
+        parallel_results = pool.map(parallel_run_wrapper, range(0, N))
+        for (par_idx, sub_results_dict) in parallel_results:
+            for key in results_dict.keys():
+                results_dict[key][par_idx] = sub_results_dict[key]
+    # Return dictionary of psychophysical experiment results
+    return results_dict
 
 
 def compute_f0_thresholds_for_each_low_harm(expt_dict, threshold_value=0.707, mu=0.,

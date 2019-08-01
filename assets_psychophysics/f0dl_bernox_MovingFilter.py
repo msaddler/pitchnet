@@ -78,40 +78,6 @@ def bernox2005_human_results_dict():
     for key in results_dict.keys():
         results_dict[key] = np.array(results_dict[key])[sort_idx].tolist()
     return results_dict
-    
-    
-#     bernox_lowspec = {}
-#     bernox_lowspec['lharm_list'] = lharm_low
-#     bernox_lowspec['phase_list'] = [0, 1]
-#     bernox_lowspec['threshold_means'] = np.array([bernox_sine_low, bernox_rand_low])
-#     bernox_lowspec['threshold_stdev'] = np.array([bernox_sd_sine_low, bernox_sd_rand_low])
-#     bernox_lowspec['label'] = 'bernox_lowspec'
-
-#     bernox_sine_high = [5.5257, 5.7834, 4.0372, 1.7769, 0.88999, 0.585]
-#     bernox_rand_high = [13.4933, 12.0717, 11.5717, 6.1242, 0.94167, 0.53161]
-#     bernox_sd_sine_high = [2.0004, 1.4445, 1.1155, 1.0503, 0.26636, 0.16206]
-#     bernox_sd_rand_high = [3.4807, 2.3967, 2.3512, 3.2997, 0.37501, 0.24618]
-#     lharm_high = 3280 / np.array([100, 150, 200, 300, 400, 600])
-#     bernox_highspec = {}
-#     bernox_highspec['lharm_list'] = lharm_high
-#     bernox_highspec['phase_list'] = [0, 1]
-#     bernox_highspec['threshold_means'] = np.array([bernox_sine_high, bernox_rand_high])
-#     bernox_highspec['threshold_stdev'] = np.array([bernox_sd_sine_high, bernox_sd_rand_high])
-#     bernox_highspec['label'] = 'bernox_highspec'
-
-#     bernox_sine = np.mean(np.array([bernox_sine_low, bernox_sine_high]), axis=0)
-#     bernox_rand = np.mean(np.array([bernox_rand_low, bernox_rand_high]), axis=0)
-#     bernox_sd_sine = np.mean(np.array([bernox_sd_sine_low, bernox_sd_sine_high]), axis=0)
-#     bernox_sd_rand = np.mean(np.array([bernox_sd_rand_low, bernox_sd_rand_high]), axis=0)
-#     lharm = np.mean(np.concatenate((lharm_low[:, np.newaxis], lharm_high[:, np.newaxis]), axis=1), axis=1)
-#     bernox = {}
-#     bernox['lharm_list'] = lharm
-#     bernox['phase_list'] = [0, 1]
-#     bernox['threshold_means'] = np.array([bernox_sine, bernox_rand])
-#     bernox['threshold_stdev'] = np.array([bernox_sd_sine, bernox_sd_rand])
-#     bernox['label'] = 'Humans'
-    
-#     result_dict_list.extend([bernox])
 
 
 def parallel_run_f0dl_experiment(par_idx, expt_dict, unique_phase_mode_list, unique_low_harm_list,
@@ -152,7 +118,7 @@ def parallel_run_f0dl_experiment(par_idx, expt_dict, unique_phase_mode_list, uni
 
 def main(json_fn, max_pct_diff=6., noise_stdev=1e-12, bin_width=1e-2, mu=0.0, threshold_value=0.707,
          f0_label_true_key='f0_label:labels_true', f0_label_pred_key='f0_label:labels_pred',
-         max_processes=60):
+         f0_min=-np.inf, f0_max=np.inf, max_processes=60):
     '''
     '''
     expt_dict = f0dl_bernox.load_f0_expt_dict_from_json(json_fn,
@@ -163,7 +129,7 @@ def main(json_fn, max_pct_diff=6., noise_stdev=1e-12, bin_width=1e-2, mu=0.0, th
                                                           f0_label_true_key=f0_label_true_key,
                                                           f0_label_pred_key=f0_label_pred_key,
                                                           kwargs_f0_bins={}, kwargs_f0_normalization={})
-    
+    expt_dict = f0dl_bernox.filter_expt_dict(expt_dict, filter_dict={'f0':[f0_min, f0_max]})
     unique_phase_mode_list = np.unique(expt_dict['phase_mode'])
     unique_low_harm_list = np.unique(expt_dict['low_harm'])
     N = len(unique_phase_mode_list) * len(unique_low_harm_list)
