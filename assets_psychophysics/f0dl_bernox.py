@@ -411,24 +411,16 @@ def run_f0dl_experiment(json_fn, max_pct_diff=6., noise_stdev=1e-12, bin_width=1
     return results_dict
 
 
-def parallel_compute_confusion_matrices(par_idx, expt_dict, f0_bins, unique_phase_mode_list, unique_low_harm_list):
+def parallel_compute_confusion_matrices(par_idx, expt_dict, unique_phase_mode_list, unique_low_harm_list):
     '''
     '''
     # Generate master list of experimental conditions and select one using `par_idx`
     (ph, lh) = list(itertools.product(unique_phase_mode_list, unique_low_harm_list))[par_idx]
     # Filter stimuli for single condition
     sub_expt_dict = filter_expt_dict(expt_dict, filter_dict={'phase_mode':ph, 'low_harm':lh})
-    # Digitize f0 and f0_pred using specified f0_bins
-    f0_true = stimuli_f0_labels.f0_to_label(sub_expt_dict['f0'], f0_bins)
-    f0_pred = stimuli_f0_labels.f0_to_label(sub_expt_dict['f0_pred'], f0_bins)
-    # Construct confusion matrix and return in organized dictionary
-    confusion_matrix = np.zeros([len(f0_bins), len(f0_bins)], dtype=int)
-    for f0t, f0p in zip(f0_true, f0_pred):
-        confusion_matrix[f0t, f0p] = confusion_matrix[f0t, f0p] + 1
     sub_results_dict = {
         'phase_mode': ph,
         'low_harm': lh,
-        'confusion_matrix': confusion_matrix,
         'f0_true': sub_expt_dict['f0'],
         'f0_pred': sub_expt_dict['f0_pred'],
     }
@@ -438,7 +430,6 @@ def parallel_compute_confusion_matrices(par_idx, expt_dict, f0_bins, unique_phas
 def compute_confusion_matrices(json_fn, f0_label_true_key='f0_label:labels_true',
                                f0_label_pred_key='f0_label:labels_pred',
                                kwargs_f0_bins={}, kwargs_f0_normalization={},
-                               confmat_binwidth_in_octaves=1/192,
                                f0_min=-np.inf, f0_max=np.inf, max_processes=60):
     '''
     '''
@@ -457,22 +448,17 @@ def compute_confusion_matrices(json_fn, f0_label_true_key='f0_label:labels_true'
     unique_low_harm_list = np.unique(expt_dict['low_harm'])
     N = len(unique_phase_mode_list) * len(unique_low_harm_list)
     # Initialize dictionary to hold confusion matrices
-    confmat_f0_min = np.min([np.min(expt_dict['f0']), np.min(expt_dict['f0_pred'])])
-    confmat_f0_max = np.max([np.max(expt_dict['f0']), np.max(expt_dict['f0_pred'])])
-    f0_bins = stimuli_f0_labels.get_f0_bins(f0_min=confmat_f0_min, f0_max=confmat_f0_max,
-                                            binwidth_in_octaves=confmat_binwidth_in_octaves)
     results_dict = {
         'phase_mode': [None]*N,
         'low_harm': [None]*N,
-        'confusion_matrix': [None]*N,
-        'f0_bins': f0_bins,
         'f0_true': [None]*N,
         'f0_pred': [None]*N,
+        'f0_min': np.min([np.min(expt_dict['f0']), np.min(expt_dict['f0_pred'])]),
+        'f0_max': np.max([np.max(expt_dict['f0']), np.max(expt_dict['f0_pred'])]),
     }
     # Define a pickle-able wrapper for `parallel_compute_confusion_matrices` using functools
     parallel_run_wrapper = functools.partial(parallel_compute_confusion_matrices,
                                              expt_dict=expt_dict,
-                                             f0_bins=f0_bins,
                                              unique_phase_mode_list=unique_phase_mode_list,
                                              unique_low_harm_list=unique_low_harm_list)
     # Call the wrapper in parallel processes using multiprocessing.Pool
@@ -482,78 +468,4 @@ def compute_confusion_matrices(json_fn, f0_label_true_key='f0_label:labels_true'
             for key in sub_results_dict.keys():
                 results_dict[key][par_idx] = sub_results_dict[key]
     # Return dictionary of confusion matrices
-    return results_dict
-
-
-def compute_f0_thresholds_for_each_low_harm(expt_dict, threshold_value=0.707, mu=0.,
-                                            bin_width=1e-2, return_psychometric_functions=True):
-    '''
-    Function computes F0 difference limens (in percent F0) as a function of the lowest harmonic
-    number by fitting normcdf to estimated psychometric functions.
-    
-    Args
-    ----
-    expt_dict (dict): f0 experiment data dict (must contain `pairwise_pct_diffs`, `pairwise_judgments`,
-                                               and `low_harm`)
-    threshold_value (float): value of the fitted normcdf used to compute F0 difference limen
-    mu (float): fixed mean of normcdf used to fit psychometric functions
-    bin_width (float): bin width in percent F0 used to digitize pairwise_pct_diffs for psychometric function
-    return_psychometric_functions (bool): if True, estimated psychometric functions will be returned
-    
-    Returns
-    -------
-    results_dict (dict): contains `low_harm`, `f0dl`, and `psychometric_functions`
-    '''
-    pairwise_pct_diffs = expt_dict['pairwise_pct_diffs']
-    pairwise_judgments = expt_dict['pairwise_judgments']
-    assert_msg = "pairwise_pct_diffs and pairwise_judgments must have same shape"
-    assert np.all(pairwise_pct_diffs.shape == pairwise_judgments.shape), assert_msg
-    # Initialize dictionary used to store normcdf fit information
-    psychometric_functions = {
-        'sigma': [],
-        'sigma_cov': [],
-        'bins': [],
-        'bin_means': [],
-        'threshold_value': threshold_value,
-        'mu': mu,
-        'bin_width': bin_width,
-    }
-    # F0 difference limens will be computed for each unique lowest harmonic number
-    unique_low_harm_numbers = np.unique(expt_dict['low_harm'])
-    low_harm_thresholds = np.zeros_like(unique_low_harm_numbers, dtype=np.float64)
-    for idx_low_harm, low_harm in enumerate(unique_low_harm_numbers):
-        # Rows of pairwise_pct_diffs corresponding to same low_harm will be combined
-        idx_f0_list = np.argwhere(expt_dict['low_harm'] == low_harm).reshape([-1])
-        pct_diffs_list = []
-        judgments_list = []
-        for idx_f0 in idx_f0_list:
-            within_range_idxs = np.logical_not(np.isnan(pairwise_pct_diffs[idx_f0]))
-            pct_diffs_list.append(pairwise_pct_diffs[idx_f0, within_range_idxs])
-            judgments_list.append(pairwise_judgments[idx_f0, within_range_idxs])
-        # Estimate the psychometric function from the combined judgments
-        bins, bin_means = get_empirical_psychometric_function(np.concatenate(pct_diffs_list),
-                                                              np.concatenate(judgments_list),
-                                                              bin_width=bin_width)
-        # Fit normcdf to the estimated psychometric function and compute threshold
-        sigma_opt, sigma_opt_cov = fit_normcdf(bins, bin_means, mu=mu)
-        low_harm_thresholds[idx_low_harm] = scipy.stats.norm(mu, sigma_opt).ppf(threshold_value)
-        psychometric_functions['sigma'].append(sigma_opt)
-        psychometric_functions['sigma_cov'].append(sigma_opt_cov)
-#         # HACK BELOW
-#         above_threshold_bin_indexes = bin_means > threshold_value
-#         if np.sum(above_threshold_bin_indexes) > 0:
-#             print('USING EMPIRICAL PSYCHOMETRIC FUNCTION RATHER THAN FIT')
-#             print(bins[above_threshold_bin_indexes][0], 'inplace of', low_harm_thresholds[idx_low_harm])
-#             low_harm_thresholds[idx_low_harm] = bins[above_threshold_bin_indexes][0]
-#         else: low_harm_thresholds[idx_low_harm] = 100
-        # Save the empirical psychometric functions if specified
-        if return_psychometric_functions:
-            psychometric_functions['bins'].append(bins.tolist())
-            psychometric_functions['bin_means'].append(bin_means.tolist())
-    # Return dict containing low harm numbers, thresholds, and psychometric function information
-    results_dict = {
-        'low_harm': unique_low_harm_numbers,
-        'f0dl': low_harm_thresholds,
-        'psychometric_functions': psychometric_functions,
-    }
     return results_dict
