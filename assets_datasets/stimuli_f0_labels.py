@@ -48,7 +48,7 @@ def add_f0_label_to_hdf5(hdf5_filename, source_f0_key,
             if key == f0_label_key: dtype = f0_label_dtype
             else: dtype = output_dict[key].dtype
             hdf5_f.create_dataset(key, output_dict[key].shape, dtype=dtype, data=output_dict[key])
-    
+        print('... key=`{}`, min_value={}, max_value={}'.format(key, np.min(output_dict[key]), np.max(output_dict[key])))
     hdf5_f.close()
     print('[END]: {}'.format(hdf5_filename))
 
