@@ -543,12 +543,17 @@ if __name__ == "__main__":
     N = int(sys.argv[2])
 #     generate_bandpass_complex_tone_dataset(hdf5_filename, N)
 #     generate_lowpass_complex_tone_dataset(hdf5_filename, N)
-#     generate_bernox2005_dataset(hdf5_filename, highpass_filter_cutoff=5e3, lowpass_filter_cutoff=7e3)
+    generate_bernox2005_dataset(hdf5_filename, fs=32e3, dur=0.150, f0_min=80., f0_max=1e3,
+                                step_size_in_octaves=1/(12*16*64), phase_modes=['sine', 'rand'],
+                                highpass_filter_cutoff=5e3, lowpass_filter_cutoff=7e3,
+                                filter_order=4, threshold_dBSPL=33.3, component_dBSL=15.,
+                                noise_dBHzSPL=15., noise_attenuation_start=600.,
+                                noise_attenuation_slope=2, disp_step=100)
 
-    generate_bernoxMovingFilter_dataset(hdf5_filename, fs=32e3, dur=0.150, f0_min=80., f0_max=640.,
-                                        step_size_in_octaves=1/768, phase_modes=['sine', 'rand'],
-                                        low_harm_min=1, low_harm_max=15,
-                                        highpass_filter_cutoff=2.5e3, lowpass_filter_cutoff=3.5e3,
-                                        filter_order=4, threshold_dBSPL=33.3, component_dBSL=15.,
-                                        noise_dBHzSPL=15., noise_attenuation_start=600.,
-                                        noise_attenuation_slope=2, disp_step=100)
+#     generate_bernoxMovingFilter_dataset(hdf5_filename, fs=32e3, dur=0.150, f0_min=80., f0_max=640.,
+#                                         step_size_in_octaves=1/768, phase_modes=['sine', 'rand'],
+#                                         low_harm_min=1, low_harm_max=15,
+#                                         highpass_filter_cutoff=2.5e3, lowpass_filter_cutoff=3.5e3,
+#                                         filter_order=4, threshold_dBSPL=33.3, component_dBSL=15.,
+#                                         noise_dBHzSPL=15., noise_attenuation_start=600.,
+#                                         noise_attenuation_slope=2, disp_step=100)
