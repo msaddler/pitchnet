@@ -118,7 +118,7 @@ def load_f0_expt_dict_from_json(json_fn,
 def add_f0_estimates_to_expt_dict(expt_dict,
                                   f0_label_true_key='f0_label:labels_true',
                                   f0_label_pred_key='f0_label:labels_pred',
-                                  kwargs_f0_bins={}, kwargs_f0_normalization={}):
+                                  kwargs_f0_bins={}, kwargs_f0_octave={}, kwargs_f0_normalization={}):
     '''
     Function computes f0 estimates corresponding to f0 labels in expt_dict.
     
@@ -126,13 +126,21 @@ def add_f0_estimates_to_expt_dict(expt_dict,
     ----
     expt_dict (dict): f0 experiment data dict (f0 and f0_pred keys will be added)
     kwargs_f0_bins (dict): kwargs for computing f0 bins (lower bound used as estimate)
+    kwargs_f0_octave (dict): kwargs for converting f0s from Hz to octaves
     kwargs_f0_normalization (dict): kwargs for normalizing f0s
     
     Returns
     -------
     expt_dict (dict): F0 experiment data dict (includes f0 and f0_pred keys)
     '''
-    if 'normal' in f0_label_pred_key:
+    if 'log2' in f0_label_pred_key:
+        if not 'f0_pred' in expt_dict.keys():
+            expt_dict['f0_pred'] = stimuli_f0_labels.octave_to_f0(expt_dict[f0_label_pred_key],
+                                                                  **kwargs_f0_octave)
+        if 'f0' not in expt_dict.keys():
+            expt_dict['f0'] = stimuli_f0_labels.octave_to_f0(expt_dict[f0_label_true_key],
+                                                             **kwargs_f0_octave)
+    elif 'normal' in f0_label_pred_key:
         if not 'f0_pred' in expt_dict.keys():
             expt_dict['f0_pred'] = stimuli_f0_labels.normalized_to_f0(expt_dict[f0_label_pred_key],
                                                                       **kwargs_f0_normalization)
@@ -341,7 +349,7 @@ def parallel_run_f0dl_experiment(par_idx, expt_dict, unique_phase_mode_list, uni
 def run_f0dl_experiment(json_fn, max_pct_diff=6., noise_stdev=1e-12, bin_width=1e-2, mu=0.0,
                         threshold_value=0.707, use_empirical_f0dl_if_possible=False,
                         f0_label_true_key='f0_label:labels_true', f0_label_pred_key='f0_label:labels_pred',
-                        kwargs_f0_bins={}, kwargs_f0_normalization={},
+                        kwargs_f0_bins={}, kwargs_f0_octave={}, kwargs_f0_normalization={},
                         f0_min=-np.inf, f0_max=np.inf, max_processes=60):
     '''
     Main routine for simulating f0 discrimination experiment from Bernstein & Oxenham (2005, JASA).
@@ -360,6 +368,7 @@ def run_f0dl_experiment(json_fn, max_pct_diff=6., noise_stdev=1e-12, bin_width=1
     f0_label_true_key (str): key for f0_label_true in the json file
     f0_label_pred_key (str): key for f0_label_pred in the json file
     kwargs_f0_bins (dict): kwargs for computing f0 bins (lower bound used as estimate)
+    kwargs_f0_octave (dict): kwargs for converting f0s from Hz to octaves
     kwargs_f0_normalization (dict): kwargs for normalizing f0s
     f0_min (float): use this argument to limit the f0 range used to compute thresholds (Hz)
     f0_max (float): use this argument to limit the f0 range used to compute thresholds (Hz)
@@ -378,6 +387,7 @@ def run_f0dl_experiment(json_fn, max_pct_diff=6., noise_stdev=1e-12, bin_width=1
                                               f0_label_true_key=f0_label_true_key,
                                               f0_label_pred_key=f0_label_pred_key,
                                               kwargs_f0_bins=kwargs_f0_bins,
+                                              kwargs_f0_octave=kwargs_f0_octave,
                                               kwargs_f0_normalization=kwargs_f0_normalization)
     expt_dict = filter_expt_dict(expt_dict, filter_dict={'f0':[f0_min, f0_max]})
     unique_phase_mode_list = np.unique(expt_dict['phase_mode'])
@@ -429,7 +439,7 @@ def parallel_compute_confusion_matrices(par_idx, expt_dict, unique_phase_mode_li
 
 def compute_confusion_matrices(json_fn, f0_label_true_key='f0_label:labels_true',
                                f0_label_pred_key='f0_label:labels_pred',
-                               kwargs_f0_bins={}, kwargs_f0_normalization={},
+                               kwargs_f0_bins={}, kwargs_f0_octave={}, kwargs_f0_normalization={},
                                f0_min=-np.inf, f0_max=np.inf, max_processes=60):
     '''
     '''
@@ -442,6 +452,7 @@ def compute_confusion_matrices(json_fn, f0_label_true_key='f0_label:labels_true'
                                               f0_label_true_key=f0_label_true_key,
                                               f0_label_pred_key=f0_label_pred_key,
                                               kwargs_f0_bins=kwargs_f0_bins,
+                                              kwargs_f0_octave=kwargs_f0_octave,
                                               kwargs_f0_normalization=kwargs_f0_normalization)
     expt_dict = filter_expt_dict(expt_dict, filter_dict={'f0':[f0_min, f0_max]})
     unique_phase_mode_list = np.unique(expt_dict['phase_mode'])
