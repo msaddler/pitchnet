@@ -5,12 +5,12 @@ import glob
 import numpy as np
 import argparse
 sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
-from dataset_util import get_f0_bins, f0_to_label, label_to_f0, f0_to_normalized, normalized_to_f0
+from dataset_util import get_f0_bins, f0_to_label, f0_to_octave, f0_to_normalized
 
 
 def add_f0_label_to_hdf5(hdf5_filename, source_f0_key,
-                         f0_key='f0', f0_label_key='f0_label', f0_normal_key='f0_lognormal',
-                         f0_label_dtype=np.int64, f0_bin_kwargs={}, f0_normalization_kwargs={}):
+                         f0_key='f0', f0_label_key='f0_label', f0_octave_key='f0_log2', f0_normal_key='f0_lognormal',
+                         f0_label_dtype=np.int64, f0_bin_kwargs={}, f0_octave_kwargs={}, f0_normalization_kwargs={}):
     '''
     Function adds or recomputes f0 labels and normalized values in specified hdf5 file.
     
@@ -20,10 +20,12 @@ def add_f0_label_to_hdf5(hdf5_filename, source_f0_key,
     source_f0_key (str): source path to f0 values in the hdf5 dataset
     f0_key (str): hdf5 output path for f0 values (dataset will be added or overwritten)
     f0_label_key (str): output path path for f0 labels (dataset will be added or overwritten)
+    f0_octave_key (str): output path for f0 octave values (dataset will be added or overwritten)
     f0_normal_key (str): output path for normalized f0 values (dataset will be added or overwritten)
     f0_label_dtype (np.dtype): datatype for f0 label dataset
     f0_bin_kwargs (dict): kwargs for `get_f0_bins()` (parameters for computing f0 label bins)
-    f0_normalization_kwargs (dict): kwargs for `f0_normalization_kwargs()` (parameters for normalizing f0 values)
+    f0_octave_kwargs (dict): kwargs for `f0_to_octave()` (f0_ref for Hz to octave conversion, default is f0_ref=1.0)
+    f0_normalization_kwargs (dict): kwargs for `f0_to_normalized()` (parameters for normalizing f0 values)
     '''
     print('[ADDING F0 LABELS]: {}'.format(hdf5_filename))
     print('source_f0_key=`{}`'.format(source_f0_key))
@@ -34,6 +36,7 @@ def add_f0_label_to_hdf5(hdf5_filename, source_f0_key,
     output_dict = {
         f0_key: hdf5_f[source_f0_key][:],
         f0_label_key: f0_to_label(hdf5_f[source_f0_key][:], f0_bins),
+        f0_octave_key: f0_to_octave(hdf5_f[source_f0_key][:], **f0_octave_kwargs),
         f0_normal_key: f0_to_normalized(hdf5_f[source_f0_key][:], **f0_normalization_kwargs),
     }
     
@@ -63,6 +66,8 @@ if __name__ == "__main__":
                         help='destination path for f0 values (if different from source_f0_key)')
     parser.add_argument('-kfl', '--f0_label_key', type=str, default='f0_label',
                         help='destination path for f0 label values')
+    parser.add_argument('-kfo', '--f0_octave_key', type=str, default='f0_log2',
+                        help='destination path for f0 octave values')
     parser.add_argument('-kfn', '--f0_normal_key', type=str, default='f0_lognormal',
                         help='destination path for f0 normalized values')
     
@@ -76,6 +81,7 @@ if __name__ == "__main__":
         add_f0_label_to_hdf5(hdf5_filename, args.source_f0_key,
                              f0_key=args.f0_key,
                              f0_label_key=args.f0_label_key,
+                             f0_octave_key=args.f0_octave_key,
                              f0_normal_key=args.f0_normal_key,
                              f0_label_dtype=np.int64,
                              f0_bin_kwargs={},
