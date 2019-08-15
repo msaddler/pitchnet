@@ -351,7 +351,7 @@ def parallel_run_f0dl_experiment(par_idx, expt_dict, unique_phase_mode_list, uni
     return par_idx, sub_results_dict
 
 
-def run_f0dl_experiment(json_fn, max_pct_diff=6., noise_stdev=1e-12, bin_width=1e-2, mu=0.0,
+def run_f0dl_experiment(json_fn, max_pct_diff=np.inf, noise_stdev=1e-12, bin_width=5e-2, mu=0.0,
                         threshold_value=0.707, use_empirical_f0dl_if_possible=False,
                         f0_label_true_key='f0_label:labels_true', f0_label_pred_key='f0_label:labels_pred',
                         kwargs_f0_bins={}, kwargs_f0_octave={}, kwargs_f0_normalization={},
@@ -396,7 +396,10 @@ def run_f0dl_experiment(json_fn, max_pct_diff=6., noise_stdev=1e-12, bin_width=1
                                               kwargs_f0_bins=kwargs_f0_bins,
                                               kwargs_f0_octave=kwargs_f0_octave,
                                               kwargs_f0_normalization=kwargs_f0_normalization)
-    expt_dict = filter_expt_dict(expt_dict, filter_dict={'f0':[f0_min, f0_max]})
+    if 'base_f0' in expt_dict.keys():
+        expt_dict = filter_expt_dict(expt_dict, filter_dict={'base_f0':[f0_min, f0_max]})
+    else:
+        expt_dict = filter_expt_dict(expt_dict, filter_dict={'f0':[f0_min, f0_max]})
     unique_phase_mode_list = np.unique(expt_dict['phase_mode'])
     unique_low_harm_list = np.unique(expt_dict['low_harm'])
     N = len(unique_phase_mode_list) * len(unique_low_harm_list)
