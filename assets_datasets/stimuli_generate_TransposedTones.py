@@ -59,6 +59,8 @@ def get_Oxenham2004_transposed_tone(f_carrier, f_envelope, fs=32000, dur=0.150, 
 
 def generate_Oxenham2004_dataset(hdf5_filename, fs=32000, dur=0.150, buffer_dur=1.0,
                                  dBSPL=70.0, offset_start=True, lowpass_filter_envelope=True,
+                                 list_f_carrier = [0.0, 4000.0, 6350.0, 10080.0],
+                                 f0_min=80.0, f0_max=320., step_size_in_octaves=1/(12*16*16),
                                  disp_step=100):
     '''
     Main routine for generating Oxenham et al. (2004, PNAS) transposed tone dataset.
@@ -67,13 +69,10 @@ def generate_Oxenham2004_dataset(hdf5_filename, fs=32000, dur=0.150, buffer_dur=
     ----
     '''
     # Define stimulus-specific parameters
-    list_f_carrier = [0.0, 4000.0, 6350.0, 10080.0]
-    f0_min=80.
-    f0_max=640.
-    step_size_in_octaves=1/(12*16*8)
     f0s = np.arange(0, np.log2(f0_max / f0_min), step_size_in_octaves)
     f0s = f0_min * (np.power(2, f0s))
     list_f_envelope = list(f0s)
+    list_f_carrier = list(list_f_carrier)
     
     # Prepare config_dict with config values
     config_dict = {
