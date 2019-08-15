@@ -206,6 +206,8 @@ def add_f0_judgments_to_expt_dict(expt_dict, f0_true_key='f0', f0_pred_key='f0_p
     sort_idx = np.argsort(expt_dict[f0_true_key])
     f0_true = expt_dict[f0_true_key][sort_idx]
     f0_pred = expt_dict[f0_pred_key][sort_idx]
+    if 'base_f0' in expt_dict.keys():
+        base_f0 = expt_dict['base_f0'][sort_idx]
     # Initialize f0 percent difference and psychophysical judgment arrays (fill with NaN)
     pairwise_pct_diffs = np.full([f0_true.shape[0], f0_true.shape[0]], np.nan, dtype=np.float32)
     pairwise_judgments = np.full([f0_true.shape[0], f0_true.shape[0]], np.nan, dtype=np.float32)
@@ -216,16 +218,19 @@ def add_f0_judgments_to_expt_dict(expt_dict, f0_true_key='f0', f0_pred_key='f0_p
         # Compute vector of pct_diffs (compare f0_ref against all of f0_true)
         pct_diffs = 100. * (f0_true - f0_ref) / f0_ref
         # Find pct_diffs within the range specified by max_pct_diff
-        within_range_idxs = np.logical_and(pct_diffs >= -max_pct_diff, pct_diffs <= max_pct_diff)
-        pairwise_pct_diffs[idx_ref, within_range_idxs] = pct_diffs[within_range_idxs]
+        comparable_idxs = np.logical_and(pct_diffs >= -max_pct_diff, pct_diffs <= max_pct_diff)
+        if 'base_f0' in expt_dict.keys():
+            same_filter_idxs = base_f0 == base_f0[idx_ref]
+            comparable_idxs = np.logical_and(comparable_idxs, same_filter_idxs)
+        pairwise_pct_diffs[idx_ref, comparable_idxs] = pct_diffs[comparable_idxs]
         # Compute the percent differences between the predictions
-        pred_pct_diffs = 100. * (f0_pred[within_range_idxs] - f0_pred_ref) / f0_pred_ref
+        pred_pct_diffs = 100. * (f0_pred[comparable_idxs] - f0_pred_ref) / f0_pred_ref
         pred_decision_noise = noise_stdev * np.random.randn(pred_pct_diffs.shape[0])
         # Judgment is 1. if model predicts f0_pred_ref > f0_pred
         # Judgment is 0. if model predicts f0_pred_ref < f0_pred
         # Decision stage Gaussian noise is used to break ties
         tmp_judgments = np.array(pred_pct_diffs > pred_decision_noise, dtype=np.float32)
-        pairwise_judgments[idx_ref, within_range_idxs] = tmp_judgments
+        pairwise_judgments[idx_ref, comparable_idxs] = tmp_judgments
     # Store the (largely NaN) pairwise_pct_diffs and pairwise_judgments matrices in expt_dict
     expt_dict['pairwise_pct_diffs'] = pairwise_pct_diffs
     expt_dict['pairwise_judgments'] = pairwise_judgments
@@ -350,7 +355,8 @@ def run_f0dl_experiment(json_fn, max_pct_diff=6., noise_stdev=1e-12, bin_width=1
                         threshold_value=0.707, use_empirical_f0dl_if_possible=False,
                         f0_label_true_key='f0_label:labels_true', f0_label_pred_key='f0_label:labels_pred',
                         kwargs_f0_bins={}, kwargs_f0_octave={}, kwargs_f0_normalization={},
-                        f0_min=-np.inf, f0_max=np.inf, max_processes=60):
+                        f0_min=-np.inf, f0_max=np.inf, metadata_key_list=['low_harm', 'phase_mode', 'f0'],
+                        max_processes=60):
     '''
     Main routine for simulating f0 discrimination experiment from Bernstein & Oxenham (2005, JASA).
     Function computes f0 discrimination thresholds as a function of lowest harmonic number and
@@ -372,6 +378,7 @@ def run_f0dl_experiment(json_fn, max_pct_diff=6., noise_stdev=1e-12, bin_width=1
     kwargs_f0_normalization (dict): kwargs for normalizing f0s
     f0_min (float): use this argument to limit the f0 range used to compute thresholds (Hz)
     f0_max (float): use this argument to limit the f0 range used to compute thresholds (Hz)
+    metadata_key_list (list): metadata keys in json file to use for experiment (see `load_f0_expt_dict_from_json()`)
     max_processes (int): use this argument to cap the number of parallel processes
     
     Returns
@@ -382,7 +389,7 @@ def run_f0dl_experiment(json_fn, max_pct_diff=6., noise_stdev=1e-12, bin_width=1
     expt_dict = load_f0_expt_dict_from_json(json_fn,
                                             f0_label_true_key=f0_label_true_key,
                                             f0_label_pred_key=f0_label_pred_key,
-                                            metadata_key_list=['low_harm', 'phase_mode', 'f0'])
+                                            metadata_key_list=metadata_key_list)
     expt_dict = add_f0_estimates_to_expt_dict(expt_dict,
                                               f0_label_true_key=f0_label_true_key,
                                               f0_label_pred_key=f0_label_pred_key,
