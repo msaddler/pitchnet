@@ -73,7 +73,10 @@ def get_MooreMoore2003_complex_tone(f0, f0_shift=0.0, spectral_envelope=None,
     return y
 
 
-def generate_MooreMoore2003_dataset(hdf5_filename, fs=32000, dur=0.150, dBSPL=70.0, disp_step=100):
+def generate_MooreMoore2003_dataset(hdf5_filename, fs=32000, dur=0.150, dBSPL=70.0,
+                                    phase_mode='cos', f0_min=80.0, f0_max=240.0, step_size_in_octaves=1/(192*4),
+                                    f0_shift_min=0.0, f0_shift_max=0.25, f0_shift_step_size=0.04, 
+                                    disp_step=100):
     '''
     Main routine for generating Moore & Moore (2003, JASA) frequency-shifted complex tone dataset.
     
@@ -83,13 +86,9 @@ def generate_MooreMoore2003_dataset(hdf5_filename, fs=32000, dur=0.150, dBSPL=70
     # Define encoding / decoding dictionaries for phase_mode
     phase_mode_encoding = {'sine':0, 'rand':1, 'sch':2, 'cos':3, 'alt':4}
     phase_mode_decoding = {0:'sine', 1:'rand', 2:'sch', 3:'cos', 4:'alt'}
-    phase_mode = 'cos'
     
     # Define stimulus-specific parameters
-    list_f0_shift = np.arange(0, 0.25, 0.02, dtype=np.float32)
-    f0_min=80.
-    f0_max=500
-    step_size_in_octaves=1/(12*16)
+    list_f0_shift = np.arange(f0_shift_min, f0_shift_max, f0_shift_step_size, dtype=np.float32)
     f0s = np.arange(0, np.log2(f0_max / f0_min), step_size_in_octaves)
     f0s = f0_min * (np.power(2, f0s))
     list_f0 = list(f0s)
