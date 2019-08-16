@@ -7,15 +7,15 @@
 #SBATCH --nodes=1
 #SBATCH --time=0-15:00:00
 #SBATCH --time-min=0-9:00:00
-#SBATCH --exclude=node[001-029]
-#SBATCH --array=0-23
-#SBATCH --qos=mcdermott
-##SBATCH --qos=use-everything
+#SBATCH --exclude=node[019-029]
+#SBATCH --array=0-599
+##SBATCH --qos=mcdermott
+#SBATCH --qos=use-everything
 
 ### Define source_regex and dest_filename here (use single quotes to prevent regex from expanding)
-source_regex='/om/user/msaddler/data_pitchnet/mooremoore2003/MooreMoore2003_frequencyShiftedComplexes_f0_080to240Hz_2xBW/*.hdf5'
-dest_filename='/om/user/msaddler/data_pitchnet/mooremoore2003/MooreMoore2003_frequencyShiftedComplexes_f0_080to240Hz_2xBW/cf100_species002_spont070/bez2018meanrates.hdf5'
-jobs_per_source_file=24
+source_regex='/om/scratch/Sun/msaddler/data_pitchnet/PND_v04/noise_JWSS_snr_neg10pos03/PND_sr32000_v04_*.hdf5'
+dest_filename='/om/scratch/Sun/msaddler/data_pitchnet/PND_v04/noise_JWSS_snr_neg10pos03/cf100_species002_spont070/bez2018meanrates.hdf5'
+jobs_per_source_file=6
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
 
