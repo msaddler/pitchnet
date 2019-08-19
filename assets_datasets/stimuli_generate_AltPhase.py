@@ -42,8 +42,8 @@ def get_bandpass_filter_frequency_response(fl, fh, fs=32e3, order=4):
 
 
 def generate_AltPhase_dataset(hdf5_filename, fs=32000, dur=0.150, phase_modes=['alt', 'sine'],
-                              f0_min=80.0, f0_max=320.0, step_size_in_octaves=1/(192*4),
-                              include_2xF0=True, filter_order=4, passband_component_dBSPL=50.0,
+                              f0_min=80.0, f0_max=320.0, step_size_in_octaves=1/(192*8),
+                              include_2xF0=False, filter_order=8, passband_component_dBSPL=50.0,
                               noise_dBHzSPL=15.0, noise_attenuation_start=600.0,
                               noise_attenuation_slope=2, disp_step=100):
     '''
