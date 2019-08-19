@@ -74,8 +74,8 @@ def get_MooreMoore2003_complex_tone(f0, f0_shift=0.0, spectral_envelope=None,
 
 
 def generate_MooreMoore2003_dataset(hdf5_filename, fs=32000, dur=0.150, dBSPL=70.0,
-                                    phase_mode='cos', f0_min=80.0, f0_max=480.0, step_size_in_octaves=1/(192*4),
-                                    f0_shift_min=0.0, f0_shift_max=0.25, f0_shift_step_size=0.04, 
+                                    phase_mode='cos', f0_min=80.0, f0_max=480.0, step_size_in_octaves=1/(192*8),
+                                    f0_shift_min=0.0, f0_shift_max=0.25, f0_shift_step_size=0.04,
                                     noise_params={}, disp_step=100):
     '''
     Main routine for generating Moore & Moore (2003, JASA) frequency-shifted complex tone dataset.
@@ -93,9 +93,9 @@ def generate_MooreMoore2003_dataset(hdf5_filename, fs=32000, dur=0.150, dBSPL=70
     f0s = f0_min * (np.power(2, f0s))
     list_f0 = list(f0s)
     list_spectral_envelope_params = [
-        {'spectral_envelope_centered_harmonic': 5, 'spectral_envelope_bandwidth_in_harmonics': 3*2}, # "RES"
-        {'spectral_envelope_centered_harmonic': 11, 'spectral_envelope_bandwidth_in_harmonics': 5*2}, # "INT"
-        {'spectral_envelope_centered_harmonic': 16, 'spectral_envelope_bandwidth_in_harmonics': 5*2}, # "UNRES"
+        {'spectral_envelope_centered_harmonic': 5, 'spectral_envelope_bandwidth_in_harmonics': 3}, # "RES"
+        {'spectral_envelope_centered_harmonic': 11, 'spectral_envelope_bandwidth_in_harmonics': 5}, # "INT"
+        {'spectral_envelope_centered_harmonic': 16, 'spectral_envelope_bandwidth_in_harmonics': 5}, # "UNRES"
     ]
     
     # Prepare config_dict with config values
@@ -162,6 +162,6 @@ if __name__ == "__main__":
     ''' TEMPORARY COMMAND-LINE USAGE '''
     assert len(sys.argv) == 2, "scipt usage: python <script_name> <hdf5_filename>"
     hdf5_filename = str(sys.argv[1])
-    
-    generate_MooreMoore2003_dataset(hdf5_filename,
-                                    noise_params={'dBHzSPL':15.0, 'attenuation_start':600.0, 'attenuation_slope':2})
+    generate_MooreMoore2003_dataset(hdf5_filename, noise_params={})
+#     generate_MooreMoore2003_dataset(hdf5_filename,
+#                                     noise_params={'dBHzSPL':15.0, 'attenuation_start':600.0, 'attenuation_slope':2})

@@ -17,8 +17,8 @@ if __name__ == "__main__":
     job_idx = int(sys.argv[3])
     jobs_per_source_file = int(sys.argv[4])
     
-#     source_key_signal = 'stimuli/signal'
-    source_key_signal = 'stimuli/signal_in_noise'
+    source_key_signal = 'stimuli/signal'
+#     source_key_signal = 'stimuli/signal_in_noise'
     source_key_signal_fs = 'sr'
 #     source_key_signal = 'tone_in_noise'
 #     source_key_signal_fs = 'config_tone/fs'
