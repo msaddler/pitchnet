@@ -8,14 +8,14 @@
 #SBATCH --time=0-16:00:00
 #SBATCH --time-min=0-10:00:00
 #SBATCH --exclude=node[001-030,069]
-#SBATCH --array=0-49
+#SBATCH --array=0-35
 #SBATCH --qos=mcdermott
 ##SBATCH --qos=use-everything
 
 ### Define source_regex and dest_filename here (use single quotes to prevent regex from expanding)
-source_regex='/om/user/msaddler/data_pitchnet/mooremoore2003/MooreMoore2003_frequencyShiftedComplexes_f0_080to480Hz/*.hdf5'
-dest_filename='/om/user/msaddler/data_pitchnet/mooremoore2003/MooreMoore2003_frequencyShiftedComplexes_f0_080to480Hz/cf100_species002_spont070/bez2018meanrates.hdf5'
-jobs_per_source_file=50
+source_regex='/om/user/msaddler/data_pitchnet/shackcarl1994/AltPhase_v01_f0min080_f0max320/*.hdf5'
+dest_filename='/om/user/msaddler/data_pitchnet/shackcarl1994/AltPhase_v01_f0min080_f0max320/cf100_species002_spont070/bez2018meanrates.hdf5'
+jobs_per_source_file=36
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
 
