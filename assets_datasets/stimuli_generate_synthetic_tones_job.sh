@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-##SBATCH --qos=mcdermott
+#SBATCH --partition=sched_om_MCDERMOTT
 #SBATCH --job-name=synth_tones
 #SBATCH --out="trash/slurm-%A_%a.out"
 #SBATCH --cpus-per-task=1

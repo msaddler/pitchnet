@@ -7,8 +7,8 @@
 #SBATCH --nodes=1
 #SBATCH --time=0-0:40:00
 #SBATCH --array=0-35
-#SBATCH --qos=mcdermott
-##SBATCH --qos=use-everything
+#SBATCH --partition=sched_om_MCDERMOTT
+##SBATCH --partition=use-everything
 ###SBATCH --dependency=afterok:12702768
 
 ### Define source_regex and dest_filename here (use single quotes to prevent regex from expanding)

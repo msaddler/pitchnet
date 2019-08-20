@@ -9,8 +9,8 @@
 #SBATCH --time-min=0-10:00:00
 #SBATCH --exclude=node[001-030,069]
 #SBATCH --array=0-35
-#SBATCH --qos=mcdermott
-##SBATCH --qos=use-everything
+#SBATCH --partition=sched_om_MCDERMOTT
+##SBATCH --partition=use-everything
 
 ### Define source_regex and dest_filename here (use single quotes to prevent regex from expanding)
 source_regex='/om/user/msaddler/data_pitchnet/shackcarl1994/AltPhase_v01_f0min080_f0max320/*.hdf5'
