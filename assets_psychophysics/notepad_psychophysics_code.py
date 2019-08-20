@@ -291,3 +291,217 @@ for idx in range(len(expt_dict_list), len(ax_arr)): ax_arr[idx].axis('off')
 
 plt.tight_layout()
 plt.show()
+
+
+############ RUN AND PLOT TRANSPOSED TONES (Oxenham et al. 2004) ############
+
+import sys
+import os
+import json
+import numpy as np
+import glob
+import f0dl_transposed_tones
+%matplotlib inline
+import matplotlib.pyplot as plt
+
+json_regex = '/om2/user/msaddler/pitchnet/saved_models/PND_v*/EVAL_oxenham2004_080to320Hz_bestckpt.json'
+json_regex = '/om2/user/msaddler/pitchnet/saved_models/PND_v04*/EVAL_oxenham2004_*_bestckpt.json'
+
+
+json_fn_list = sorted(glob.glob(json_regex))
+model_name_list = []
+for json_fn in json_fn_list:
+    model_name = json_fn.replace('/om2/user/msaddler/pitchnet/saved_models/', '')
+    model_name = model_name.replace('_bestckpt.json', '')
+    model_name = model_name[:model_name.rfind('/')] + '\n' + model_name[model_name.rfind('/'):]
+    model_name_list.append(model_name)
+
+metadata_key_list = [
+    'f0',
+    'f_carrier',
+    'f_envelope',
+]
+
+results_dict_list = []
+for json_fn, model_name in zip(json_fn_list, model_name_list):
+    print(json_fn)
+    results_dict = f0dl_transposed_tones.run_f0dl_experiment(json_fn, max_pct_diff=6, noise_stdev=1e-12, bin_width=5e-2, mu=0.0,
+                        threshold_value=0.707, use_empirical_f0dl_if_possible=False,
+                        f0_label_true_key='f0_label:labels_true', f0_label_pred_key='f0_label:labels_pred',
+                        kwargs_f0_bins={}, kwargs_f0_octave={}, kwargs_f0_normalization={},
+                        f0_ref_min=100.0, f0_ref_max=320.0, f0_ref_n_step=5,
+                        metadata_key_list=['f_carrier', 'f_envelope', 'f0'])
+    results_dict_list.append(results_dict)
+
+
+def make_TT_threshold_plot(ax, results_dict, title_str=None, legend_on=True):
+    f0_ref = np.array(results_dict['f0_ref'])
+    f_carrier_list = np.array(results_dict['f_carrier'])
+    f0dl_list = np.array(results_dict['f0dl'])
+    unique_f_carrier_list = np.unique(f_carrier_list)
+    for f_carrier in unique_f_carrier_list:
+        x = f0_ref[f_carrier_list == f_carrier]
+        y = f0dl_list[f_carrier_list == f_carrier]
+        
+        if f_carrier > 0:
+            label = '{}-Hz TT'.format(int(f_carrier))
+            plot_kwargs = {'label': label, 'color': 'k', 'ls':'-', 'lw':2, 'ms':8,
+                           'marker':'o', 'markerfacecolor': 'w'}
+            if int(f_carrier) == 10080: plot_kwargs['marker'] = 'D'
+            if int(f_carrier) == 6350: plot_kwargs['marker'] = '^'
+            if int(f_carrier) == 4000: plot_kwargs['marker'] = 's'
+        else:
+            label = 'Pure tone'
+            plot_kwargs = {'label': label, 'color': 'k', 'ls':'-', 'lw':2, 'ms':8,
+                           'marker':'o', 'markerfacecolor': 'k'}
+            
+        if not legend_on: plot_kwargs['label'] = None
+        ax.plot(x, y, **plot_kwargs)
+
+    ax.set_yscale('log')
+    ax.set_ylim([1e-1, 3e1])
+    ax.set_xscale('log')
+    ax.set_xlim([40, 500])
+    ax.set_xlabel('Frequency (Hz)', fontsize=10)
+    ax.set_ylabel('Frequency difference (%)', fontsize=10)
+    if title_str is not None: ax.set_title(model_name, fontsize=10)
+    if legend_on: ax.legend(loc='lower right', frameon=False, fontsize=10)
+
+
+NCOLS = 3
+NROWS = int(np.ceil(len(results_dict_list) / NCOLS))
+fig, ax_arr = plt.subplots(nrows=NROWS, ncols=NCOLS, figsize=(3.5*NCOLS, 3*NROWS))
+ax_arr = ax_arr.flatten()
+
+for idx, (results_dict, model_name) in enumerate(zip(results_dict_list, model_name_list)):
+    ax = ax_arr[idx]
+    make_TT_threshold_plot(ax, results_dict, title_str=model_name, legend_on=False)
+
+for idx in range(len(results_dict_list), len(ax_arr)): ax_arr[idx].axis('off')
+
+plt.tight_layout()
+plt.show()
+
+
+############ RUN AND PLOT ALT PHASE HARMONICS (Shackleton and Carlyon 1994) ############
+
+import sys
+import os
+import json
+import numpy as np
+import glob
+import f0dl_bernox
+%matplotlib inline
+import matplotlib.pyplot as plt
+
+
+def compute_f0_pred_ratio(expt_dict):
+    f0_true = expt_dict['f0']
+    f0_pred = expt_dict['f0_pred']
+    expt_dict['f0_pred_ratio'] = f0_pred / f0_true
+    return expt_dict
+
+
+def compute_histograms(expt_dict_list, phase_mode=4, f0_bin_centers=[125, 250], f0_bin_width=0.04):
+    if not isinstance(expt_dict_list, list):
+        expt_dict_list = [expt_dict_list]
+    
+    expt_dict = expt_dict_list[0]
+    filter_conditions = np.unique(expt_dict['filter_fl'])
+    f0 = np.unique(expt_dict['phase_mode'])
+    
+    f0_pred_ratio_list = []
+    f0_condition_list = []
+    filter_condition_list = []
+    
+    for filt_cond in filter_conditions:
+        for f0_center in f0_bin_centers:
+            f0_range = [f0_center*(1-f0_bin_width), f0_center*(1+f0_bin_width)]
+            f0_pred_ratio_sublist = []
+            for expt_dict in expt_dict_list:
+                sub_expt_dict = f0dl_bernox.filter_expt_dict(expt_dict,
+                                filter_dict={'filter_fl': filt_cond, 'f0': f0_range, 'phase_mode': phase_mode})
+                sub_expt_dict = compute_f0_pred_ratio(sub_expt_dict)
+                f0_pred_ratio_sublist.extend(sub_expt_dict['f0_pred_ratio'].tolist())
+            
+            f0_pred_ratio_list.append(f0_pred_ratio_sublist)
+            filter_condition_list.append(filt_cond)
+            f0_condition_list.append(f0_center)
+    
+    return filter_condition_list, f0_condition_list, f0_pred_ratio_list
+
+
+# json_regex = '/om2/user/msaddler/pitchnet/saved_models/PND_v04_JWSS_classification*/EVAL_AltPhase_v01_bestckpt.json'
+json_regex = '/om2/user/msaddler/pitchnet/saved_models/PND_v04_JWSS_halfbandpass_classification*/EVAL_AltPhase_v01_bestckpt.json'
+
+json_fn_list = sorted(glob.glob(json_regex))
+model_name_list = []
+for json_fn in json_fn_list:
+    model_name = json_fn.replace('/om2/user/msaddler/pitchnet/saved_models/', '')
+    model_name = model_name.replace('_bestckpt.json', '')
+    model_name = model_name[:model_name.rfind('/')] + '\n' + model_name[model_name.rfind('/'):]
+    model_name_list.append(model_name)
+
+metadata_key_list = [
+    'f0',
+    'phase_mode',
+    'filter_fl',
+    'filter_fh',
+]
+
+expt_dict_list = []
+for json_fn, model_name in zip(json_fn_list, model_name_list):
+    print(json_fn)
+    if 'regress' in json_fn:
+        f0_label_pred_key = 'f0_lognormal:labels_pred'
+        f0_label_true_key = 'f0_lognormal:labels_true'
+    else:
+        f0_label_pred_key = 'f0_label:labels_pred'
+        f0_label_true_key = 'f0_label:labels_true'
+    expt_dict = f0dl_bernox.load_f0_expt_dict_from_json(json_fn,
+                                                        f0_label_true_key=f0_label_true_key,
+                                                        f0_label_pred_key=f0_label_pred_key,
+                                                        metadata_key_list=metadata_key_list)
+    expt_dict = f0dl_bernox.add_f0_estimates_to_expt_dict(expt_dict,
+                                                          f0_label_true_key=f0_label_true_key,
+                                                          f0_label_pred_key=f0_label_pred_key)
+    expt_dict_list.append(expt_dict)
+
+
+
+filter_condition_list, f0_condition_list, f0_pred_ratio_list = compute_histograms(
+    expt_dict_list, phase_mode=4, f0_bin_centers=[80, 125, 250], f0_bin_width=0.04)
+
+NCOLS = 3
+NROWS = 3
+fig, ax_arr = plt.subplots(nrows=NROWS, ncols=NCOLS, figsize=(3*NCOLS, 2*NROWS), sharex=True, sharey=True)
+ax_arr = ax_arr.flatten()
+for itr0 in range(len(f0_pred_ratio_list)):
+    ax = ax_arr[itr0]
+    ax.set_xscale('log')
+    label = 'filter={}, f0={}'.format(filter_condition_list[itr0], f0_condition_list[itr0])
+
+    # Create bins for the ratio histogram (log-scale)
+    bin_step = 0.02
+    bins = [0.9]
+    while bins[-1] < 2.3: bins.append(bins[-1] * (1.0+bin_step))
+    # Manually compute histogram and convert to percentage
+    bin_counts, bin_edges = np.histogram(f0_pred_ratio_list[itr0], bins=bins)
+    bin_percentages = 100.0 * bin_counts / np.sum(bin_counts)
+    bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+    bin_widths = bin_edges[:-1] - bin_edges[1:]
+    ax.bar(bin_centers, bin_percentages, width=bin_widths, align='center', label=label, color='k')
+    ax.legend(loc=0, frameon=False, markerscale=0, handlelength=0)
+    
+    from matplotlib.ticker import ScalarFormatter, NullFormatter
+    ax.xaxis.set_major_formatter(ScalarFormatter())
+    ax.xaxis.set_minor_formatter(NullFormatter())
+    ax.set_xticks([1.0, 1.5, 2.0])
+    ax.set_xticks(np.arange(0.9, 2.4, 0.1), minor=True)
+
+ax_arr[3].set_ylabel('Percentage of pitch matches in {:.1f}% wide bins'.format(bin_step*100.0))
+ax_arr[7].set_xlabel('Ratio of predicted f0 to target f0')
+
+plt.tight_layout()
+plt.subplots_adjust(wspace=0, hspace=0)
+plt.show()
