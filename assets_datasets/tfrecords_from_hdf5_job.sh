@@ -7,7 +7,7 @@
 #SBATCH --nodes=1
 #SBATCH --time=0-0:40:00
 #SBATCH --array=0-35
-#SBATCH --partition=sched_om_MCDERMOTT
+#SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 ###SBATCH --dependency=afterok:12702768
 
