@@ -505,3 +505,117 @@ ax_arr[7].set_xlabel('Ratio of predicted f0 to target f0')
 plt.tight_layout()
 plt.subplots_adjust(wspace=0, hspace=0)
 plt.show()
+
+
+############ RUN AND PLOT MISTUNED HARMONICS (Moore et al 1985) ############
+
+import sys
+import os
+import json
+import numpy as np
+import glob
+import f0dl_bernox
+%matplotlib inline
+import matplotlib.pyplot as plt
+
+
+def compute_f0_pred_percent_shift(expt_dict):
+    f0_true = expt_dict['f0']
+    f0_pred = expt_dict['f0_pred']
+    expt_dict['f0_pred_pct'] = 100.0 * (f0_pred - f0_true) / f0_true
+    return expt_dict
+
+
+def compute_mistuning_shifts(expt_dict, key_mistuned_harm='mistuned_harm', key_mistuned_pct='mistuned_pct',
+                             f0_min=-np.inf, f0_max=np.inf):
+    expt_dict = compute_f0_pred_percent_shift(expt_dict)
+    unique_harm = np.unique(expt_dict[key_mistuned_harm])
+    unique_pct = np.unique(expt_dict[key_mistuned_pct])
+    results_dict = {}
+    for harm in unique_harm:
+        results_dict[harm] = {
+            'f0_pred_pct_median': [],
+            'f0_pred_pct_mean': [],
+            'f0_pred_pct_stddev': [],
+            'mistuned_pct': [],
+            'mistuned_harm': harm
+        }
+        for pct in unique_pct:
+            filter_dict = {
+                key_mistuned_harm: harm,
+                key_mistuned_pct: pct,
+                'f0': [f0_min, f0_max],
+            }
+            sub_expt_dict = f0dl_bernox.filter_expt_dict(expt_dict, filter_dict=filter_dict)
+            results_dict[harm]['f0_pred_pct_median'].append(np.median(sub_expt_dict['f0_pred_pct']))
+            results_dict[harm]['f0_pred_pct_mean'].append(np.mean(sub_expt_dict['f0_pred_pct']))
+            results_dict[harm]['f0_pred_pct_stddev'].append(np.std(sub_expt_dict['f0_pred_pct']))
+            results_dict[harm]['mistuned_pct'].append(pct)
+    return results_dict
+
+
+
+json_regex = '/om2/user/msaddler/pitchnet/saved_models/PND_v04_JWSS*_classification*/EVAL_MistunedHarm_v00_bestckpt.json'
+
+json_fn_list = sorted(glob.glob(json_regex))
+model_name_list = []
+for json_fn in json_fn_list:
+    model_name = json_fn.replace('/om2/user/msaddler/pitchnet/saved_models/', '')
+    model_name = model_name.replace('_bestckpt.json', '')
+    model_name = model_name[:model_name.rfind('/')] + '\n' + model_name[model_name.rfind('/'):]
+    model_name_list.append(model_name)
+
+metadata_key_list = [
+    'f0',
+    'mistuned_harm',
+    'mistuned_pct',
+]
+
+results_dict_list = []
+for json_fn, model_name in zip(json_fn_list, model_name_list):
+    print(json_fn)
+    if 'regress' in json_fn:
+        f0_label_pred_key = 'f0_lognormal:labels_pred'
+        f0_label_true_key = 'f0_lognormal:labels_true'
+    else:
+        f0_label_pred_key = 'f0_label:labels_pred'
+        f0_label_true_key = 'f0_label:labels_true'
+    expt_dict = f0dl_bernox.load_f0_expt_dict_from_json(json_fn,
+                                                        f0_label_true_key=f0_label_true_key,
+                                                        f0_label_pred_key=f0_label_pred_key,
+                                                        metadata_key_list=metadata_key_list)
+    expt_dict = f0dl_bernox.add_f0_estimates_to_expt_dict(expt_dict,
+                                                          f0_label_true_key=f0_label_true_key,
+                                                          f0_label_pred_key=f0_label_pred_key)
+    results_dict = compute_mistuning_shifts(expt_dict,
+                                            f0_min=60,#-np.inf,
+                                            f0_max=140)#np.inf)
+    results_dict_list.append(results_dict)
+
+
+NCOLS = 3
+NROWS = int(np.ceil(len(expt_dict_list) / NCOLS))
+fig, ax_arr = plt.subplots(nrows=NROWS, ncols=NCOLS, figsize=(5*NCOLS, 3*NROWS))
+ax_arr = ax_arr.flatten()
+
+for idx, (results_dict, model_name) in enumerate(zip(results_dict_list, model_name_list)):
+    ax = ax_arr[idx]
+        
+    for key in sorted(results_dict.keys()):
+        xval = results_dict[key]['mistuned_pct']
+        yval = results_dict[key]['f0_pred_pct_median']#['f0_pred_pct_mean']
+        yerr = results_dict[key]['f0_pred_pct_stddev']
+        ax.plot(xval, yval, '.-', label=key, markersize=8)
+
+    ax.legend(loc=4, frameon=False, ncol=2, handlelength=2, markerscale=0, fontsize=8)
+    ax.set_title(model_name)
+    ax.set_xlabel('Shift in harmonic (%)')
+    ax.set_ylabel('Shift in predicted F0 (%)')
+#     ax.set_xlim([-0.5, 24.5])
+    ax.set_ylim([-1.0, 0.25])
+
+
+for idx in range(len(expt_dict_list), len(ax_arr)): ax_arr[idx].axis('off')
+
+plt.tight_layout()
+plt.show()

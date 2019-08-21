@@ -6,13 +6,13 @@
 #SBATCH --mem-per-cpu=2500
 #SBATCH --nodes=1
 #SBATCH --time=0-0:40:00
-#SBATCH --array=0-35
+#SBATCH --array=0-49
 #SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 ###SBATCH --dependency=afterok:12702768
 
 ### Define source_regex and dest_filename here (use single quotes to prevent regex from expanding)
-source_regex='/om/user/msaddler/data_pitchnet/shackcarl1994/AltPhase_v01_f0min080_f0max320/cf100_species002_spont070/bez2018meanrates_*.hdf5'
+source_regex='/om/user/msaddler/data_pitchnet/moore1985/Moore1985_MistunedHarmonics_v00/cf100_species002_spont070/bez2018meanrates_*.hdf5'
 jobs_per_source_file=1
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
