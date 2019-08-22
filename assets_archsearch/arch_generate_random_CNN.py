@@ -25,58 +25,75 @@ class RandomCNN:
         self.dilation_rate = [1,1]
         self.include_classification_layer = True
         
-        # Range from which to sample number of convolutional layers (inclusive)
-        MAX_LAYERS=8
-        self.range_num_conv_layers = [1, MAX_LAYERS] # [lower, upper]
+        # Discrete prior over number of convolutional layers (sampled using np.random.choice())
+        self.possible_num_conv_layers = [
+            1,
+            2,2,
+            3,3,3,
+            4,4,4,4,
+            5,5,5,5,5,
+            6,6,6,6,6,6,
+            7,7,7,7,7,7,7,
+            8,8,8,8,8,8,8,8,
+        ]
         
         # Discrete priors over convolutional kernel heights (freq) and lengths (time) for each layer  
-        self.possible_conv_layer_height = [[1, 2, 3, 4, 5]] * MAX_LAYERS
+        self.possible_conv_layer_height = [
+            [1,2,3,4,5],
+            [1,2,3,4,5],
+            [1,2,3,4,5],
+            [1,2,3,4,5],
+            [1,2,3,4,5],
+            [1,2,3,4,5],
+            [1,2,3,4,5],
+            [1,2,3,4,5],
+        ]
         self.possible_conv_layer_length = [
-            [16,32,64,128],
-            [8,16,32,64],
-            [4,8,16,32],
-            [2,4,8,16],
-            [2,4,8,16],
+            [16,24,32,48,64,96,128],
+            [8,12,16,24,32,48,64],
+            [4,8,12,16,24,32],
+            [2,4,8,12,16],
+            [1,2,4,8],
             [1,2,3,4],
             [1,2,3,4],
             [1,2,3,4],
         ]
         # Discrete prior over number of convolutional kernels for each layer
         self.possible_conv_layer_nums = [
-            [16,32,64],
             [16,32,64,128],
+            [16,32,64,128,256],
             [32,64,128,256],
             [32,64,128,256,512],
-            [32,64,128,256,512],
-            [32,64,128,256,512],
             [64,128,256,512],
             [64,128,256,512],
+            [128,256,512],
+            [128,256,512,1024],
         ]
         
         # Discrete priors over convolutional strides for each layer
-        self.possible_conv_strides_height = [[1]] * MAX_LAYERS # NO STRIDED CONVOLUTION
-        self.possible_conv_strides_length = [[1]] * MAX_LAYERS # NO STRIDED CONVOLUTION
+        self.possible_conv_strides_height = [[1]] * np.max(self.possible_num_conv_layers) # NO STRIDED CONVOLUTION
+        self.possible_conv_strides_length = [[1]] * np.max(self.possible_num_conv_layers) # NO STRIDED CONVOLUTION
         
         # Discrete priors over pooling sizes after each conv layer ("1" pooling = no pooling)
         self.possible_pooling_strides_height = [
             [1,2,3],
             [1,2,3],
+            [1,2,3],
             [1,2],
             [1,2],
             [1,1,2],
             [1,1,2],
-            [1,1,1,2],
-            [1,1,1,2],
+            [1,1,2],
         ]
         self.possible_pooling_strides_length = [
-            [2,4,8,16],
             [2,4,8],
+            [1,2,4],
             [1,2,4],
             [1,2],
             [1,2],
             [1,1,2],
-            [1,1,2],
             [1,1,1,2],
+            [1,1,1,1,2],
         ]
         
         # Discrete prior over existence and size of an intermediate fully-connected layer
@@ -87,7 +104,7 @@ class RandomCNN:
         
         # Choose the parameters for the conv layers
         self.num_conv_kernels, self.convstrides, self.poolstrides, self.conv_kernels_sizes = uniformly_sample_conv_layers(
-            self.range_num_conv_layers,
+            self.possible_num_conv_layers,
             self.possible_conv_layer_height,
             self.possible_conv_layer_length,
             self.possible_conv_layer_nums,
@@ -199,7 +216,7 @@ class RandomCNN:
         self.all_layer_list = all_layer_list
 
 
-def uniformly_sample_conv_layers(range_num_conv_layers,
+def uniformly_sample_conv_layers(possible_num_conv_layers,
                                  possible_conv_layer_height,
                                  possible_conv_layer_length,
                                  possible_conv_layer_nums,
@@ -212,7 +229,7 @@ def uniformly_sample_conv_layers(range_num_conv_layers,
     
     Args
     ----
-    range_num_conv_layers (list): possible depths of the network (number of conv layers)
+    possible_num_conv_layers (list): possible depths of the network (number of conv layers)
     possible_conv_layer_height (list): for each convolutional layer, the height of the kernels
     possible_conv_layer_length (list): for each convolutional layer, the width of the kernels
     possible_conv_layer_nums (list): for each convolutional layer, the number of kernels to include
@@ -232,7 +249,7 @@ def uniformly_sample_conv_layers(range_num_conv_layers,
     convstrides = []
     poolstrides = []
     conv_kernels_sizes = []
-    num_conv_layers = np.random.randint(range_num_conv_layers[0], range_num_conv_layers[1]+1)
+    num_conv_layers = np.random.choice(possible_num_conv_layers)
     for layer_idx in np.arange(num_conv_layers):
         # Sample number of convolutional kernels in each layer
         rand_choose_num_conv = np.random.randint(0, len(possible_conv_layer_nums[layer_idx]))
