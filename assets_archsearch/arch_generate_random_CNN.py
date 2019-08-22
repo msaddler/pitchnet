@@ -1,6 +1,6 @@
-import numpy as np
 import sys
-import os 
+import os
+import numpy as np
 import json
 
 
@@ -270,34 +270,3 @@ def uniformly_sample_conv_layers(possible_num_conv_layers,
         conv_kernels_sizes.append([possible_conv_layer_height[layer_idx][rand_choose_conv_height],
                                    possible_conv_layer_length[layer_idx][rand_choose_conv_length]])
     return num_conv_kernels, convstrides, poolstrides, conv_kernels_sizes
-
-
-def generate_network_architecture(save_net_name):
-    '''
-    Generates a new network architecture using the prior specified in the RandomCNN class
-    
-    Args
-    ----
-    save_net_name (string) : the location of the generated json file
-    
-    Returns
-    -------
-    new_net (class) : an instance of the network class that has a json saved to save_net_name
-    net_json_path (string) : location where the network json path was stored
-    '''
-    new_net = RandomCNN()
-    print('Making new network architecture')
-    net_json_path = save_net_name + '.json'
-    with open(net_json_path, 'w') as fp:
-        json.dump(new_net.all_layer_list, fp)
-    for layer in new_net.all_layer_list:
-        print(layer)
-    return new_net, net_json_path
-
-
-def main():
-    generate_network_architecture(sys.argv[1])
-
-
-if __name__ == "__main__":
-    main() 
