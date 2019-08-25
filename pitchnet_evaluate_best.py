@@ -18,8 +18,16 @@ def get_best_checkpoint_number(validation_metrics_fn, metric_key='f0_label:accur
     '''
     '''
     with open(validation_metrics_fn) as f: validation_metrics_dict = json.load(f)
-    checkpoint_numbers = validation_metrics_dict[checkpoint_number_key]
+    valid_step = validation_metrics_dict[checkpoint_number_key]
     metric_values = validation_metrics_dict[metric_key]
+    ### START: WORK AROUND FOR BUG CAUSED BY PREEMPTING AND RESTARTING TRAINING (valid step is reset)
+    checkpoint_numbers = [valid_step[0]]
+    for idx, diff in enumerate(np.diff(valid_step)):
+        if diff > 0: checkpoint_numbers.append(checkpoint_numbers[-1] + diff)
+        else: checkpoint_numbers.append(checkpoint_numbers[-1] + valid_step[idx+1])
+    assert len(checkpoint_numbers) == len(valid_step)
+    assert len(checkpoint_numbers) == len(metric_values)
+    ### END: WORK AROUND FOR BUG CAUSED BY PREEMPTING AND RESTARTING TRAINING (valid step is reset)
     if maximize: bci = np.argmax(metric_values)
     else: bci = np.argmin(metric_values)
     print('Selecting checkpoint {} ({}={})'.format(checkpoint_numbers[bci], metric_key, metric_values[bci]))
