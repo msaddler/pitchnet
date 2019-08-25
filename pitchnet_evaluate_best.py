@@ -31,7 +31,7 @@ def get_best_checkpoint_number(validation_metrics_fn, metric_key='f0_label:accur
     if maximize: bci = np.argmax(metric_values)
     else: bci = np.argmin(metric_values)
     print('Selecting checkpoint {} ({}={})'.format(checkpoint_numbers[bci], metric_key, metric_values[bci]))
-    return checkpoint_numbers[bci]
+    return int(checkpoint_numbers[bci])
 
 
 def get_feature_parsing_dict_from_tfrecords(eval_regex, bytesList_decoding_dict={}):
