@@ -10,7 +10,7 @@
 #SBATCH --exclude=node[001-030,069]
 #SBATCH --array=0-599
 ##SBATCH --partition=mcdermott
-#SBATCH --partition=use-everything
+##SBATCH --partition=use-everything
 #SBATCH --requeue
 
 ### Define source_regex and dest_filename here (use single quotes to prevent regex from expanding)
