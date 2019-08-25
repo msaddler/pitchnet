@@ -66,13 +66,16 @@ def create_temporary_config(output_directory, eval_regex,
                             temporary_config_filename='EVAL_config.json'):
     '''
     '''
-    if 'cf100' in eval_regex:
-        bytesList_decoding_dict = {"meanrates": { "dtype": "tf.float32", "shape": [100, 500] }}
-    elif 'cf50' in eval_regex:
-        bytesList_decoding_dict = {"meanrates": { "dtype": "tf.float32", "shape": [50, 500] }}
+    if 'RSB' in output_directory:
+        bytesList_decoding_dict = {"signal": {"dtype": "tf.float32", "shape": [1600]}}
     else:
-        bytesList_decoding_dict = {}
-        raise ValueError("`bytesList_decoding_dict` could not be determined from `eval_regex`")
+        if 'cf100' in eval_regex:
+            bytesList_decoding_dict = {"meanrates": {"dtype": "tf.float32", "shape": [100, 500]}}
+        elif 'cf50' in eval_regex:
+            bytesList_decoding_dict = {"meanrates": {"dtype": "tf.float32", "shape": [50, 500]}}
+        else:
+            bytesList_decoding_dict = {}
+            raise ValueError("`bytesList_decoding_dict` could not be determined from `eval_regex`")
     feature_parsing_dict = get_feature_parsing_dict_from_tfrecords(eval_regex, bytesList_decoding_dict)
     with open(os.path.join(output_directory, config_filename)) as f: CONFIG = json.load(f)
     CONFIG["ITERATOR_PARAMS"]["feature_parsing_dict"] = feature_parsing_dict
