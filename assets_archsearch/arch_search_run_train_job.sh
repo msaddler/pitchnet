@@ -9,9 +9,9 @@
 ####SBATCH --gres=gpu:GEFORCERTX2080:1
 ####SBATCH --gres=gpu:1 --constraint=high-capacity
 #SBATCH --time=0-48:00:00
-#SBATCH --time-min=0-24:00:00
-#SBATCH --array=0-99
-##SBATCH --partition=mcdermott
+##SBATCH --time-min=0-24:00:00
+#SBATCH --array=703,708,724,730
+#SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --requeue
 
@@ -19,7 +19,7 @@ offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
 SOURCE_CONFIG_FN='example_config.json'
 OUTPUT_DIR_PATTERN="/saved_models/arch_search_v00/arch_{:04d}"
-OUTPUT_LOG_FN=$(printf "/om2/user/msaddler/pitchnet/saved_models/arch_search_v00/logs_train/arch_%04d.log" ${job_idx})
+OUTPUT_LOG_FN=$(printf "/om/scratch/Fri/msaddler/pitchnet/saved_models/arch_search_v00/logs_train/arch_%04d.log" ${job_idx})
 
 echo $OUTPUT_LOG_PATH
 echo $(hostname)
@@ -29,9 +29,10 @@ singularity exec --nv \
 -B /nobackup \
 -B /om \
 -B /om2 \
+-B /om4 \
 -B /om2/user/msaddler/python-packages:/python-packages \
 -B /om/scratch/Fri/msaddler/data_pitchnet:/data \
--B /om2/user/msaddler/pitchnet/saved_models:/saved_models \
+-B /om/scratch/Fri/msaddler/pitchnet/saved_models:/saved_models \
 -B /om2/user/msaddler/pitchnet/ibmHearingAid:/code_location \
 /om/user/francl/ibm_hearing_aid/tfv1.13_openmind.simg \
 python /om2/user/msaddler/pitchnet/assets_archsearch/arch_search_run_train.py \
