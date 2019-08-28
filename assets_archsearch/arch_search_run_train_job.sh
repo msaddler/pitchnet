@@ -21,7 +21,7 @@ SOURCE_CONFIG_FN='example_config.json'
 OUTPUT_DIR_PATTERN="/saved_models/arch_search_v00/arch_{:04d}"
 OUTPUT_LOG_FN=$(printf "/om/scratch/Fri/msaddler/pitchnet/saved_models/arch_search_v00/logs_train/arch_%04d.log" ${job_idx})
 
-echo $OUTPUT_LOG_PATH
+echo $OUTPUT_LOG_FN
 echo $(hostname)
 
 singularity exec --nv \

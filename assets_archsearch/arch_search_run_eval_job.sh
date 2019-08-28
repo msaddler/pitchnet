@@ -9,8 +9,8 @@
 ####SBATCH --gres=gpu:GEFORCERTX2080:1
 ####SBATCH --gres=gpu:1 --constraint=high-capacity
 #SBATCH --time=0-2:00:00
-#SBATCH --array=10-249
-##SBATCH --partition=mcdermott
+#SBATCH --array=102,104,107,108,112,139,141,143,625
+#SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --requeue
 

@@ -2,6 +2,8 @@ import sys
 import os
 import json
 import numpy as np
+import glob
+import argparse
 import pdb
 import scipy.optimize
 import scipy.stats
@@ -490,3 +492,57 @@ def compute_confusion_matrices(json_fn, f0_label_true_key='f0_label:labels_true'
                 results_dict[key][par_idx] = sub_results_dict[key]
     # Return dictionary of confusion matrices
     return results_dict
+
+
+def main(json_eval_fn, json_results_dict_fn=None, save_results_to_file=False,
+         f0_label_pred_key='f0_label:labels_pred', f0_label_true_key='f0_label:labels_true',
+         max_pct_diff=3, bin_width=5e-2, use_empirical_f0dl_if_possible=False,
+         f0_min=-np.inf, f0_max=np.inf, max_processes=60):
+    '''
+    '''
+    # Run the Bernstein and Oxenham (2005) F0DL experiment; results stored in results_dict
+    metadata_key_list=['low_harm', 'phase_mode', 'f0']
+    if 'FixedFilter' in json_eval_fn: metadata_key_list = metadata_key_list + ['base_f0']
+    results_dict = run_f0dl_experiment(json_eval_fn,
+                                       max_pct_diff=max_pct_diff, bin_width=bin_width,
+                                       f0_label_pred_key=f0_label_pred_key,
+                                       f0_label_true_key=f0_label_true_key,
+                                       use_empirical_f0dl_if_possible=use_empirical_f0dl_if_possible,
+                                       metadata_key_list=metadata_key_list,
+                                       f0_min=f0_min, f0_max=f0_max, max_processes=max_processes)
+    results_dict['json_eval_fn'] = json_eval_fn
+    # If specified, save results_dict to file
+    if save_results_to_file:
+        # Check filename for results_dict
+        if json_results_dict_fn is None:
+            json_results_dict_fn = json_eval_fn.replace('.json', '_results_dict.json')
+        assert not json_results_dict_fn == json_eval_fn, "json_results_dict_fn must not overwrite json_eval_fn"
+        # Define helper class to JSON serialize the results_dict
+        class NumpyEncoder(json.JSONEncoder):
+            def default(self, obj):
+                if isinstance(obj, np.ndarray): return obj.tolist()
+                if isinstance(obj, np.int64): return int(obj)  
+                return json.JSONEncoder.default(self, obj)
+        # Write results_dict to json_results_dict_fn
+        with open(json_results_dict_fn, 'w') as f: json.dump(results_dict, f, cls=NumpyEncoder)
+        print('[END] wrote results_dict to {}'.format(json_results_dict_fn))
+    return results_dict
+
+
+if __name__ == "__main__":
+    '''
+    '''
+    parser = argparse.ArgumentParser(description="run Bernstein and Oxenham (2005) F0DL experiment")
+    parser.add_argument('-r', '--regex_json_eval_fn', type=str, default=None,
+                        help='regex that globs')
+    parser.add_argument('-j', '--job_idx', type=int, default=None,
+                        help='job index used to name current output directory')
+    parsed_args_dict = vars(parser.parse_args())
+    assert parsed_args_dict['regex_json_eval_fn'] is not None, "regex_json_eval_fn is a required argument"
+    assert parsed_args_dict['job_idx'] is not None, "job_idx is a required argument"
+    list_json_eval_fn = sorted(glob.glob(parsed_args_dict['regex_json_eval_fn']))
+    json_eval_fn = list_json_eval_fn[parsed_args_dict['job_idx']]
+    print('Processing file {} of {}'.format(parsed_args_dict['job_idx'], len(list_json_eval_fn)))
+    print('Processing file: {}'.format(json_eval_fn))
+    main(json_eval_fn, save_results_to_file=True)
+    
