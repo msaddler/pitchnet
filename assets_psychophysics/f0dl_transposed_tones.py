@@ -7,9 +7,6 @@ import argparse
 import pdb
 import scipy.optimize
 import scipy.stats
-
-sys.path.append('../assets_datasets/')
-import stimuli_f0_labels
 import f0dl_bernox
 
 
