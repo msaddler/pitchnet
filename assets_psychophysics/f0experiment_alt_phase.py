@@ -5,8 +5,6 @@ import numpy as np
 import glob
 import argparse
 import pdb
-import scipy.optimize
-import scipy.stats
 import f0dl_bernox
 
 
@@ -105,9 +103,9 @@ if __name__ == "__main__":
     '''
     parser = argparse.ArgumentParser(description="run Shackleton and Carlyon (1994) alt phase experiment")
     parser.add_argument('-r', '--regex_json_eval_fn', type=str, default=None,
-                        help='regex that globs')
+                        help='regex that globs list of json_eval_fn to process')
     parser.add_argument('-j', '--job_idx', type=int, default=None,
-                        help='job index used to name current output directory')
+                        help='job index used to select json_eval_fn from list')
     parsed_args_dict = vars(parser.parse_args())
     assert parsed_args_dict['regex_json_eval_fn'] is not None, "regex_json_eval_fn is a required argument"
     assert parsed_args_dict['job_idx'] is not None, "job_idx is a required argument"
