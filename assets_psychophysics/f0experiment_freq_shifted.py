@@ -60,7 +60,7 @@ def run_f0experiment_freq_shifted(json_fn, filter_key='spectral_envelope_centere
     # Initialize dictionary to hold psychophysical results
     if f0_min is None: f0_min = np.min(expt_dict['f0'])
     if f0_max is None: f0_max = np.max(expt_dict['f0'])
-    results_dict = {filter_key: {}, 'f0_min':f0_min, 'f0_max':f0_max}
+    results_dict = {filter_key:{}, 'f0_min':f0_min, 'f0_max':f0_max}
     for filter_value in np.unique(expt_dict[filter_key]):
         results_dict[filter_key][int(filter_value)] = compute_f0_shift_curve(expt_dict,
                                                                              filter_key,

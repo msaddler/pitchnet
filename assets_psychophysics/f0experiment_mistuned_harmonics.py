@@ -8,21 +8,29 @@ import pdb
 import f0dl_bernox
 
 
-def compute_f0_pred_percent_shift(expt_dict):
-    f0_true = expt_dict['f0']
-    f0_pred = expt_dict['f0_pred']
-    expt_dict['f0_pred_pct'] = 100.0 * (f0_pred - f0_true) / f0_true
-    return expt_dict
-
-
 def compute_mistuning_shifts(expt_dict, key_mistuned_harm='mistuned_harm', key_mistuned_pct='mistuned_pct',
-                             f0_min=-np.inf, f0_max=np.inf):
-    expt_dict = compute_f0_pred_percent_shift(expt_dict)
-    unique_harm = np.unique(expt_dict[key_mistuned_harm])
-    unique_pct = np.unique(expt_dict[key_mistuned_pct])
-    results_dict = {}
+                             f0_ref=100.0, f0_ref_width=0.04, use_relative_shift=True):
+    '''
+    '''
+    # Filter expt_dict to f0 range specified by f0_ref and f0_ref_width
+    f0_min = f0_ref * (1.0 - f0_ref_width)
+    f0_max = f0_ref * (1.0 + f0_ref_width)
+    sub_expt_dict = f0dl_bernox.filter_expt_dict(expt_dict, filter_dict={'f0': [f0_min, f0_max]})
+    # Compute f0_pred_pct (shift in f0_pred relative to f0_true)
+    f0_true = sub_expt_dict['f0']
+    f0_pred = sub_expt_dict['f0_pred']
+    if use_relative_shift:
+        # If use_relative_shift, adjust all f0_pred using the mean offset from stimuli with 0% mistuning
+        harmonic_idx = sub_expt_dict[key_mistuned_pct] == 0.0
+        harmonic_f0_shift = f0_pred[harmonic_idx] - f0_true[harmonic_idx]
+        f0_pred = f0_pred - np.mean(harmonic_f0_shift)
+    sub_expt_dict['f0_pred_pct'] = 100.0 * (f0_pred - f0_true) / f0_true
+    # For each individual harmonic and each percent mistuning, compute mean, median, stddev f0_pred_pct
+    unique_harm = np.unique(sub_expt_dict[key_mistuned_harm])
+    unique_pct = np.unique(sub_expt_dict[key_mistuned_pct])
+    sub_results_dict = {key_mistuned_harm:{}, 'f0_min':f0_min, 'f0_max':f0_max}
     for harm in unique_harm:
-        results_dict[harm] = {
+        sub_results_dict[key_mistuned_harm][int(harm)] = {
             'f0_pred_pct_median': [],
             'f0_pred_pct_mean': [],
             'f0_pred_pct_stddev': [],
@@ -35,27 +43,22 @@ def compute_mistuning_shifts(expt_dict, key_mistuned_harm='mistuned_harm', key_m
                 key_mistuned_pct: pct,
                 'f0': [f0_min, f0_max],
             }
-            sub_expt_dict = f0dl_bernox.filter_expt_dict(expt_dict, filter_dict=filter_dict)
-            results_dict[harm]['f0_pred_pct_median'].append(np.median(sub_expt_dict['f0_pred_pct']))
-            results_dict[harm]['f0_pred_pct_mean'].append(np.mean(sub_expt_dict['f0_pred_pct']))
-            results_dict[harm]['f0_pred_pct_stddev'].append(np.std(sub_expt_dict['f0_pred_pct']))
-            results_dict[harm]['mistuned_pct'].append(pct)
-    return results_dict
+            harm_pct_dict = f0dl_bernox.filter_expt_dict(sub_expt_dict, filter_dict=filter_dict)
+            sub_results_dict[key_mistuned_harm][harm]['f0_pred_pct_median'].append(np.median(harm_pct_dict['f0_pred_pct']))
+            sub_results_dict[key_mistuned_harm][harm]['f0_pred_pct_mean'].append(np.mean(harm_pct_dict['f0_pred_pct']))
+            sub_results_dict[key_mistuned_harm][harm]['f0_pred_pct_stddev'].append(np.std(harm_pct_dict['f0_pred_pct']))
+            sub_results_dict[key_mistuned_harm][harm]['mistuned_pct'].append(pct)
+    return sub_results_dict
 
 
-def run_f0experiment_mistuned_harmonics(json_fn, filter_key='spectral_envelope_centered_harmonic',
+def run_f0experiment_mistuned_harmonics(json_fn, use_relative_shift=True,
                                         f0_label_pred_key='f0_label:labels_pred',
                                         f0_label_true_key='f0_label:labels_true',
-                                        f0_min=None, f0_max=None):
+                                        f0_ref_list=[100.0, 200.0, 400.0], f0_ref_width=0.04):
     '''
     '''
     # Load JSON file of model predictions into `expt_dict`
-    metadata_key_list = [
-        'f0',
-        'f0_shift',
-        'spectral_envelope_centered_harmonic',
-        'spectral_envelope_bandwidth_in_harmonics',
-    ]
+    metadata_key_list = ['f0', 'mistuned_harm', 'mistuned_pct']
     expt_dict = f0dl_bernox.load_f0_expt_dict_from_json(json_fn,
                                                         f0_label_true_key=f0_label_true_key,
                                                         f0_label_pred_key=f0_label_pred_key,
@@ -64,32 +67,32 @@ def run_f0experiment_mistuned_harmonics(json_fn, filter_key='spectral_envelope_c
                                                           f0_label_true_key=f0_label_true_key,
                                                           f0_label_pred_key=f0_label_pred_key)
     # Initialize dictionary to hold psychophysical results
-    if f0_min is None: f0_min = np.min(expt_dict['f0'])
-    if f0_max is None: f0_max = np.max(expt_dict['f0'])
-    results_dict = {filter_key: {}, 'f0_min':f0_min, 'f0_max':f0_max}
-    for filter_value in np.unique(expt_dict[filter_key]):
-        results_dict[filter_key][int(filter_value)] = compute_f0_shift_curve(expt_dict,
-                                                                             filter_key,
-                                                                             filter_value,
-                                                                             f0_min=f0_min,
-                                                                             f0_max=f0_max)
+    results_dict = {'f0_ref':{}, 'f0_ref_list':f0_ref_list, 'f0_ref_width':f0_ref_width}
+    for f0_ref in f0_ref_list:
+        results_dict['f0_ref'][float(f0_ref)] = compute_mistuning_shifts(expt_dict,
+                                                                         key_mistuned_harm='mistuned_harm',
+                                                                         key_mistuned_pct='mistuned_pct',
+                                                                         f0_ref=f0_ref,
+                                                                         f0_ref_width=f0_ref_width,
+                                                                         use_relative_shift=use_relative_shift)
     # Return dictionary of psychophysical experiment results
     return results_dict
 
 
 def main(json_eval_fn, json_results_dict_fn=None, save_results_to_file=False,
-         filter_key='spectral_envelope_centered_harmonic',
+         use_relative_shift=True,
          f0_label_pred_key='f0_label:labels_pred',
          f0_label_true_key='f0_label:labels_true',
-         f0_min=None, f0_max=None):
+         f0_ref_list=[100.0, 200.0, 400.0], f0_ref_width=0.04):
     '''
     '''
-    # Run the Moore and Moore (2003) freq-shifted complexes experiment; results stored in results_dict
-    results_dict = run_f0experiment_freq_shifted(json_eval_fn,
-                                                 filter_key=filter_key,
-                                                 f0_label_pred_key=f0_label_pred_key,
-                                                 f0_label_true_key=f0_label_true_key,
-                                                 f0_min=f0_min, f0_max=f0_max)
+    # Run the Moore et al. (1985) harmonic mistuning experiment; results stored in results_dict
+    results_dict = run_f0experiment_mistuned_harmonics(json_eval_fn,
+                                                       use_relative_shift=use_relative_shift,
+                                                       f0_label_pred_key=f0_label_pred_key,
+                                                       f0_label_true_key=f0_label_true_key,
+                                                       f0_ref_list=f0_ref_list,
+                                                       f0_ref_width=f0_ref_width)
     results_dict['json_eval_fn'] = json_eval_fn
     # If specified, save results_dict to file
     if save_results_to_file:
