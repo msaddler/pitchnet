@@ -39,7 +39,7 @@ if __name__ == "__main__":
     kwargs_nervegram_meanrates = {
         'meanrates_params': {'dur': 0.050, 'buffer_start_dur': 0.070, 'buffer_end_dur': 0.010},
         'ANmodel_params': {'num_cfs': 100, 'min_cf':125, 'max_cf':14e3},
-        'lpfilter_params': {'order': 6, 'cutoff': 1000.0},
+        'lpfilter_params': {'order': 6, 'cutoff': 50.0},
     }
     
     parallel_run_dataset_generation(source_regex, dest_filename,
