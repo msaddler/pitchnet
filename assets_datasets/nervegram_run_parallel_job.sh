@@ -5,8 +5,8 @@
 #SBATCH --cpus-per-task=2
 #SBATCH --mem-per-cpu=4000
 #SBATCH --nodes=1
-#SBATCH --time=0-12:00:00
-#SBATCH --time-min=0-09:00:00
+#SBATCH --time=0-18:00:00
+#SBATCH --time-min=0-12:00:00
 #SBATCH --exclude=node[001-030]
 #SBATCH --array=0-599
 ##SBATCH --partition=mcdermott
