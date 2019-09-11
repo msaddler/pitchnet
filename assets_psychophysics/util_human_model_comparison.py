@@ -109,12 +109,115 @@ def get_human_results_dict_transposedtones():
     return results_dict
 
 
-def get_human_results_dict_freqshiftedcomplexes():
+def get_human_results_dict_freqshiftedcomplexes(average_conditions=True):
     '''
     Returns psychophysical results dictionary of Moore and Moore (2003, JASA)
     human data (Fig 3)
     '''
-    pass
+    # F0=400 Hz condition
+    results_dict_400Hz = {
+        'f0_max': 400.0,
+        'f0_min': 400.0,
+        'spectral_envelope_centered_harmonic': {
+            5: {
+                'f0_pred_shift_mean': [0.80290, 3.39820, 5.99310, 6.53730],
+                'f0_pred_shift_median': [0.80290, 3.39820, 5.99310, 6.53730],
+                'f0_pred_shift_stddev': [None, None, None, None],
+                'f0_shift': [0.0, 8.0, 16.0, 24.0],
+            },
+            11: {
+                'f0_pred_shift_mean': [0.11960, 0.62110, 1.37910, 1.92310],
+                'f0_pred_shift_median': [0.11960, 0.62110, 1.37910, 1.92310],
+                'f0_pred_shift_stddev': [None, None, None, None],
+                'f0_shift': [0.0, 8.0, 16.0, 24.0],
+            },
+            16: {
+                'f0_pred_shift_mean': [-0.73000, -1.17000, -0.24400, -0.00058],
+                'f0_pred_shift_median': [-0.73000, -1.17000, -0.24400, -0.00058],
+                'f0_pred_shift_stddev': [None, None, None, None],
+                'f0_shift': [0.0, 8.0, 16.0, 24.0],
+            },
+        },
+    }
+    # F0=200 Hz condition
+    results_dict_200Hz = {
+        'f0_max': 200.0,
+        'f0_min': 200.0,
+        'spectral_envelope_centered_harmonic': {
+            5: {
+                'f0_pred_shift_mean': [0.6951, 3.4079, 5.6098, 6.9581],
+                'f0_pred_shift_median': [0.6951, 3.4079, 5.6098, 6.9581],
+                'f0_pred_shift_stddev': [None, None, None, None],
+                'f0_shift': [0.0, 8.0, 16.0, 24.0],
+            },
+            11: {
+                'f0_pred_shift_mean': [0.0566, 0.8515, 1.8173, 2.7402],
+                'f0_pred_shift_median': [0.0566, 0.8515, 1.8173, 2.7402],
+                'f0_pred_shift_stddev': [None, None, None, None],
+                'f0_shift': [0.0, 8.0, 16.0, 24.0],
+            },
+            16: {
+                'f0_pred_shift_mean': [-0.029, 0.1271, 0.6242, 0.2688],
+                'f0_pred_shift_median': [-0.029, 0.1271, 0.6242, 0.2688],
+                'f0_pred_shift_stddev': [None, None, None, None],
+                'f0_shift': [0.0, 8.0, 16.0, 24.0],
+            },
+        },
+    }
+    # F0=100 Hz condition
+    results_dict_100Hz = {
+        'f0_max': 100.0,
+        'f0_min': 100.0,
+        'spectral_envelope_centered_harmonic': {
+            5: {
+                'f0_pred_shift_mean': [1.3547, 3.5363, 5.1610, 6.6987],
+                'f0_pred_shift_median': [1.3547, 3.5363, 5.1610, 6.6987],
+                'f0_pred_shift_stddev': [None, None, None, None],
+                'f0_shift': [0.0, 8.0, 16.0, 24.0],
+            },
+            11: {
+                'f0_pred_shift_mean': [0.1967, 0.9196, 2.0293, 2.7524],
+                'f0_pred_shift_median': [0.1967, 0.9196, 2.0293, 2.7524],
+                'f0_pred_shift_stddev': [None, None, None, None],
+                'f0_shift': [0.0, 8.0, 16.0, 24.0],
+            },
+            16: {
+                'f0_pred_shift_mean': [1.2260, 1.0914, 0.9140, 1.3366],
+                'f0_pred_shift_median': [1.2260, 1.0914, 0.9140, 1.3366],
+                'f0_pred_shift_stddev': [None, None, None, None],
+                'f0_shift': [0.0, 8.0, 16.0, 24.0],
+            },
+        },
+    }
+    # Results averaged across F0=400,200,100Hz conditions
+    results_dict = {
+        'f0_max': 400.0,
+        'f0_min': 100.0,
+        'spectral_envelope_centered_harmonic': {
+            5: {
+                'f0_pred_shift_mean': [0.950900, 3.447467, 5.587967, 6.731367],
+                'f0_pred_shift_median': [0.950900, 3.447467, 5.587967, 6.731367],
+                'f0_pred_shift_stddev': [None, None, None, None],
+                'f0_shift': [0.0, 8.0, 16.0, 24.0],
+            },
+            11: {
+                'f0_pred_shift_mean': [0.124300, 0.797400, 1.741900, 2.471900],
+                'f0_pred_shift_median': [0.124300, 0.797400, 1.741900, 2.471900],
+                'f0_pred_shift_stddev': [None, None, None, None],
+                'f0_shift': [0.0, 8.0, 16.0, 24.0],
+            },
+            16: {
+                'f0_pred_shift_mean': [0.155667, 0.016167, 0.431400, 0.534940],
+                'f0_pred_shift_median': [0.155667, 0.016167, 0.431400, 0.534940],
+                'f0_pred_shift_stddev': [None, None, None, None],
+                'f0_shift': [0.0, 8.0, 16.0, 24.0],
+            },
+        },
+    }
+    if average_conditions:
+        return results_dict
+    else:
+        return [results_dict_400Hz, results_dict_200Hz, results_dict_100Hz]
 
 
 def get_human_results_dict_mistunedharmonics():
