@@ -122,19 +122,19 @@ def get_human_results_dict_freqshiftedcomplexes(average_conditions=True):
         'f0_max': 400.0,
         'f0_min': 400.0,
         'spectral_envelope_centered_harmonic': {
-            5: {
+            '5': {
                 'f0_pred_shift_mean': [0.80290, 3.39820, 5.99310, 6.53730],
                 'f0_pred_shift_median': [0.80290, 3.39820, 5.99310, 6.53730],
                 'f0_pred_shift_stddev': [None, None, None, None],
                 'f0_shift': [0.0, 8.0, 16.0, 24.0],
             },
-            11: {
+            '11': {
                 'f0_pred_shift_mean': [0.11960, 0.62110, 1.37910, 1.92310],
                 'f0_pred_shift_median': [0.11960, 0.62110, 1.37910, 1.92310],
                 'f0_pred_shift_stddev': [None, None, None, None],
                 'f0_shift': [0.0, 8.0, 16.0, 24.0],
             },
-            16: {
+            '16': {
                 'f0_pred_shift_mean': [-0.73000, -1.17000, -0.24400, -0.00058],
                 'f0_pred_shift_median': [-0.73000, -1.17000, -0.24400, -0.00058],
                 'f0_pred_shift_stddev': [None, None, None, None],
@@ -147,19 +147,19 @@ def get_human_results_dict_freqshiftedcomplexes(average_conditions=True):
         'f0_max': 200.0,
         'f0_min': 200.0,
         'spectral_envelope_centered_harmonic': {
-            5: {
+            '5': {
                 'f0_pred_shift_mean': [0.6951, 3.4079, 5.6098, 6.9581],
                 'f0_pred_shift_median': [0.6951, 3.4079, 5.6098, 6.9581],
                 'f0_pred_shift_stddev': [None, None, None, None],
                 'f0_shift': [0.0, 8.0, 16.0, 24.0],
             },
-            11: {
+            '11': {
                 'f0_pred_shift_mean': [0.0566, 0.8515, 1.8173, 2.7402],
                 'f0_pred_shift_median': [0.0566, 0.8515, 1.8173, 2.7402],
                 'f0_pred_shift_stddev': [None, None, None, None],
                 'f0_shift': [0.0, 8.0, 16.0, 24.0],
             },
-            16: {
+            '16': {
                 'f0_pred_shift_mean': [-0.029, 0.1271, 0.6242, 0.2688],
                 'f0_pred_shift_median': [-0.029, 0.1271, 0.6242, 0.2688],
                 'f0_pred_shift_stddev': [None, None, None, None],
@@ -172,19 +172,19 @@ def get_human_results_dict_freqshiftedcomplexes(average_conditions=True):
         'f0_max': 100.0,
         'f0_min': 100.0,
         'spectral_envelope_centered_harmonic': {
-            5: {
+            '5': {
                 'f0_pred_shift_mean': [1.3547, 3.5363, 5.1610, 6.6987],
                 'f0_pred_shift_median': [1.3547, 3.5363, 5.1610, 6.6987],
                 'f0_pred_shift_stddev': [None, None, None, None],
                 'f0_shift': [0.0, 8.0, 16.0, 24.0],
             },
-            11: {
+            '11': {
                 'f0_pred_shift_mean': [0.1967, 0.9196, 2.0293, 2.7524],
                 'f0_pred_shift_median': [0.1967, 0.9196, 2.0293, 2.7524],
                 'f0_pred_shift_stddev': [None, None, None, None],
                 'f0_shift': [0.0, 8.0, 16.0, 24.0],
             },
-            16: {
+            '16': {
                 'f0_pred_shift_mean': [1.2260, 1.0914, 0.9140, 1.3366],
                 'f0_pred_shift_median': [1.2260, 1.0914, 0.9140, 1.3366],
                 'f0_pred_shift_stddev': [None, None, None, None],
@@ -197,19 +197,19 @@ def get_human_results_dict_freqshiftedcomplexes(average_conditions=True):
         'f0_max': 400.0,
         'f0_min': 100.0,
         'spectral_envelope_centered_harmonic': {
-            5: {
+            '5': {
                 'f0_pred_shift_mean': [0.950900, 3.447467, 5.587967, 6.731367],
                 'f0_pred_shift_median': [0.950900, 3.447467, 5.587967, 6.731367],
                 'f0_pred_shift_stddev': [None, None, None, None],
                 'f0_shift': [0.0, 8.0, 16.0, 24.0],
             },
-            11: {
+            '11': {
                 'f0_pred_shift_mean': [0.124300, 0.797400, 1.741900, 2.471900],
                 'f0_pred_shift_median': [0.124300, 0.797400, 1.741900, 2.471900],
                 'f0_pred_shift_stddev': [None, None, None, None],
                 'f0_shift': [0.0, 8.0, 16.0, 24.0],
             },
-            16: {
+            '16': {
                 'f0_pred_shift_mean': [0.155667, 0.016167, 0.431400, 0.534940],
                 'f0_pred_shift_median': [0.155667, 0.016167, 0.431400, 0.534940],
                 'f0_pred_shift_stddev': [None, None, None, None],
@@ -530,7 +530,7 @@ def compare_bernox2005(human_results_dict, model_results_dict,
 
 
 def compare_transposedtones(human_results_dict, model_results_dict,
-                       kwargs_interp={}, kwargs_compare={'log_scale':True}):
+                            kwargs_interp={}, kwargs_compare={'log_scale':True}):
     '''
     '''
     human_f_carrier_list = np.array(human_results_dict['f_carrier'])
@@ -566,10 +566,41 @@ def compare_transposedtones(human_results_dict, model_results_dict,
                                     **kwargs_compare)
 
 
-def compare_freqshiftedcomplexes(results_dict, human_results_dict):
+def compare_freqshiftedcomplexes(human_results_dict, model_results_dict,
+                                 pitch_shift_key='f0_pred_shift_median',
+                                 kwargs_interp={}, kwargs_compare={'log_scale':False}):
     '''
     '''
-    return 0
+    human_conditions = human_results_dict['spectral_envelope_centered_harmonic'].keys()
+    model_conditions = model_results_dict['spectral_envelope_centered_harmonic'].keys()
+    assert np.array_equal(human_conditions, model_conditions)
+    
+    results_vector_human = []
+    results_vector_model = []
+    for condition_key in human_conditions:
+        human_xvals = np.array(human_results_dict['spectral_envelope_centered_harmonic'][condition_key]['f0_shift'])
+        human_yvals = np.array(human_results_dict['spectral_envelope_centered_harmonic'][condition_key][pitch_shift_key])
+        model_xvals = np.array(model_results_dict['spectral_envelope_centered_harmonic'][condition_key]['f0_shift'])
+        model_yvals = np.array(model_results_dict['spectral_envelope_centered_harmonic'][condition_key][pitch_shift_key])
+        
+        interp_human_xvals, interp_human_yvals = interpolate_data(human_xvals,
+                                                                  human_yvals,
+                                                                  model_xvals,
+                                                                  **kwargs_interp)
+        interp_human_xvals = interp_human_xvals.tolist()
+        interp_human_yvals = interp_human_yvals.tolist()
+        model_xvals = model_xvals.tolist()
+        model_yvals = model_yvals.tolist()
+        
+        for idx_human, xval in enumerate(interp_human_xvals):
+            idx_model = model_xvals.index(xval)
+            results_vector_human.append(interp_human_yvals[idx_human])
+            results_vector_model.append(model_yvals[idx_model])
+    
+    results_vector_human = np.array(results_vector_human)
+    results_vector_model = np.array(results_vector_model)
+    return compare_human_model_data(results_vector_human, results_vector_model,
+                                    **kwargs_compare)
 
 
 def compare_mistunedharmonics(results_dict, human_results_dict):
