@@ -3,6 +3,9 @@ import os
 import json
 import numpy as np
 import glob
+import pdb
+import scipy.interpolate
+import scipy.stats
 
 
 def get_human_results_dict_bernox2005(average_conditions=True):
@@ -461,10 +464,69 @@ def get_mistuned_harmonics_bar_graph_results_dict(results_dict, mistuned_pct=3.0
     return bar_graph_results_dict
 
 
-def compare_bernox2005(results_dict, human_results_dict):
+def interpolate_data(xvals, yvals, interp_xvals, kind='linear', bounds_error=True):
     '''
     '''
-    return 0
+    interp_fcn = scipy.interpolate.interp1d(xvals, yvals,
+                                            kind=kind,
+                                            bounds_error=bounds_error)
+    if bounds_error:
+        interp_xvals = interp_xvals[interp_xvals >= np.min(xvals)]
+        interp_xvals = interp_xvals[interp_xvals <= np.max(xvals)]
+    return interp_xvals, interp_fcn(interp_xvals)
+
+
+def compare_human_model_data(results_vector_human, results_vector_model,
+                             metric='spearmanr', log_scale=False):
+    '''
+    '''
+    metric_functions = {
+        'pearsonr': scipy.stats.pearsonr,
+        'spearmanr': scipy.stats.spearmanr,
+    }
+    assert results_vector_human.shape == results_vector_model.shape
+    assert metric in metric_functions.keys(), "metric=`{}` is not supported".format(metric)
+    if log_scale:
+        results_vector_human = np.log(results_vector_human)
+        results_vector_model = np.log(results_vector_model)
+    return metric_functions[metric](results_vector_human, results_vector_model)
+
+
+def compare_bernox2005(human_results_dict, model_results_dict,
+                       kwargs_interp={}, kwargs_compare={'log_scale':True}):
+    '''
+    '''
+    human_phase_mode_list = np.array(human_results_dict['phase_mode'])
+    model_phase_mode_list = np.array(model_results_dict['phase_mode'])
+    assert np.array_equal(np.unique(human_phase_mode_list), np.unique(model_phase_mode_list))
+    unique_phase_modes = np.unique(human_phase_mode_list)
+    
+    results_vector_human = []
+    results_vector_model = []
+    for phase_mode in unique_phase_modes:
+        human_low_harm = np.array(human_results_dict['low_harm'])[human_phase_mode_list == phase_mode]
+        human_f0dl = np.array(human_results_dict['f0dl'])[human_phase_mode_list == phase_mode]
+        model_low_harm = np.array(model_results_dict['low_harm'])[model_phase_mode_list == phase_mode]
+        model_f0dl = np.array(model_results_dict['f0dl'])[model_phase_mode_list == phase_mode]
+        
+        interp_human_low_harm, interp_human_f0dl = interpolate_data(human_low_harm,
+                                                                    human_f0dl,
+                                                                    model_low_harm,
+                                                                    **kwargs_interp)
+        interp_human_low_harm = interp_human_low_harm.tolist()
+        interp_human_f0dl = interp_human_f0dl.tolist()
+        model_low_harm = model_low_harm.tolist()
+        model_f0dl = model_f0dl.tolist()
+        
+        for idx_human, low_harm in enumerate(interp_human_low_harm):
+            idx_model = model_low_harm.index(low_harm)
+            results_vector_human.append(interp_human_f0dl[idx_human])
+            results_vector_model.append(model_f0dl[idx_model])
+    
+    results_vector_human = np.array(results_vector_human)
+    results_vector_model = np.array(results_vector_model)
+    return compare_human_model_data(results_vector_human, results_vector_model,
+                                    **kwargs_compare)
 
 
 def compare_transposedtones(results_dict, human_results_dict):
