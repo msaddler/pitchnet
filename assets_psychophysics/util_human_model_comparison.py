@@ -603,10 +603,36 @@ def compare_freqshiftedcomplexes(human_results_dict, model_results_dict,
                                     **kwargs_compare)
 
 
-def compare_mistunedharmonics(results_dict, human_results_dict):
+def compare_mistunedharmonics(human_results_dict, model_results_dict,
+                              kwargs_bar_graph={}, kwargs_compare={'log_scale':False}):
     '''
     '''
-    return 0
+    human_bar_graph_results_dict = get_mistuned_harmonics_bar_graph_results_dict(
+        human_results_dict, **kwargs_bar_graph)
+    model_bar_graph_results_dict = get_mistuned_harmonics_bar_graph_results_dict(
+        model_results_dict, **kwargs_bar_graph)
+    pitch_shift_key=kwargs_bar_graph.get('pitch_shift_key', 'f0_pred_pct_median')
+    
+    human_conditions = human_bar_graph_results_dict.keys()
+    model_conditions = model_bar_graph_results_dict.keys()
+    assert np.array_equal(human_conditions, model_conditions)
+    
+    results_vector_human = []
+    results_vector_model = []
+    for condition_key in human_conditions:
+        human_xvals = human_bar_graph_results_dict[condition_key]['f0_ref']
+        human_yvals = human_bar_graph_results_dict[condition_key][pitch_shift_key]
+        model_xvals = model_bar_graph_results_dict[condition_key]['f0_ref']
+        model_yvals = model_bar_graph_results_dict[condition_key][pitch_shift_key]
+        
+        assert np.array_equal(human_xvals, model_xvals)
+        results_vector_human.extend(list(human_yvals))
+        results_vector_model.extend(list(model_yvals))
+    
+    results_vector_human = np.array(results_vector_human)
+    results_vector_model = np.array(results_vector_model)
+    return compare_human_model_data(results_vector_human, results_vector_model,
+                                    **kwargs_compare)
 
 
 def compare_altphasecomplexes(results_dict, human_results_dict):
