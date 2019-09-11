@@ -529,10 +529,41 @@ def compare_bernox2005(human_results_dict, model_results_dict,
                                     **kwargs_compare)
 
 
-def compare_transposedtones(results_dict, human_results_dict):
+def compare_transposedtones(human_results_dict, model_results_dict,
+                       kwargs_interp={}, kwargs_compare={'log_scale':True}):
     '''
     '''
-    return 0
+    human_f_carrier_list = np.array(human_results_dict['f_carrier'])
+    model_f_carrier_list = np.array(model_results_dict['f_carrier'])
+    assert np.array_equal(np.unique(human_f_carrier_list), np.unique(model_f_carrier_list))
+    unique_f_carriers = np.unique(human_f_carrier_list)
+    
+    results_vector_human = []
+    results_vector_model = []
+    for f_carrier in unique_f_carriers:
+        human_f0_ref = np.array(human_results_dict['f0_ref'])[human_f_carrier_list == f_carrier]
+        human_f0dl = np.array(human_results_dict['f0dl'])[human_f_carrier_list == f_carrier]
+        model_f0_ref = np.array(model_results_dict['f0_ref'])[model_f_carrier_list == f_carrier]
+        model_f0dl = np.array(model_results_dict['f0dl'])[model_f_carrier_list == f_carrier]
+        
+        interp_human_f0_ref, interp_human_f0dl = interpolate_data(human_f0_ref,
+                                                                  human_f0dl,
+                                                                  model_f0_ref,
+                                                                  **kwargs_interp)
+        interp_human_f0_ref = interp_human_f0_ref.tolist()
+        interp_human_f0dl = interp_human_f0dl.tolist()
+        model_f0_ref = model_f0_ref.tolist()
+        model_f0dl = model_f0dl.tolist()
+        
+        for idx_human, f0_ref in enumerate(interp_human_f0_ref):
+            idx_model = model_f0_ref.index(f0_ref)
+            results_vector_human.append(interp_human_f0dl[idx_human])
+            results_vector_model.append(model_f0dl[idx_model])
+    
+    results_vector_human = np.array(results_vector_human)
+    results_vector_model = np.array(results_vector_model)
+    return compare_human_model_data(results_vector_human, results_vector_model,
+                                    **kwargs_compare)
 
 
 def compare_freqshiftedcomplexes(results_dict, human_results_dict):
