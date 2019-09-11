@@ -34,7 +34,7 @@ def get_human_results_dict_bernox2005(average_conditions=True):
                 results_dict_LowSpec['f0dl'].append(bernox_rand_f0dl_LowSpec[lhidx])
                 results_dict_LowSpec['f0dl_stddev'].append(bernox_rand_f0dl_stddev_LowSpec[lhidx])
             else:
-                raise ValueError("ERROR OCCURRED IN `bernox2005_human_results_dict`")
+                raise ValueError("phase_mode={} is not supported".format(phase_mode))
     
     # "High spectrum" condition
     bernox_sine_f0dl_HighSpec = [5.5257, 5.7834, 4.0372, 1.7769, 0.88999, 0.585]
@@ -60,7 +60,7 @@ def get_human_results_dict_bernox2005(average_conditions=True):
                 results_dict_HighSpec['f0dl'].append(bernox_rand_f0dl_HighSpec[lhidx])
                 results_dict_HighSpec['f0dl_stddev'].append(bernox_rand_f0dl_stddev_HighSpec[lhidx])
             else:
-                raise ValueError("ERROR OCCURRED IN `bernox2005_human_results_dict`")
+                raise ValueError("phase_mode={} is not supported".format(phase_mode))
     
     # Combine results of both conditions in a single results_dict 
     results_dict = {}
@@ -378,9 +378,114 @@ def get_human_results_dict_mistunedharmonics():
     return results_dict
 
 
-def get_human_results_dict_altphasecomplexes():
+def get_human_results_dict_altphasecomplexes(average_conditions=True):
     '''
     Returns psychophysical results dictionary of Shackleton and Carlyon (1994, JASA)
     human data (Fig 3)
     '''
-    pass
+    # Subject 1
+    results_dict_subjectTS = {
+        'f0_bin_centers': [62.5, 74.3, 88.4, 105.1, 125.0, 148.7, 176.8, 210.2, 250.0],
+        'filter_fl_bin_means': {
+            '125.0': [-69.81, -99.09, -99.07, -99.91, -97.31, -95.99, -98.99, -98.97, -90.32],
+            '1375.0': [99.81, 98.53, 98.56, 17.97, -44.94, -89.31, -97.05, -99.61, -99.16],
+            '3900.0': [99.45, 99.01, 97.28, 99.85, 98.98, 97.67, 96.80, 97.65, 96.35],
+        },
+    }
+    # Subject 2
+    results_dict_subjectJS = {
+        'f0_bin_centers': [62.5, 74.3, 88.4, 105.1, 125.0, 148.7, 176.8, 210.2, 250.0],
+        'filter_fl_bin_means': {
+            '125.0': [-96.10, -99.96, -98.64, -99.91, -99.46, -93.41, -98.99, -98.97, -88.60],
+            '1375.0': [95.93, 95.95, 96.40, 91.25, 59.38, 1.21, -81.53, -84.96, -98.73],
+            '3900.0': [99.45, 99.44, 97.28, 99.85, 97.25, 97.67, 94.65, 97.22, 95.06],
+        },
+    }
+    # Subject 3
+    results_dict_subjectSD = {
+        'f0_bin_centers': [62.5, 74.3, 88.4, 105.1, 125.0, 148.7, 176.8, 210.2, 250.0],
+        'filter_fl_bin_means': {
+            '125.0': [-87.04, -99.96, -99.94, -99.91, -100.00, -100.00, -99.85, -96.81, -97.65],
+            '1375.0': [97.22, 94.22, 94.25, 71.42, 0.32, -93.62, -97.91, -97.89, -100.00],
+            '3900.0': [96.87, 93.41, 97.28, 96.83, 99.41, 97.67, 95.94, 98.51, 96.06],
+        },
+    }
+    # Subject 4
+    results_dict_subjectRB = {
+        'f0_bin_centers': [62.5, 74.3, 88.4, 105.1, 125.0, 148.7, 176.8, 210.2, 250.0],
+        'filter_fl_bin_means': {
+            '125.0': [-5.58, -37.46, -76.66, -96.03, -96.44, -97.71, -97.26, -94.22, -89.89],
+            '1375.0': [100.00, 97.67, 98.99, 54.18, 49.89, -16.47, -54.81, -87.11, -97.00],
+            '3900.0': [100.00, 100.00, 99.43, 96.40, 100.00, 98.97, 93.36, 89.47, 83.43],
+        },
+    }
+    # Mean across subjects 1-4
+    results_dict = {
+        'f0_bin_centers': [62.5, 74.3, 88.4, 105.1, 125.0, 148.7, 176.8, 210.2, 250.0],
+        'filter_fl_bin_means': {
+            '125.0': [-64.63, -84.12, -93.58, -98.94, -98.30, -96.78, -98.77, -97.24, -91.62],
+            '1375.0': [98.24, 96.59, 97.05, 58.71, 16.16, -49.55, -82.83, -92.39, -98.72],
+            '3900.0': [98.94, 97.97, 97.82, 98.23, 98.91, 98.00, 95.19, 95.71, 92.73],
+        },
+    }
+    if average_conditions:
+        return results_dict
+    else:
+        return [results_dict_subjectTS, results_dict_subjectJS, results_dict_subjectSD, results_dict_subjectRB]
+
+
+def get_mistuned_harmonics_bar_graph_results_dict(results_dict, mistuned_pct=3.0,
+                                                  pitch_shift_key='f0_pred_pct_median',
+                                                  harmonic_list=[1,2,3,4,5,6]):
+    '''
+    This helper function parses a results_dict from the Moore et al. (1985, JASA)
+    mistuned harmonics experiment into a smaller bar_graph_results_dict, which
+    allows for easier plotting of the Meddis and O'Mard (1997, JASA) summary bar
+    graph (Fig 8B)
+    '''
+    f0_ref_list = results_dict['f0_ref_list']
+    bar_graph_results_dict = {}
+    for harm in harmonic_list:
+        harm_key = str(harm)
+        bar_graph_results_dict[harm_key] = {
+            'f0_ref': [],
+            pitch_shift_key: [],
+        }
+        for f0_ref in f0_ref_list:
+            f0_ref_key = str(f0_ref)
+            sub_results_dict = results_dict['f0_ref'][f0_ref_key]['mistuned_harm'][harm_key]
+            mp_idx = sub_results_dict['mistuned_pct'].index(mistuned_pct)
+            pitch_shift = sub_results_dict[pitch_shift_key][mp_idx]
+            bar_graph_results_dict[harm_key]['f0_ref'].append(f0_ref)
+            bar_graph_results_dict[harm_key][pitch_shift_key].append(pitch_shift)
+    return bar_graph_results_dict
+
+
+def compare_bernox2005(results_dict, human_results_dict):
+    '''
+    '''
+    return 0
+
+
+def compare_transposedtones(results_dict, human_results_dict):
+    '''
+    '''
+    return 0
+
+
+def compare_freqshiftedcomplexes(results_dict, human_results_dict):
+    '''
+    '''
+    return 0
+
+
+def compare_mistunedharmonics(results_dict, human_results_dict):
+    '''
+    '''
+    return 0
+
+
+def compare_altphasecomplexes(results_dict, human_results_dict):
+    '''
+    '''
+    return 0
