@@ -6,8 +6,8 @@
 #SBATCH --cpus-per-task=2
 #SBATCH --mem-per-cpu=400
 #SBATCH --time=0-00:10:00
-#SBATCH --array=0-548
-##SBATCH --partition=mcdermott
+#SBATCH --array=0-8
+#SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --requeue
 
@@ -31,6 +31,10 @@ echo $(hostname)
 # -r '/om/scratch/Mon/msaddler/pitchnet/saved_models/arch_search_v00/*/EVAL_mooremoore2003_080to480Hz_bestckpt.json' \
 # -j ${job_idx}
 
-python /om2/user/msaddler/pitchnet/assets_psychophysics/f0experiment_mistuned_harmonics.py \
--r '/om/scratch/Mon/msaddler/pitchnet/saved_models/arch_search_v00/*/EVAL_MistunedHarm_v00_bestckpt.json' \
+# python /om2/user/msaddler/pitchnet/assets_psychophysics/f0experiment_mistuned_harmonics.py \
+# -r '/om/scratch/Mon/msaddler/pitchnet/saved_models/arch_search_v00/*/EVAL_MistunedHarm_v00_bestckpt.json' \
+# -j ${job_idx}
+
+python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_bernox.py \
+-r '/om2/user/msaddler/pitchnet/saved_models/models_RSB/dropout_v0*/EVAL_bernox2005_FixedFilter_bestckpt.json' \
 -j ${job_idx}
