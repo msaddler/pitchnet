@@ -64,8 +64,15 @@ def get_human_results_dict_bernox2005(average_conditions=True):
     
     # Combine results of both conditions in a single results_dict 
     results_dict = {}
-    for key in set(results_dict_LowSpec.keys()).intersection(results_dict_HighSpec.keys()):
-        results_dict[key] = results_dict_LowSpec[key] + results_dict_HighSpec[key]
+    if average_conditions:
+        # Average the harmonic numbers and f0 discrimination thresholds between conditions
+        for key in set(results_dict_LowSpec.keys()).intersection(results_dict_HighSpec.keys()):
+            results_dict[key] = (np.array(results_dict_LowSpec[key]) + np.array(results_dict_HighSpec[key])) / 2
+            results_dict[key] = results_dict[key].tolist()
+    else:
+        # Include both conditions in the same set of curves
+        for key in set(results_dict_LowSpec.keys()).intersection(results_dict_HighSpec.keys()):
+            results_dict[key] = results_dict_LowSpec[key] + results_dict_HighSpec[key]
     sort_idx = np.argsort(results_dict['low_harm'])
     for key in results_dict.keys():
         results_dict[key] = np.array(results_dict[key])[sort_idx].tolist()
@@ -77,7 +84,29 @@ def get_human_results_dict_transposedtones():
     Returns psychophysical results dictionary of Oxenham et al. (2004, PNAS)
     human data (Fig 2B)
     '''
-    pass
+    results_dict = {
+        'f_carrier': [],
+        'f0_ref': [],
+        'f0dl': [],
+    }
+    f0_ref_list = [55.60, 80.62, 125.44, 200.77, 320.00] # x-axis values
+    # Pure tone discrimination thresholds
+    results_dict['f_carrier'].extend([0.0] * len(f0_ref_list))
+    results_dict['f0_ref'].extend(f0_ref_list)
+    results_dict['f0dl'].extend([6.00, 4.11, 2.36, 1.52, 1.37])
+    # 4000Hz TT discrimination thresholds
+    results_dict['f_carrier'].extend([4000.0] * len(f0_ref_list))
+    results_dict['f0_ref'].extend(f0_ref_list)
+    results_dict['f0dl'].extend([13.35, 11.53, 9.21, 5.32, 2.43])
+    # 6350Hz TT discrimination thresholds
+    results_dict['f_carrier'].extend([6350.0] * len(f0_ref_list))
+    results_dict['f0_ref'].extend(f0_ref_list)
+    results_dict['f0dl'].extend([18.60, 13.14, 13.74, 7.53, 4.92])
+    # 10080Hz TT discrimination thresholds
+    results_dict['f_carrier'].extend([10080.0] * len(f0_ref_list))
+    results_dict['f0_ref'].extend(f0_ref_list)
+    results_dict['f0dl'].extend([20.55, 18.58, 13.53, 10.73, 8.77])
+    return results_dict
 
 
 def get_human_results_dict_freqshiftedcomplexes():
