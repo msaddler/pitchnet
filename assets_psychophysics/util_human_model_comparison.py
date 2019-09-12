@@ -464,12 +464,14 @@ def get_mistuned_harmonics_bar_graph_results_dict(results_dict, mistuned_pct=3.0
     return bar_graph_results_dict
 
 
-def interpolate_data(xvals, yvals, interp_xvals, kind='linear', bounds_error=True):
+def interpolate_data(xvals, yvals, interp_xvals, kind='linear',
+                     bounds_error=True, fill_value=np.nan):
     '''
     '''
     interp_fcn = scipy.interpolate.interp1d(xvals, yvals,
                                             kind=kind,
-                                            bounds_error=bounds_error)
+                                            bounds_error=bounds_error,
+                                            fill_value=fill_value)
     if bounds_error:
         interp_xvals = interp_xvals[interp_xvals >= np.min(xvals)]
         interp_xvals = interp_xvals[interp_xvals <= np.max(xvals)]
@@ -493,6 +495,7 @@ def compare_human_model_data(results_vector_human, results_vector_model,
 
 
 def compare_bernox2005(human_results_dict, model_results_dict,
+                       extrapolate_lowest_harm=True,
                        kwargs_interp={}, kwargs_compare={'log_scale':True}):
     '''
     '''
@@ -509,6 +512,10 @@ def compare_bernox2005(human_results_dict, model_results_dict,
         model_low_harm = np.array(model_results_dict['low_harm'])[model_phase_mode_list == phase_mode]
         model_f0dl = np.array(model_results_dict['f0dl'])[model_phase_mode_list == phase_mode]
         
+        if extrapolate_lowest_harm:
+            lowest_harm_index = np.argmin(human_low_harm)
+            kwargs_interp.update({'bounds_error': False,
+                                  'fill_value': (human_f0dl[lowest_harm_index], np.nan)})
         interp_human_low_harm, interp_human_f0dl = interpolate_data(human_low_harm,
                                                                     human_f0dl,
                                                                     model_low_harm,
