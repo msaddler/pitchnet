@@ -431,6 +431,15 @@ def get_human_results_dict_altphasecomplexes(average_conditions=True):
             '3900.0': [98.94, 97.97, 97.82, 98.23, 98.91, 98.00, 95.19, 95.71, 92.73],
         },
     }
+    # Convert values from percent to fraction
+    for rd in [results_dict_subjectTS,
+               results_dict_subjectJS,
+               results_dict_subjectSD,
+               results_dict_subjectRB,
+               results_dict]:
+        for key in rd['filter_fl_bin_means'].keys():
+            values = rd['filter_fl_bin_means'][key]
+            rd['filter_fl_bin_means'][key] = [v/100 for v in values]
     if average_conditions:
         return results_dict
     else:
@@ -642,7 +651,37 @@ def compare_mistunedharmonics(human_results_dict, model_results_dict,
                                     **kwargs_compare)
 
 
-def compare_altphasecomplexes(results_dict, human_results_dict):
+def compare_altphasecomplexes(human_results_dict, model_results_dict,
+                              kwargs_interp={}, kwargs_compare={'log_scale':False}):
     '''
     '''
-    return 0
+    human_conditions = human_results_dict['filter_fl_bin_means'].keys()
+    model_conditions = model_results_dict['filter_fl_bin_means'].keys()
+    assert np.array_equal(human_conditions, model_conditions)
+    
+    results_vector_human = []
+    results_vector_model = []
+    for condition_key in human_conditions:
+        human_xvals = np.array(human_results_dict['f0_bin_centers'])
+        human_yvals = np.array(human_results_dict['filter_fl_bin_means'][condition_key])
+        model_xvals = np.array(model_results_dict['f0_bin_centers'])
+        model_yvals = np.array(model_results_dict['filter_fl_bin_means'][condition_key])
+        
+        interp_human_xvals, interp_human_yvals = interpolate_data(human_xvals,
+                                                                  human_yvals,
+                                                                  model_xvals,
+                                                                  **kwargs_interp)
+        interp_human_xvals = interp_human_xvals.tolist()
+        interp_human_yvals = interp_human_yvals.tolist()
+        model_xvals = model_xvals.tolist()
+        model_yvals = model_yvals.tolist()
+        
+        for idx_human, xval in enumerate(interp_human_xvals):
+            idx_model = model_xvals.index(xval)
+            results_vector_human.append(interp_human_yvals[idx_human])
+            results_vector_model.append(model_yvals[idx_model])
+    
+    results_vector_human = np.array(results_vector_human)
+    results_vector_model = np.array(results_vector_model)
+    return compare_human_model_data(results_vector_human, results_vector_model,
+                                    **kwargs_compare)
