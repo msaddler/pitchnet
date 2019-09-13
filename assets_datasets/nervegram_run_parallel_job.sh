@@ -8,9 +8,9 @@
 #SBATCH --time=0-18:00:00
 #SBATCH --time-min=0-12:00:00
 #SBATCH --exclude=node[001-030]
-#SBATCH --array=0-599
+#SBATCH --array=0-599%200
 ##SBATCH --partition=mcdermott
-#SBATCH --partition=use-everything
+##SBATCH --partition=use-everything
 #SBATCH --requeue
 
 ### Define source_regex and dest_filename here (use single quotes to prevent regex from expanding)
