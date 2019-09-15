@@ -15,7 +15,7 @@ offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
 echo $(hostname)
 
-source activate mdlab
+# source activate mdlab
 
 # python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_bernox.py \
 # -r '/om/scratch/Mon/msaddler/pitchnet/saved_models/arch_search_v00/*/EVAL_bernox2005_FixedFilter_bestckpt.json' \
@@ -39,22 +39,61 @@ source activate mdlab
 
 
 
+singularity exec --nv \
+-B /home \
+-B /om \
+-B /nobackup \
+-B /om2 \
+-B /om4 \
+/om/user/francl/ibm_hearing_aid/tfv1.13_openmind.simg \
 python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_bernox.py \
--r '/om2/user/msaddler/pitchnet/saved_models/PND_v04_JWSS_highpass_v00_classification*/EVAL_bernox2005_FixedFilter_bestckpt.json' \
+-r '/om2/user/msaddler/pitchnet/saved_models/PND_v04_JWSS_halflowpassnoise_v00_classification*/EVAL_bernox2005_FixedFilter_bestckpt.json' \
 -j ${job_idx}
 
+
+singularity exec --nv \
+-B /home \
+-B /om \
+-B /nobackup \
+-B /om2 \
+-B /om4 \
+/om/user/francl/ibm_hearing_aid/tfv1.13_openmind.simg \
 python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_transposed_tones.py \
--r '/om2/user/msaddler/pitchnet/saved_models/PND_v04_JWSS_highpass_v00_classification*/EVAL_oxenham2004_080to320Hz_bestckpt.json' \
+-r '/om2/user/msaddler/pitchnet/saved_models/PND_v04_JWSS_halflowpassnoise_v00_classification*/EVAL_oxenham2004_080to320Hz_bestckpt.json' \
 -j ${job_idx}
 
+
+singularity exec --nv \
+-B /home \
+-B /om \
+-B /nobackup \
+-B /om2 \
+-B /om4 \
+/om/user/francl/ibm_hearing_aid/tfv1.13_openmind.simg \
 python /om2/user/msaddler/pitchnet/assets_psychophysics/f0experiment_alt_phase.py \
--r '/om2/user/msaddler/pitchnet/saved_models/PND_v04_JWSS_highpass_v00_classification*/EVAL_AltPhase_v01_bestckpt.json' \
+-r '/om2/user/msaddler/pitchnet/saved_models/PND_v04_JWSS_halflowpassnoise_v00_classification*/EVAL_AltPhase_v01_bestckpt.json' \
 -j ${job_idx}
 
+
+singularity exec --nv \
+-B /home \
+-B /om \
+-B /nobackup \
+-B /om2 \
+-B /om4 \
+/om/user/francl/ibm_hearing_aid/tfv1.13_openmind.simg \
 python /om2/user/msaddler/pitchnet/assets_psychophysics/f0experiment_freq_shifted.py \
--r '/om2/user/msaddler/pitchnet/saved_models/PND_v04_JWSS_highpass_v00_classification*/EVAL_mooremoore2003_080to480Hz_bestckpt.json' \
+-r '/om2/user/msaddler/pitchnet/saved_models/PND_v04_JWSS_halflowpassnoise_v00_classification*/EVAL_mooremoore2003_080to480Hz_bestckpt.json' \
 -j ${job_idx}
 
+
+singularity exec --nv \
+-B /home \
+-B /om \
+-B /nobackup \
+-B /om2 \
+-B /om4 \
+/om/user/francl/ibm_hearing_aid/tfv1.13_openmind.simg \
 python /om2/user/msaddler/pitchnet/assets_psychophysics/f0experiment_mistuned_harmonics.py \
--r '/om2/user/msaddler/pitchnet/saved_models/PND_v04_JWSS_highpass_v00_classification*/EVAL_MistunedHarm_v00_bestckpt.json' \
+-r '/om2/user/msaddler/pitchnet/saved_models/PND_v04_JWSS_halflowpassnoise_v00_classification*/EVAL_MistunedHarm_v00_bestckpt.json' \
 -j ${job_idx}

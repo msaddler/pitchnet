@@ -12,7 +12,7 @@ import itertools
 import functools
 import multiprocessing
 
-sys.path.append('../assets_datasets/')
+sys.path.append('/om2/user/msaddler/pitchnet/assets_datasets/')
 import stimuli_f0_labels
 
 
