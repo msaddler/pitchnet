@@ -6,13 +6,14 @@
 #SBATCH --mem-per-cpu=2500
 #SBATCH --nodes=1
 #SBATCH --time=0-0:40:00
-#SBATCH --array=0-599
-##SBATCH --partition=mcdermott
+#SBATCH --array=0-71
+#SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 ###SBATCH --dependency=afterok:12702768
 
 ### Define source_regex and dest_filename here (use single quotes to prevent regex from expanding)
-source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v04/noise_JWSS_snr_neg10pos03/augment_halflowpassnoise_v01/cf100_species002_spont070/bez2018meanrates*.hdf5'
+# source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v04/noise_JWSS_snr_neg10pos03/augment_halflowpassnoise_v01/cf100_species002_spont070/bez2018meanrates*.hdf5'
+source_regex='/om/user/msaddler/data_pitchnet/bernox2005/FixedFilter_f0min100_f0max300/cf100_species002_spont070_lowpass*/*.hdf5'
 jobs_per_source_file=1
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
