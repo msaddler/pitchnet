@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#SBATCH --job-name=pitchnet_train
+#SBATCH --job-name=pitchnet_eval
 #SBATCH --out="/om2/user/msaddler/pitchnet/slurm-%A_%a.out"
 #SBATCH --gres=gpu:GEFORCEGTX1080TI:1
 #SBATCH --mem=8000
