@@ -6,11 +6,11 @@
 #SBATCH --mem=8000
 #SBATCH --cpus-per-task=4
 #SBATCH --time=0-2:00:00
-#SBATCH --exclude=node063
+##SBATCH --exclude=node063
 #SBATCH --partition=mcdermott
 #SBATCH --array=0-2
 
-OUTDIR='/saved_models/models_RSB/PND_v04_TLAS_classification'$SLURM_ARRAY_TASK_ID
+OUTDIR='/saved_models/arch_0628/PND_v04_TLAS_classification'$SLURM_ARRAY_TASK_ID
 echo "evaluating model in output directory: $OUTDIR"
 
 singularity exec --nv \
