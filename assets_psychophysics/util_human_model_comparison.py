@@ -448,7 +448,8 @@ def get_human_results_dict_altphasecomplexes(average_conditions=True):
 
 def get_mistuned_harmonics_bar_graph_results_dict(results_dict, mistuned_pct=3.0,
                                                   pitch_shift_key='f0_pred_pct_median',
-                                                  harmonic_list=[1,2,3,4,5,6]):
+                                                  harmonic_list=[1,2,3,4,5,6],
+                                                  use_relative_shift=False):
     '''
     This helper function parses a results_dict from the Moore et al. (1985, JASA)
     mistuned harmonics experiment into a smaller bar_graph_results_dict, which
@@ -468,6 +469,10 @@ def get_mistuned_harmonics_bar_graph_results_dict(results_dict, mistuned_pct=3.0
             sub_results_dict = results_dict['f0_ref'][f0_ref_key]['mistuned_harm'][harm_key]
             mp_idx = sub_results_dict['mistuned_pct'].index(mistuned_pct)
             pitch_shift = sub_results_dict[pitch_shift_key][mp_idx]
+            if use_relative_shift:
+                if 0.0 in sub_results_dict['mistuned_pct']:
+                    unshifted_idx = sub_results_dict['mistuned_pct'].index(0.0)
+                    pitch_shift = pitch_shift - sub_results_dict[pitch_shift_key][unshifted_idx]
             bar_graph_results_dict[harm_key]['f0_ref'].append(f0_ref)
             bar_graph_results_dict[harm_key][pitch_shift_key].append(pitch_shift)
     return bar_graph_results_dict
