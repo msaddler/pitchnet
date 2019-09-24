@@ -10,7 +10,7 @@
 #SBATCH --partition=mcdermott
 #SBATCH --array=0-2
 
-OUTDIR='/saved_models/arch_0703/PND_v04_TLAS_classification'$SLURM_ARRAY_TASK_ID
+OUTDIR='/saved_models/PND_v04_TLAS_halflowpassnoise_v02_classification'$SLURM_ARRAY_TASK_ID
 echo "evaluating model in output directory: $OUTDIR"
 
 singularity exec --nv \
