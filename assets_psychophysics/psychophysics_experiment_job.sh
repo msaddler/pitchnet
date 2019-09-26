@@ -46,7 +46,7 @@ singularity exec --nv \
 -B /nobackup \
 -B /om2 \
 -B /om4 \
-/om/user/francl/ibm_hearing_aid/tfv1.13_openmind.simg \
+/om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
 python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_bernox.py \
 -r "$OUTDIR_REGEX/EVAL_bernox2005_FixedFilter_bestckpt.json" \
 -j ${job_idx}
@@ -58,7 +58,7 @@ singularity exec --nv \
 -B /nobackup \
 -B /om2 \
 -B /om4 \
-/om/user/francl/ibm_hearing_aid/tfv1.13_openmind.simg \
+/om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
 python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_transposed_tones.py \
 -r "$OUTDIR_REGEX/EVAL_oxenham2004_080to320Hz_bestckpt.json" \
 -j ${job_idx}
@@ -70,7 +70,7 @@ singularity exec --nv \
 -B /nobackup \
 -B /om2 \
 -B /om4 \
-/om/user/francl/ibm_hearing_aid/tfv1.13_openmind.simg \
+/om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
 python /om2/user/msaddler/pitchnet/assets_psychophysics/f0experiment_alt_phase.py \
 -r "$OUTDIR_REGEX/EVAL_AltPhase_v01_bestckpt.json" \
 -j ${job_idx}
@@ -82,7 +82,7 @@ singularity exec --nv \
 -B /nobackup \
 -B /om2 \
 -B /om4 \
-/om/user/francl/ibm_hearing_aid/tfv1.13_openmind.simg \
+/om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
 python /om2/user/msaddler/pitchnet/assets_psychophysics/f0experiment_freq_shifted.py \
 -r "$OUTDIR_REGEX/EVAL_mooremoore2003_080to480Hz_bestckpt.json" \
 -j ${job_idx}
@@ -94,7 +94,7 @@ singularity exec --nv \
 -B /nobackup \
 -B /om2 \
 -B /om4 \
-/om/user/francl/ibm_hearing_aid/tfv1.13_openmind.simg \
+/om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
 python /om2/user/msaddler/pitchnet/assets_psychophysics/f0experiment_mistuned_harmonics.py \
 -r "$OUTDIR_REGEX/EVAL_MistunedHarm_v00_bestckpt.json" \
 -j ${job_idx}
