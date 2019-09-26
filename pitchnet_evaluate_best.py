@@ -133,7 +133,5 @@ if __name__ == "__main__":
                       eval_only_mode=True,
                       force_overwrite=False, 
                       eval_brain_ckpt=eval_brain_ckpt,
-                      eval_wavenet_ckpt=None,
-                      eval_output_fn=eval_output_fn,
-                      write_audio_files=False)
+                      eval_output_fn=eval_output_fn)
     
