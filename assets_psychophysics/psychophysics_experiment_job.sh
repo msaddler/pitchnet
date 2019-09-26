@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=2
 #SBATCH --mem-per-cpu=400
 #SBATCH --time=0-01:10:00
-#SBATCH --array=0-2
+#SBATCH --array=0-5
 #SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --requeue
@@ -15,7 +15,7 @@ offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
 echo $(hostname)
 
-OUTDIR_REGEX='/om2/user/msaddler/pitchnet/saved_models/arch_0628/PND_v04_JWSS_highpass_v00_classification*'
+OUTDIR_REGEX='/om2/user/msaddler/pitchnet/saved_models/arch_0628/PND_v04_JWSS_ANlowpass*Hz_classification*'
 
 # source activate mdlab
 

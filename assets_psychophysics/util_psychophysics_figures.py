@@ -13,6 +13,7 @@ def make_bernox_threshold_plot(ax, results_dict_input,
                                title_str=None,
                                legend_on=True,
                                include_yerr=False,
+                               restrict_phase_modes=None,
                                sine_plot_kwargs={},
                                rand_plot_kwargs={},
                                fontsize_title=12,
@@ -45,6 +46,8 @@ def make_bernox_threshold_plot(ax, results_dict_input,
     f0dl_list = np.array(results_dict['f0dl'])
     f0dl_stddev_list = np.array(results_dict['f0dl_stddev'])
     unique_phase_modes = np.flip(np.unique(phase_mode_list))
+    if restrict_phase_modes is not None:
+        unique_phase_modes = restrict_phase_modes
     for phase_mode in unique_phase_modes:
         xval = low_harm_list[phase_mode_list == phase_mode]
         yval = f0dl_list[phase_mode_list == phase_mode]
