@@ -13,7 +13,7 @@ def make_bernox_threshold_plot(ax, results_dict_input,
                                title_str=None,
                                legend_on=True,
                                include_yerr=False,
-                               restrict_phase_modes=None,
+                               restrict_conditions=None,
                                sine_plot_kwargs={},
                                rand_plot_kwargs={},
                                fontsize_title=12,
@@ -46,8 +46,8 @@ def make_bernox_threshold_plot(ax, results_dict_input,
     f0dl_list = np.array(results_dict['f0dl'])
     f0dl_stddev_list = np.array(results_dict['f0dl_stddev'])
     unique_phase_modes = np.flip(np.unique(phase_mode_list))
-    if restrict_phase_modes is not None:
-        unique_phase_modes = restrict_phase_modes
+    if restrict_conditions is not None:
+        unique_phase_modes = restrict_conditions
     for phase_mode in unique_phase_modes:
         xval = low_harm_list[phase_mode_list == phase_mode]
         yval = f0dl_list[phase_mode_list == phase_mode]
@@ -83,6 +83,7 @@ def make_TT_threshold_plot(ax, results_dict_input,
                            title_str=None,
                            legend_on=True,
                            include_yerr=False,
+                           restrict_conditions=None,
                            plot_kwargs_update={},
                            threshold_cap=100.0,
                            fontsize_title=12,
@@ -121,6 +122,8 @@ def make_TT_threshold_plot(ax, results_dict_input,
     f0dl_list = np.array(results_dict['f0dl'])
     f0dl_stddev_list = np.array(results_dict['f0dl_stddev'])
     unique_f_carrier_list = np.unique(f_carrier_list)
+    if restrict_conditions is not None:
+        unique_f_carrier_list = restrict_conditions
     for f_carrier in unique_f_carrier_list:
         xval = f0_ref[f_carrier_list == f_carrier]
         yval = f0dl_list[f_carrier_list == f_carrier]
@@ -159,7 +162,7 @@ def make_TT_threshold_plot(ax, results_dict_input,
     ax.set_yscale('log')
     ax.tick_params(axis='both', labelsize=fontsize_ticks)
     ax.set_xlabel('Frequency (Hz)', fontsize=fontsize_labels)
-    ax.set_ylabel('Frequency difference (%)', fontsize=fontsize_labels)
+    ax.set_ylabel('Discrimination\nthreshold (%)', fontsize=fontsize_labels)
     if title_str is not None: ax.set_title(title_str, fontsize=fontsize_title)
     if legend_on:
         ax.legend(loc='lower left', frameon=False,
@@ -176,11 +179,12 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
                                    title_str=None,
                                    legend_on=True,
                                    include_yerr=False,
+                                   restrict_conditions=None,
                                    fontsize_title=12,
                                    fontsize_labels=12,
                                    fontsize_legend=12,
                                    fontsize_ticks=12,
-                                   xlimits=[-0.5, 24.5],
+                                   xlimits=[-1, 25],
                                    ylimits=[-4, 12]):
     '''
     Function for plotting frequency-shifted complexes experiment results:
@@ -218,7 +222,10 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
         }
     
     assert set(results_dict[expt_key].keys()) == set(condition_plot_kwargs.keys())
-    for condition in sorted(results_dict[expt_key].keys()):
+    condition_list = sorted(results_dict[expt_key].keys())
+    if restrict_conditions is not None:
+        condition_list = restrict_conditions
+    for condition in condition_list:
         xval = np.array(results_dict[expt_key][condition]['f0_shift'])
         yval = np.array(results_dict[expt_key][condition][pitch_shift_key])
         yerr = np.array(results_dict[expt_key][condition][pitch_shift_key_stddev])
@@ -232,12 +239,13 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
     
     if legend_on:
         ax.legend(loc='upper left', frameon=False,
-                  fontsize=fontsize_legend, handlelength=1)
+                  fontsize=fontsize_legend, handlelength=1.5)
     if title_str: ax.set_title(title_str, fontsize=fontsize_title)
     ax.set_xlabel('Component shift (%F0)', fontsize=fontsize_labels)
     ax.set_ylabel('Shift in pred F0 (%F0)', fontsize=fontsize_labels)
     ax.set_xlim(xlimits)
     ax.set_ylim(ylimits)
+    xval = np.array(results_dict[expt_key]['5']['f0_shift'])
     ax.set_xticks(np.arange(xval[0], xval[-1]+1, 8), minor=False)
     ax.set_xticks(np.arange(xval[0], xval[-1]+1, 4), minor=True)
     ax.set_yticks(np.arange(ylimits[0], ylimits[-1]+1, 4), minor=False)
