@@ -11,8 +11,8 @@
 #SBATCH --partition=mcdermott
 #SBATCH --array=0-2
 
-OUTDIR='/saved_models/PND_v04_JWSS_ANlowpass0320Hz_classification'$SLURM_ARRAY_TASK_ID
-TFRECORDS_REGEX='cf100_species002_spont070_lowpass0320Hz/*.tfrecords'
+OUTDIR='/saved_models/arch_0628/PND_v04_JWSS_highSNR_classification'$SLURM_ARRAY_TASK_ID
+TFRECORDS_REGEX='cf100_species002_spont070/*.tfrecords'
 
 echo "evaluating model in output directory: $OUTDIR"
 echo "evaluation data: $TFRECORDS_REGEX"

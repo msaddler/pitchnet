@@ -15,7 +15,7 @@ offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
 echo $(hostname)
 
-OUTDIR_REGEX='/om2/user/msaddler/pitchnet/saved_models/PND_v04_JWSS_ANlowpass0320Hz_classification*'
+OUTDIR_REGEX='/om2/user/msaddler/pitchnet/saved_models/arch_0628/PND_v04_JWSS_highSNR_classification*'
 
 # source activate mdlab
 
