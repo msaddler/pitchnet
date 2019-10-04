@@ -102,8 +102,8 @@ if __name__ == "__main__":
                         help='JSON filename where validation metrics are stored, do not include path')
     parser.add_argument('-vk', '--validation_metrics_key', type=str, default='f0_label:accuracy', 
                         help='key in validation_metrics_fn to use when selecting best checkpoint')
-    parser.add_argument('-wcd', '--write_cond_dist', action='store_true', default=False,
-                        help='if specified, softmax activations will be included in output file (eval_only_mode)')
+    parser.add_argument('-wpo', '--write_probs_out', type=int, default=0,
+                        help='if specified, final activations will be included in output file (eval_only_mode)')
     args = parser.parse_args()
     
     assert args.outputdir is not None
@@ -136,5 +136,5 @@ if __name__ == "__main__":
                       force_overwrite=False, 
                       eval_brain_ckpt=eval_brain_ckpt,
                       eval_output_fn=eval_output_fn,
-                      write_cond_dist=args.write_cond_dist)
+                      write_probs_out=bool(args.write_probs_out))
     
