@@ -80,7 +80,7 @@ def compute_f0_pred_with_prior(f0_true, f0_bins, expt_dict,
     f0_bins (np array): f0 bins in Hz
     expt_dict (dict): f0 experiment data dict
     f0_label_prob_key (str): key for f0_label_pred probabilities in expt_dict
-    octave_range (list): sets limits for the uniform prior (in octaves re: f0_true)
+    octave_range (list): limits for the uniform prior (in octaves re: f0_true)
     
     Returns
     -------
@@ -107,7 +107,7 @@ def add_f0_estimates_to_expt_dict(expt_dict,
                                   kwargs_f0_bins={},
                                   kwargs_f0_octave={},
                                   kwargs_f0_normalization={},
-                                  kwargs_f0_prior={'f0_label_prob_key': 'f0_label:probs_out'}):
+                                  kwargs_f0_prior={}):
     '''
     Function computes f0 estimates corresponding to f0 labels in expt_dict.
     
@@ -126,25 +126,30 @@ def add_f0_estimates_to_expt_dict(expt_dict,
     expt_dict (dict): F0 experiment data dict (includes f0 and f0_pred keys)
     '''
     if 'log2' in f0_label_pred_key:
-        if not 'f0_pred' in expt_dict.keys():
-            expt_dict['f0_pred'] = stimuli_f0_labels.octave_to_f0(expt_dict[f0_label_pred_key],
-                                                                  **kwargs_f0_octave)
         if 'f0' not in expt_dict.keys():
             expt_dict['f0'] = stimuli_f0_labels.octave_to_f0(expt_dict[f0_label_true_key],
                                                              **kwargs_f0_octave)
-    elif 'normal' in f0_label_pred_key:
         if not 'f0_pred' in expt_dict.keys():
-            expt_dict['f0_pred'] = stimuli_f0_labels.normalized_to_f0(expt_dict[f0_label_pred_key],
-                                                                      **kwargs_f0_normalization)
+            expt_dict['f0_pred'] = stimuli_f0_labels.octave_to_f0(expt_dict[f0_label_pred_key],
+                                                                  **kwargs_f0_octave)
+    elif 'normal' in f0_label_pred_key:
         if 'f0' not in expt_dict.keys():
             expt_dict['f0'] = stimuli_f0_labels.normalized_to_f0(expt_dict[f0_label_true_key],
                                                                  **kwargs_f0_normalization)
-    else:
-        bins = stimuli_f0_labels.get_f0_bins(**kwargs_f0_bins)
         if not 'f0_pred' in expt_dict.keys():
-            expt_dict['f0_pred'] = stimuli_f0_labels.label_to_f0(expt_dict[f0_label_pred_key], bins)
+            expt_dict['f0_pred'] = stimuli_f0_labels.normalized_to_f0(expt_dict[f0_label_pred_key],
+                                                                      **kwargs_f0_normalization)
+    else:
+        f0_bins = stimuli_f0_labels.get_f0_bins(**kwargs_f0_bins)
         if not 'f0' in expt_dict.keys():
-            expt_dict['f0'] = stimuli_f0_labels.label_to_f0(expt_dict[f0_label_true_key], bins)
+            expt_dict['f0'] = stimuli_f0_labels.label_to_f0(expt_dict[f0_label_true_key], f0_bins)
+        if kwargs_f0_prior:
+            expt_dict['f0_pred'] = compute_f0_pred_with_prior(
+                expt_dict['f0'], f0_bins, expt_dict, **kwargs_f0_prior)
+        else:
+            if not 'f0_pred' in expt_dict.keys():
+                expt_dict['f0_pred'] = stimuli_f0_labels.label_to_f0(
+                    expt_dict[f0_label_pred_key], f0_bins)
     return expt_dict
 
 
