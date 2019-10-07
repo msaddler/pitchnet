@@ -10,11 +10,23 @@ import scipy.stats
 import f0dl_bernox
 
 
-def run_f0dl_experiment(json_fn, max_pct_diff=6, noise_stdev=1e-12, bin_width=5e-2, mu=0.0,
-                        threshold_value=0.707, use_empirical_f0dl_if_possible=False,
-                        f0_label_true_key='f0_label:labels_true', f0_label_pred_key='f0_label:labels_pred',
-                        kwargs_f0_bins={}, kwargs_f0_octave={}, kwargs_f0_normalization={},
-                        f0_ref_min=90.0, f0_ref_max=300.0, f0_ref_n_step=5,
+def run_f0dl_experiment(json_fn,
+                        max_pct_diff=6,
+                        noise_stdev=1e-12,
+                        bin_width=5e-2,
+                        mu=0.0,
+                        threshold_value=0.707,
+                        use_empirical_f0dl_if_possible=False,
+                        f0_label_true_key='f0_label:labels_true',
+                        f0_label_pred_key='f0_label:labels_pred',
+                        f0_label_prob_key='f0_label:probs_out',
+                        kwargs_f0_bins={},
+                        kwargs_f0_octave={},
+                        kwargs_f0_normalization={},
+                        kwargs_f0_prior={},
+                        f0_ref_min=90.0,
+                        f0_ref_max=300.0,
+                        f0_ref_n_step=5,
                         metadata_key_list=['f_carrier', 'f_envelope', 'f0']):
     '''
     '''
@@ -22,13 +34,15 @@ def run_f0dl_experiment(json_fn, max_pct_diff=6, noise_stdev=1e-12, bin_width=5e
     expt_dict = f0dl_bernox.load_f0_expt_dict_from_json(json_fn,
                                                         f0_label_true_key=f0_label_true_key,
                                                         f0_label_pred_key=f0_label_pred_key,
+                                                        f0_label_prob_key=f0_label_prob_key,
                                                         metadata_key_list=metadata_key_list)
     expt_dict = f0dl_bernox.add_f0_estimates_to_expt_dict(expt_dict,
                                                           f0_label_true_key=f0_label_true_key,
                                                           f0_label_pred_key=f0_label_pred_key,
                                                           kwargs_f0_bins=kwargs_f0_bins,
                                                           kwargs_f0_octave=kwargs_f0_octave,
-                                                          kwargs_f0_normalization=kwargs_f0_normalization)
+                                                          kwargs_f0_normalization=kwargs_f0_normalization,
+                                                          kwargs_f0_prior=kwargs_f0_prior)
     unique_f_carrier_list = np.unique(expt_dict['f_carrier'])
     f0_ref_list = np.power(2, np.linspace(np.log2(f0_ref_min), np.log2(f0_ref_max), f0_ref_n_step))
     N = len(unique_f_carrier_list) * len(f0_ref_list)
@@ -78,29 +92,48 @@ def run_f0dl_experiment(json_fn, max_pct_diff=6, noise_stdev=1e-12, bin_width=5e
     return results_dict
 
 
-def main(json_eval_fn, json_results_dict_fn=None, save_results_to_file=False,
-         max_pct_diff=6, noise_stdev=1e-12, bin_width=5e-2, mu=0.0,
-         threshold_value=0.707, use_empirical_f0dl_if_possible=False,
-         f0_label_true_key='f0_label:labels_true', f0_label_pred_key='f0_label:labels_pred',
-         kwargs_f0_bins={}, kwargs_f0_octave={}, kwargs_f0_normalization={},
-         f0_ref_min=90.0, f0_ref_max=300.0, f0_ref_n_step=5,
+def main(json_eval_fn,
+         json_results_dict_fn=None,
+         save_results_to_file=False,
+         max_pct_diff=6,
+         noise_stdev=1e-12,
+         bin_width=5e-2,
+         mu=0.0,
+         threshold_value=0.707,
+         use_empirical_f0dl_if_possible=False,
+         f0_label_true_key='f0_label:labels_true',
+         f0_label_pred_key='f0_label:labels_pred',
+         f0_label_prob_key='f0_label:probs_out',
+         kwargs_f0_bins={},
+         kwargs_f0_octave={},
+         kwargs_f0_normalization={},
+         kwargs_f0_prior={},
+         f0_ref_min=90.0,
+         f0_ref_max=300.0,
+         f0_ref_n_step=5,
          metadata_key_list=['f_carrier', 'f_envelope', 'f0']):
     '''
     '''
     # Run the Oxenham et al. (2004) transposed tones F0DL experiment; results stored in results_dict
     results_dict = run_f0dl_experiment(json_eval_fn,
-                                       max_pct_diff=max_pct_diff, noise_stdev=noise_stdev,
-                                       bin_width=bin_width, mu=mu, threshold_value=threshold_value,
+                                       max_pct_diff=max_pct_diff,
+                                       noise_stdev=noise_stdev,
+                                       bin_width=bin_width,
+                                       mu=mu, threshold_value=threshold_value,
                                        use_empirical_f0dl_if_possible=use_empirical_f0dl_if_possible,
-                                       f0_label_true_key=f0_label_true_key, f0_label_pred_key=f0_label_pred_key,
+                                       f0_label_true_key=f0_label_true_key,
+                                       f0_label_pred_key=f0_label_pred_key,
+                                       f0_label_prob_key=f0_label_prob_key,
                                        kwargs_f0_bins=kwargs_f0_bins,
                                        kwargs_f0_octave=kwargs_f0_octave,
                                        kwargs_f0_normalization=kwargs_f0_normalization,
+                                       kwargs_f0_prior=kwargs_f0_prior,
                                        f0_ref_min=f0_ref_min,
                                        f0_ref_max=f0_ref_max,
                                        f0_ref_n_step=f0_ref_n_step,
                                        metadata_key_list=metadata_key_list)
     results_dict['json_eval_fn'] = json_eval_fn
+    results_dict['kwargs_f0_prior'] = kwargs_f0_prior
     # If specified, save results_dict to file
     if save_results_to_file:
         # Check filename for results_dict
@@ -127,6 +160,8 @@ if __name__ == "__main__":
                         help='regex that globs list of json_eval_fn to process')
     parser.add_argument('-j', '--job_idx', type=int, default=None,
                         help='job index used to select json_eval_fn from list')
+    parser.add_argument('-p', '--prior_range_in_octaves', type=float, default=0,
+                        help='sets octave_range in `kwargs_f0_prior`: [#, #]')
     parsed_args_dict = vars(parser.parse_args())
     assert parsed_args_dict['regex_json_eval_fn'] is not None, "regex_json_eval_fn is a required argument"
     assert parsed_args_dict['job_idx'] is not None, "job_idx is a required argument"
@@ -134,4 +169,17 @@ if __name__ == "__main__":
     json_eval_fn = list_json_eval_fn[parsed_args_dict['job_idx']]
     print('Processing file {} of {}'.format(parsed_args_dict['job_idx'], len(list_json_eval_fn)))
     print('Processing file: {}'.format(json_eval_fn))
-    main(json_eval_fn, save_results_to_file=True)
+    
+    if parsed_args_dict['prior_range_in_octaves'] > 0:
+        kwargs_f0_prior = {
+            'f0_label_prob_key': 'f0_label:probs_out',
+            'f0_prior_ref_key': 'base_f0', # Use base_f0, so prior does not bias up/down judgments
+            'octave_range': [
+                -parsed_args_dict['prior_range_in_octaves'],
+                parsed_args_dict['prior_range_in_octaves']
+            ],
+        }
+    else:
+        kwargs_f0_prior = {}
+    
+    main(json_eval_fn, save_results_to_file=True, kwargs_f0_prior=kwargs_f0_prior)

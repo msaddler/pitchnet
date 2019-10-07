@@ -560,6 +560,7 @@ def main(json_eval_fn,
                                        f0_max=f0_max,
                                        max_processes=max_processes)
     results_dict['json_eval_fn'] = json_eval_fn
+    results_dict['kwargs_f0_prior'] = kwargs_f0_prior
     # If specified, save results_dict to file
     if save_results_to_file:
         # Check filename for results_dict
