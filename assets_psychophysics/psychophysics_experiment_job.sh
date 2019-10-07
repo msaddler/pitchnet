@@ -4,9 +4,9 @@
 #SBATCH --out="slurm-%A_%a.out"
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=2
-#SBATCH --mem-per-cpu=400
+#SBATCH --mem-per-cpu=2000
 #SBATCH --time=0-01:10:00
-#SBATCH --array=0
+#SBATCH --array=0-2
 #SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --requeue
@@ -17,6 +17,7 @@ echo $(hostname)
 
 OUTDIR_REGEX='/om2/user/msaddler/pitchnet/saved_models/PND_v04_TLAS_classification*'
 EFN_PREFIX='EVAL_SOFTMAX_'
+PRIOR_RANGE='0.5'
 
 # source activate mdlab
 
@@ -50,6 +51,7 @@ singularity exec --nv \
 /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
 python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_bernox.py \
 -r "${OUTDIR_REGEX}/${EFN_PREFIX}bernox2005_FixedFilter_bestckpt.json" \
+-p ${PRIOR_RANGE} \
 -j ${job_idx}
 
 

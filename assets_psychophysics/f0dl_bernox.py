@@ -68,8 +68,9 @@ def load_f0_expt_dict_from_json(json_fn,
     return expt_dict
 
 
-def compute_f0_pred_with_prior(f0_true, f0_bins, expt_dict,
+def compute_f0_pred_with_prior(expt_dict, f0_bins,
                                f0_label_prob_key='f0_label:probs_out',
+                               f0_prior_ref_key='base_f0',
                                octave_range=[-1, 1]):
     '''
     Computes predicted f0 values from a probability distribution
@@ -77,24 +78,26 @@ def compute_f0_pred_with_prior(f0_true, f0_bins, expt_dict,
     
     Args
     ----
-    f0_true (np array): true f0 values in Hz
-    f0_bins (np array): f0 bins in Hz
     expt_dict (dict): f0 experiment data dict
+    f0_bins (np array): f0 bins in Hz
     f0_label_prob_key (str): key for f0_label_pred probabilities in expt_dict
-    octave_range (list): limits for the uniform prior (in octaves re: f0_true)
+    f0_prior_ref_key (str): key for f0_prior_ref (reference f0 for the prior)
+    octave_range (list): limits for the uniform prior (in octaves re: f0_prior_ref)
     
     Returns
     -------
     f0_pred (np array): predicted f0 values in Hz
     '''
-    print('Computing f0_pred using uniform prior: {} octaves'.format(octave_range), flush=True)
     assert f0_label_prob_key in expt_dict.keys(), "f0_label_prob_key not found in expt_dict"
+    assert f0_prior_ref_key in expt_dict.keys(), "f0_prior_ref_key not found in expt_dict"
     f0_pred_prob = expt_dict[f0_label_prob_key]
     msg = "f0_pred_prob ({}) and f0_bins ({}) must match in shape"
     assert f0_pred_prob.shape[1] == f0_bins.shape[0], msg.format(f0_pred_prob.shape, f0_bins.shape)
-    f0_pred = np.zeros_like(f0_true)
+    f0_prior_ref = expt_dict[f0_prior_ref_key]
+    f0_pred = np.zeros_like(f0_prior_ref)
+    print('Computing f0_pred using uniform prior: {} octaves'.format(octave_range), flush=True)
     counter = 0
-    for stimulus_idx, f0 in enumerate(f0_true):
+    for stimulus_idx, f0 in enumerate(f0_prior_ref):
         f0_prior_range = f0 * np.power(2, np.array(octave_range, dtype=float))
         bin_mask = np.logical_and(f0_bins >= f0_prior_range[0],
                                   f0_bins <= f0_prior_range[1]).astype(float)
@@ -150,8 +153,7 @@ def add_f0_estimates_to_expt_dict(expt_dict,
         if not 'f0' in expt_dict.keys():
             expt_dict['f0'] = stimuli_f0_labels.label_to_f0(expt_dict[f0_label_true_key], f0_bins)
         if kwargs_f0_prior:
-            expt_dict['f0_pred'] = compute_f0_pred_with_prior(
-                expt_dict['f0'], f0_bins, expt_dict, **kwargs_f0_prior)
+            expt_dict['f0_pred'] = compute_f0_pred_with_prior(expt_dict, f0_bins, **kwargs_f0_prior)
         else:
             if not 'f0_pred' in expt_dict.keys():
                 expt_dict['f0_pred'] = stimuli_f0_labels.label_to_f0(
@@ -584,6 +586,8 @@ if __name__ == "__main__":
                         help='regex that globs list of json_eval_fn to process')
     parser.add_argument('-j', '--job_idx', type=int, default=None,
                         help='job index used to select json_eval_fn from list')
+    parser.add_argument('-p', '--prior_range_in_octaves', type=float, default=0,
+                        help='sets octave_range in `kwargs_f0_prior`: [#, #]')
     parsed_args_dict = vars(parser.parse_args())
     assert parsed_args_dict['regex_json_eval_fn'] is not None, "regex_json_eval_fn is a required argument"
     assert parsed_args_dict['job_idx'] is not None, "job_idx is a required argument"
@@ -592,7 +596,17 @@ if __name__ == "__main__":
     print('Processing file {} of {}'.format(parsed_args_dict['job_idx'], len(list_json_eval_fn)))
     print('Processing file: {}'.format(json_eval_fn))
     
-    kwargs_f0_prior = {'f0_label_prob_key': 'f0_label:probs_out', 'octave_range': [-1, 1]}
+    if parsed_args_dict['prior_range_in_octaves'] > 0:
+        kwargs_f0_prior = {
+            'f0_label_prob_key': 'f0_label:probs_out',
+            'f0_prior_ref_key': 'base_f0', # Use base_f0, so prior does not bias up/down judgments
+            'octave_range': [
+                -parsed_args_dict['prior_range_in_octaves'],
+                parsed_args_dict['prior_range_in_octaves']
+            ],
+        }
+    else:
+        kwargs_f0_prior = {}
     
     main(json_eval_fn, save_results_to_file=True, kwargs_f0_prior=kwargs_f0_prior)
     
