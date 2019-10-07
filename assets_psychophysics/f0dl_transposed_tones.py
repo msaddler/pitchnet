@@ -173,7 +173,7 @@ if __name__ == "__main__":
     if parsed_args_dict['prior_range_in_octaves'] > 0:
         kwargs_f0_prior = {
             'f0_label_prob_key': 'f0_label:probs_out',
-            'f0_prior_ref_key': 'base_f0', # Use base_f0, so prior does not bias up/down judgments
+            'f0_prior_ref_key': 'f0', # Note: using true F0 may slightly bias up/down judgments
             'octave_range': [
                 -parsed_args_dict['prior_range_in_octaves'],
                 parsed_args_dict['prior_range_in_octaves']

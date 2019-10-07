@@ -27,6 +27,8 @@ def compute_f0_2x_pref(expt_dict, use_log_scale=True):
 def run_f0experiment_alt_phase(json_fn, phase_mode=4, f0_min=None, f0_max=None, f0_nbins=12,
                                f0_label_pred_key='f0_label:labels_pred',
                                f0_label_true_key='f0_label:labels_true',
+                               f0_label_prob_key='f0_label:probs_out',
+                               kwargs_f0_prior={},
                                use_log_scale=True):
     '''
     '''
@@ -35,10 +37,12 @@ def run_f0experiment_alt_phase(json_fn, phase_mode=4, f0_min=None, f0_max=None, 
     expt_dict = f0dl_bernox.load_f0_expt_dict_from_json(json_fn,
                                                         f0_label_true_key=f0_label_true_key,
                                                         f0_label_pred_key=f0_label_pred_key,
+                                                        f0_label_prob_key=f0_label_prob_key,
                                                         metadata_key_list=metadata_key_list)
     expt_dict = f0dl_bernox.add_f0_estimates_to_expt_dict(expt_dict,
                                                           f0_label_true_key=f0_label_true_key,
-                                                          f0_label_pred_key=f0_label_pred_key)
+                                                          f0_label_pred_key=f0_label_pred_key,
+                                                          kwargs_f0_prior=kwargs_f0_prior)
     expt_dict = compute_f0_2x_pref(expt_dict, use_log_scale=use_log_scale)
     # Design f0 bins for digitizing x-axis and pooling f0s
     if f0_min is None: f0_min = np.min(expt_dict['f0'])
@@ -70,6 +74,8 @@ def main(json_eval_fn, json_results_dict_fn=None, save_results_to_file=False,
          phase_mode=4, f0_min=None, f0_max=None, f0_nbins=12,
          f0_label_pred_key='f0_label:labels_pred',
          f0_label_true_key='f0_label:labels_true',
+         f0_label_prob_key='f0_label:probs_out',
+         kwargs_f0_prior={},
          use_log_scale=True):
     '''
     '''
@@ -78,8 +84,11 @@ def main(json_eval_fn, json_results_dict_fn=None, save_results_to_file=False,
                                               f0_min=f0_min, f0_max=f0_max, f0_nbins=f0_nbins,
                                               f0_label_pred_key=f0_label_pred_key,
                                               f0_label_true_key=f0_label_true_key,
+                                              f0_label_prob_key=f0_label_prob_key,
+                                              kwargs_f0_prior=kwargs_f0_prior,
                                               use_log_scale=use_log_scale)
     results_dict['json_eval_fn'] = json_eval_fn
+    results_dict['kwargs_f0_prior'] = kwargs_f0_prior
     # If specified, save results_dict to file
     if save_results_to_file:
         # Check filename for results_dict
@@ -106,6 +115,8 @@ if __name__ == "__main__":
                         help='regex that globs list of json_eval_fn to process')
     parser.add_argument('-j', '--job_idx', type=int, default=None,
                         help='job index used to select json_eval_fn from list')
+    parser.add_argument('-p', '--prior_range_in_octaves', type=float, default=0,
+                        help='sets octave_range in `kwargs_f0_prior`: [#, #]')
     parsed_args_dict = vars(parser.parse_args())
     assert parsed_args_dict['regex_json_eval_fn'] is not None, "regex_json_eval_fn is a required argument"
     assert parsed_args_dict['job_idx'] is not None, "job_idx is a required argument"
@@ -113,4 +124,17 @@ if __name__ == "__main__":
     json_eval_fn = list_json_eval_fn[parsed_args_dict['job_idx']]
     print('Processing file {} of {}'.format(parsed_args_dict['job_idx'], len(list_json_eval_fn)))
     print('Processing file: {}'.format(json_eval_fn))
+    
+    if parsed_args_dict['prior_range_in_octaves'] > 0:
+        kwargs_f0_prior = {
+            'f0_label_prob_key': 'f0_label:probs_out',
+            'f0_prior_ref_key': 'f0',
+            'octave_range': [
+                -parsed_args_dict['prior_range_in_octaves'],
+                parsed_args_dict['prior_range_in_octaves']
+            ],
+        }
+    else:
+        kwargs_f0_prior = {}
+    
     main(json_eval_fn, save_results_to_file=True)
