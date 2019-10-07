@@ -180,7 +180,7 @@ def make_TT_threshold_plot(ax, results_dict_input,
 def make_freqshiftedcomplexes_plot(ax, results_dict_input,
                                    expt_key='spectral_envelope_centered_harmonic',
                                    pitch_shift_key='f0_pred_shift_median',
-                                   pitch_shift_key_stddev=None,
+                                   pitch_shift_err_key=None,
                                    condition_plot_kwargs={},
                                    plot_kwargs_update={},
                                    title_str=None,
@@ -197,13 +197,13 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
     Function for plotting frequency-shifted complexes experiment results:
     F0 shift as a function of frequency shift.
     '''
-    if pitch_shift_key_stddev is None: pitch_shift_key_stddev = pitch_shift_key + '_stddev'
+    if pitch_shift_err_key is None: pitch_shift_err_key = pitch_shift_key + '_err'
     if isinstance(results_dict_input, dict):
         results_dict = results_dict_input
         for condition in results_dict[expt_key].keys():
-            if pitch_shift_key_stddev not in results_dict[expt_key][condition].keys():
+            if pitch_shift_err_key not in results_dict[expt_key][condition].keys():
                 dummy_vals = [0] * len(results_dict[expt_key][condition][pitch_shift_key])
-                results_dict[expt_key][condition][pitch_shift_key_stddev] = dummy_vals
+                results_dict[expt_key][condition][pitch_shift_err_key] = dummy_vals
     
     elif isinstance(results_dict_input, list):
         rd0 = results_dict_input[0]
@@ -216,7 +216,7 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
             results_dict[expt_key][condition] = {
                 'f0_shift': rd0[expt_key][condition]['f0_shift'],
                 pitch_shift_key: np.mean(plot_vals, axis=0),
-                pitch_shift_key_stddev: np.std(plot_vals, axis=0),
+                pitch_shift_err_key: np.std(plot_vals, axis=0) / np.sqrt(plot_vals.shape[0]),
             }
     else:
         raise ValueError("INVALID results_dict_input")
@@ -235,7 +235,7 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
     for condition in condition_list:
         xval = np.array(results_dict[expt_key][condition]['f0_shift'])
         yval = np.array(results_dict[expt_key][condition][pitch_shift_key])
-        yerr = np.array(results_dict[expt_key][condition][pitch_shift_key_stddev])
+        yerr = np.array(results_dict[expt_key][condition][pitch_shift_err_key])
         plot_kwargs = condition_plot_kwargs[condition]
         plot_kwargs.update(plot_kwargs_update)
         if not legend_on: plot_kwargs['label'] = None
@@ -265,7 +265,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
                                       mistuned_pct=3.0,
                                       use_relative_shift=True,
                                       pitch_shift_key='f0_pred_pct_median',
-                                      pitch_shift_key_stddev=None,
+                                      pitch_shift_err_key=None,
                                       title_str=None,
                                       legend_on=True,
                                       include_yerr=False,
@@ -281,7 +281,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
     Function for plotting mistuned harmonics experiment results:
     F0 shift bar graph for a given mistuning percent.
     '''
-    if pitch_shift_key_stddev is None: pitch_shift_key_stddev = pitch_shift_key + '_stddev'
+    if pitch_shift_err_key is None: pitch_shift_err_key = pitch_shift_key + '_err'
     if isinstance(results_dict_input, dict):
         results_dict = results_dict_input
         bg_results_dict = util_human_model_comparison.get_mistuned_harmonics_bar_graph_results_dict(
@@ -291,9 +291,9 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
             harmonic_list=harmonic_list,
             use_relative_shift=use_relative_shift)
         for group_key in bg_results_dict.keys():
-            if pitch_shift_key_stddev not in bg_results_dict[group_key].keys():
+            if pitch_shift_err_key not in bg_results_dict[group_key].keys():
                 dummy_vals = [0] * len(bg_results_dict[group_key][pitch_shift_key])
-                bg_results_dict[group_key][pitch_shift_key_stddev] = dummy_vals
+                bg_results_dict[group_key][pitch_shift_err_key] = dummy_vals
     elif isinstance(results_dict_input, list):
         bg_results_dict_list = []
         for results_dict in results_dict_input:
@@ -312,7 +312,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
             bg_results_dict[group_key] = {
                 'f0_ref': bg_results_dict_list[0][group_key]['f0_ref'],
                 pitch_shift_key: np.mean(plot_vals, axis=0),
-                pitch_shift_key_stddev: np.std(plot_vals, axis=0),
+                pitch_shift_err_key: np.std(plot_vals, axis=0) / np.sqrt(plot_vals.shape[0]),
             }
     else:
         raise ValueError("INVALID results_dict_input")
@@ -324,7 +324,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
         xval = np.arange(bars_per_group)
         xval = xval + barwidth*group_xoffsets[group_idx]
         yval = np.array(bg_results_dict[group_key][pitch_shift_key])
-        yerr = np.array(bg_results_dict[group_key][pitch_shift_key_stddev])
+        yerr = np.array(bg_results_dict[group_key][pitch_shift_err_key])
         plot_kwargs = {'width': barwidth, 'edgecolor':'w', 'label':group_key}
         if not legend_on: plot_kwargs['label'] = None
         if include_yerr:
@@ -356,7 +356,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
 
 def make_altphase_plot(ax, results_dict_input,
                        expt_key='filter_fl_bin_means',
-                       expt_key_stddev=None,
+                       expt_err_key=None,
                        condition_plot_kwargs={},
                        plot_kwargs_update={},
                        title_str=None,
@@ -370,23 +370,23 @@ def make_altphase_plot(ax, results_dict_input,
                        ylimits=[-1.1, 1.1]):
     '''
     '''
-    if expt_key_stddev is None: expt_key_stddev = expt_key + '_stddev'
+    if expt_err_key is None: expt_err_key = expt_key + '_err'
     if isinstance(results_dict_input, dict):
         results_dict = results_dict_input
-        if expt_key_stddev not in results_dict.keys():
-            results_dict[expt_key_stddev] = {}
+        if expt_err_key not in results_dict.keys():
+            results_dict[expt_err_key] = {}
             for condition in results_dict[expt_key].keys():
-                results_dict[expt_key_stddev][condition] = [0] * len(results_dict[expt_key][condition])
+                results_dict[expt_err_key][condition] = [0] * len(results_dict[expt_key][condition])
     elif isinstance(results_dict_input, list):
         results_dict = {
             'f0_bin_centers': results_dict_input[0]['f0_bin_centers'],
             expt_key: {},
-            expt_key_stddev: {},
+            expt_err_key: {},
         }
         for condition in results_dict_input[0][expt_key].keys():
             yvals = np.array([rd[expt_key][condition] for rd in results_dict_input])
             results_dict[expt_key][condition] = np.mean(yvals, axis=0)
-            results_dict[expt_key_stddev][condition] = np.std(yvals, axis=0)
+            results_dict[expt_err_key][condition] = np.std(yvals, axis=0) / np.sqrt(yvals.shape[0])
     else:
         raise ValueError("INVALID results_dict_input")
     
@@ -401,7 +401,7 @@ def make_altphase_plot(ax, results_dict_input,
     for condition in sorted(results_dict[expt_key].keys()):
         xval = np.array(results_dict['f0_bin_centers'])
         yval = np.array(results_dict[expt_key][condition])
-        yerr = np.array(results_dict[expt_key_stddev][condition])
+        yerr = np.array(results_dict[expt_err_key][condition])
         plot_kwargs = condition_plot_kwargs[condition]
         plot_kwargs.update(plot_kwargs_update)
         if not legend_on: plot_kwargs['label'] = None
