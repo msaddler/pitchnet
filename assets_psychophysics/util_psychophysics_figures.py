@@ -16,6 +16,7 @@ def make_bernox_threshold_plot(ax, results_dict_input,
                                restrict_conditions=None,
                                sine_plot_kwargs={},
                                rand_plot_kwargs={},
+                               threshold_cap=None,
                                fontsize_title=12,
                                fontsize_labels=12,
                                fontsize_legend=12,
@@ -28,10 +29,16 @@ def make_bernox_threshold_plot(ax, results_dict_input,
     '''
     if isinstance(results_dict_input, dict):
         results_dict = results_dict_input
+        f0dls = np.array(results_dict['f0dl'])
+        if threshold_cap is not None:
+            f0dls[f0dls > threshold_cap] = threshold_cap
+        results_dict['f0dl'] = f0dls
         if 'f0dl_stddev' not in results_dict.keys():
             results_dict['f0dl_stddev'] = [0] * len(results_dict['f0dl'])
     elif isinstance(results_dict_input, list):
         f0dls = np.array([rd['f0dl'] for rd in results_dict_input])
+        if threshold_cap is not None:
+            f0dls[f0dls > threshold_cap] = threshold_cap
         results_dict = {
             'phase_mode': results_dict_input[0]['phase_mode'],
             'low_harm': results_dict_input[0]['low_harm'],
@@ -98,12 +105,12 @@ def make_TT_threshold_plot(ax, results_dict_input,
     '''
     if isinstance(results_dict_input, dict):
         results_dict = results_dict_input
-        if 'f0dl_stddev' not in results_dict.keys():
-            results_dict['f0dl_stddev'] = [0] * len(results_dict['f0dl'])
         f0dls = np.array(results_dict['f0dl'])
         if threshold_cap is not None:
             f0dls[f0dls > threshold_cap] = threshold_cap
         results_dict['f0dl'] = f0dls
+        if 'f0dl_stddev' not in results_dict.keys():
+            results_dict['f0dl_stddev'] = [0] * len(results_dict['f0dl'])
     elif isinstance(results_dict_input, list):
         f0dls = np.array([rd['f0dl'] for rd in results_dict_input])
         if threshold_cap is not None:
