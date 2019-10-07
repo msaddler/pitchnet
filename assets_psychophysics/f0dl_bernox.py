@@ -52,6 +52,7 @@ def load_f0_expt_dict_from_json(json_fn,
         f0_label_prob_value = json_dict[f0_label_prob_key]
         if isinstance(f0_label_prob_value, str):
             f0_label_prob_key_fn = os.path.join(os.path.dirname(json_fn), f0_label_prob_value)
+            print('Loading f0_label_prob from {}'.format(f0_label_prob_key_fn), flush=True)
             expt_dict[f0_label_prob_key] = np.load(f0_label_prob_key_fn)
         else:
             expt_dict[f0_label_prob_key] = np.array(f0_label_prob_value)
@@ -183,8 +184,11 @@ def filter_expt_dict(expt_dict, filter_dict={'phase_mode': 0}):
     return filtered_expt_dict
 
 
-def add_f0_judgments_to_expt_dict(expt_dict, f0_true_key='f0', f0_pred_key='f0_pred',
-                                  max_pct_diff=6., noise_stdev=1e-12):
+def add_f0_judgments_to_expt_dict(expt_dict,
+                                  f0_true_key='f0',
+                                  f0_pred_key='f0_pred',
+                                  max_pct_diff=6.,
+                                  noise_stdev=1e-12):
     '''
     Function simulates f0 discrimination experiment given a list of true and predicted f0s.
     
@@ -286,9 +290,16 @@ def fit_normcdf(xvals, yvals, mu=0.):
     return np.squeeze(sigma_opt), np.squeeze(sigma_opt_cov)
 
 
-def parallel_run_f0dl_experiment(par_idx, expt_dict, unique_phase_mode_list, unique_low_harm_list,
-                                 max_pct_diff=6., noise_stdev=1e-12, bin_width=1e-2,
-                                 mu=0.0, threshold_value=0.707, use_empirical_f0dl_if_possible=False):
+def parallel_run_f0dl_experiment(par_idx,
+                                 expt_dict,
+                                 unique_phase_mode_list,
+                                 unique_low_harm_list,
+                                 max_pct_diff=6.,
+                                 noise_stdev=1e-12,
+                                 bin_width=1e-2,
+                                 mu=0.0,
+                                 threshold_value=0.707,
+                                 use_empirical_f0dl_if_possible=False):
     '''
     This function runs the f0 discrimination threshold experiment using a subset of the trials in
     `expt_dict` and is designed to be parallelized over phase and lowest harmonic number conditions.
@@ -348,11 +359,23 @@ def parallel_run_f0dl_experiment(par_idx, expt_dict, unique_phase_mode_list, uni
     return par_idx, sub_results_dict
 
 
-def run_f0dl_experiment(json_fn, max_pct_diff=np.inf, noise_stdev=1e-12, bin_width=5e-2, mu=0.0,
-                        threshold_value=0.707, use_empirical_f0dl_if_possible=False,
-                        f0_label_true_key='f0_label:labels_true', f0_label_pred_key='f0_label:labels_pred',
-                        kwargs_f0_bins={}, kwargs_f0_octave={}, kwargs_f0_normalization={},
-                        f0_min=-np.inf, f0_max=np.inf, metadata_key_list=['low_harm', 'phase_mode', 'f0'],
+def run_f0dl_experiment(json_fn,
+                        max_pct_diff=np.inf,
+                        noise_stdev=1e-12,
+                        bin_width=5e-2,
+                        mu=0.0,
+                        threshold_value=0.707,
+                        use_empirical_f0dl_if_possible=False,
+                        f0_label_true_key='f0_label:labels_true',
+                        f0_label_pred_key='f0_label:labels_pred',
+                        f0_label_prob_key='f0_label:probs_out',
+                        kwargs_f0_bins={},
+                        kwargs_f0_octave={},
+                        kwargs_f0_normalization={},
+                        kwargs_f0_prior={},
+                        f0_min=-np.inf,
+                        f0_max=np.inf,
+                        metadata_key_list=['low_harm', 'phase_mode', 'f0'],
                         max_processes=60):
     '''
     Main routine for simulating f0 discrimination experiment from Bernstein & Oxenham (2005, JASA).
@@ -370,9 +393,11 @@ def run_f0dl_experiment(json_fn, max_pct_diff=np.inf, noise_stdev=1e-12, bin_wid
     use_empirical_f0dl_if_possible (bool): if True, empirical f0dl will attempt to overwrite one computed from fit
     f0_label_true_key (str): key for f0_label_true in the json file
     f0_label_pred_key (str): key for f0_label_pred in the json file
+    f0_label_prob_key (str): key for f0_label_pred probabilities in the json file
     kwargs_f0_bins (dict): kwargs for computing f0 bins (lower bound used as estimate)
     kwargs_f0_octave (dict): kwargs for converting f0s from Hz to octaves
     kwargs_f0_normalization (dict): kwargs for normalizing f0s
+    kwargs_f0_prior (dict): kwargs for using a prior to compute f0_pred
     f0_min (float): use this argument to limit the f0 range used to compute thresholds (Hz)
     f0_max (float): use this argument to limit the f0 range used to compute thresholds (Hz)
     metadata_key_list (list): metadata keys in json file to use for experiment (see `load_f0_expt_dict_from_json()`)
@@ -386,13 +411,15 @@ def run_f0dl_experiment(json_fn, max_pct_diff=np.inf, noise_stdev=1e-12, bin_wid
     expt_dict = load_f0_expt_dict_from_json(json_fn,
                                             f0_label_true_key=f0_label_true_key,
                                             f0_label_pred_key=f0_label_pred_key,
+                                            f0_label_prob_key=f0_label_prob_key,
                                             metadata_key_list=metadata_key_list)
     expt_dict = add_f0_estimates_to_expt_dict(expt_dict,
                                               f0_label_true_key=f0_label_true_key,
                                               f0_label_pred_key=f0_label_pred_key,
                                               kwargs_f0_bins=kwargs_f0_bins,
                                               kwargs_f0_octave=kwargs_f0_octave,
-                                              kwargs_f0_normalization=kwargs_f0_normalization)
+                                              kwargs_f0_normalization=kwargs_f0_normalization,
+                                              kwargs_f0_prior=kwargs_f0_prior)
     if 'base_f0' in expt_dict.keys():
         expt_dict = filter_expt_dict(expt_dict, filter_dict={'base_f0':[f0_min, f0_max]})
     else:
@@ -489,22 +516,42 @@ def compute_confusion_matrices(json_fn, f0_label_true_key='f0_label:labels_true'
     return results_dict
 
 
-def main(json_eval_fn, json_results_dict_fn=None, save_results_to_file=False,
-         f0_label_pred_key='f0_label:labels_pred', f0_label_true_key='f0_label:labels_true',
-         max_pct_diff=3, bin_width=5e-2, use_empirical_f0dl_if_possible=False,
-         f0_min=-np.inf, f0_max=np.inf, max_processes=60):
+def main(json_eval_fn,
+         json_results_dict_fn=None,
+         save_results_to_file=False,
+         max_pct_diff=3,
+         bin_width=5e-2,
+         use_empirical_f0dl_if_possible=False,
+         f0_label_true_key='f0_label:labels_true',
+         f0_label_pred_key='f0_label:labels_pred',
+         f0_label_prob_key='f0_label:probs_out',
+         kwargs_f0_bins={},
+         kwargs_f0_octave={},
+         kwargs_f0_normalization={},
+         kwargs_f0_prior={},
+         f0_min=-np.inf,
+         f0_max=np.inf,
+         max_processes=60):
     '''
     '''
     # Run the Bernstein and Oxenham (2005) F0DL experiment; results stored in results_dict
     metadata_key_list=['low_harm', 'phase_mode', 'f0']
     if 'FixedFilter' in json_eval_fn: metadata_key_list = metadata_key_list + ['base_f0']
     results_dict = run_f0dl_experiment(json_eval_fn,
-                                       max_pct_diff=max_pct_diff, bin_width=bin_width,
-                                       f0_label_pred_key=f0_label_pred_key,
-                                       f0_label_true_key=f0_label_true_key,
+                                       max_pct_diff=max_pct_diff,
+                                       bin_width=bin_width,
                                        use_empirical_f0dl_if_possible=use_empirical_f0dl_if_possible,
                                        metadata_key_list=metadata_key_list,
-                                       f0_min=f0_min, f0_max=f0_max, max_processes=max_processes)
+                                       f0_label_pred_key=f0_label_pred_key,
+                                       f0_label_true_key=f0_label_true_key,
+                                       f0_label_prob_key=f0_label_prob_key,
+                                       kwargs_f0_bins=kwargs_f0_bins,
+                                       kwargs_f0_octave=kwargs_f0_octave,
+                                       kwargs_f0_normalization=kwargs_f0_normalization,
+                                       kwargs_f0_prior=kwargs_f0_prior,
+                                       f0_min=f0_min,
+                                       f0_max=f0_max,
+                                       max_processes=max_processes)
     results_dict['json_eval_fn'] = json_eval_fn
     # If specified, save results_dict to file
     if save_results_to_file:
@@ -520,7 +567,7 @@ def main(json_eval_fn, json_results_dict_fn=None, save_results_to_file=False,
                 return json.JSONEncoder.default(self, obj)
         # Write results_dict to json_results_dict_fn
         with open(json_results_dict_fn, 'w') as f: json.dump(results_dict, f, cls=NumpyEncoder)
-        print('[END] wrote results_dict to {}'.format(json_results_dict_fn))
+        print('[END] wrote results_dict to {}'.format(json_results_dict_fn), flush=True)
     return results_dict
 
 
