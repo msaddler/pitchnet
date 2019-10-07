@@ -19,6 +19,7 @@ import stimuli_f0_labels
 def load_f0_expt_dict_from_json(json_fn,
                                 f0_label_true_key='f0_label:labels_true',
                                 f0_label_pred_key='f0_label:labels_pred',
+                                f0_label_prob_key='f0_label:probs_out',
                                 metadata_key_list=['low_harm', 'phase_mode', 'f0']):
     '''
     Function loads a json file and returns a dictionary with np array keys.
@@ -28,6 +29,7 @@ def load_f0_expt_dict_from_json(json_fn,
     json_fn (str): json filename to load
     f0_label_true_key (str): key for f0_label_true in the json file
     f0_label_pred_key (str): key for f0_label_pred in the json file
+    f0_label_prob_key (str): key for f0_label_pred probabilities in the json file
     metadata_key_list (list): keys in the json file to copy to returned dictionary
     
     Returns
@@ -36,7 +38,7 @@ def load_f0_expt_dict_from_json(json_fn,
     '''
     # Load the entire json file as a dictionary
     with open(json_fn, 'r') as f: json_dict = json.load(f)
-    # Return dict with only specified fields
+    # Return dictionary (expt_dict) with only specified fields
     expt_dict = {}
     assert f0_label_true_key in json_dict.keys(), "f0_label_true_key not found in json file"
     assert f0_label_pred_key in json_dict.keys(), "f0_label_pred_key not found in json file"
@@ -45,16 +47,30 @@ def load_f0_expt_dict_from_json(json_fn,
         f0_label_true_key: np.array(json_dict[f0_label_true_key])[sort_idx],
         f0_label_pred_key: np.array(json_dict[f0_label_pred_key])[sort_idx],
     }
+    # Include predicted label probabilities if f0_label_prob_key is in json_dict
+    if f0_label_prob_key in json_dict.keys():
+        f0_label_prob_value = json_dict[f0_label_prob_key]
+        if isinstance(f0_label_prob_value, str):
+            f0_label_prob_key_fn = os.path.join(os.path.dirname(json_fn), f0_label_prob_value)
+            expt_dict[f0_label_prob_key] = np.load(f0_label_prob_key_fn)
+        else:
+            expt_dict[f0_label_prob_key] = np.array(f0_label_prob_value)
+    # Populate expt_dict with metadata required for specific experiment
     for key in metadata_key_list:
-        assert key in json_dict.keys(), "metadata key `{}` not found in json file".format(key)
-        if isinstance(json_dict[key], list): expt_dict[key] = np.array(json_dict[key])[sort_idx]
-        else: expt_dict[key] = json_dict[key]
+        if key in json_dict.keys():
+            if isinstance(json_dict[key], list):
+                expt_dict[key] = np.array(json_dict[key])[sort_idx]
+            else:
+                expt_dict[key] = json_dict[key]
+        else:
+            print("metadata key `{}` not found in json file".format(key))
     return expt_dict
 
 
 def add_f0_estimates_to_expt_dict(expt_dict,
                                   f0_label_true_key='f0_label:labels_true',
                                   f0_label_pred_key='f0_label:labels_pred',
+                                  f0_label_prob_key='f0_label:probs_out',
                                   kwargs_f0_bins={}, kwargs_f0_octave={}, kwargs_f0_normalization={}):
     '''
     Function computes f0 estimates corresponding to f0 labels in expt_dict.
@@ -62,6 +78,9 @@ def add_f0_estimates_to_expt_dict(expt_dict,
     Args
     ----
     expt_dict (dict): f0 experiment data dict (f0 and f0_pred keys will be added)
+    f0_label_true_key (str): key for f0_label_true in expt_dict
+    f0_label_pred_key (str): key for f0_label_pred in expt_dict
+    f0_label_prob_key (str): key for f0_label_pred probabilities in expt_dict
     kwargs_f0_bins (dict): kwargs for computing f0 bins (lower bound used as estimate)
     kwargs_f0_octave (dict): kwargs for converting f0s from Hz to octaves
     kwargs_f0_normalization (dict): kwargs for normalizing f0s
