@@ -33,8 +33,8 @@ def make_bernox_threshold_plot(ax, results_dict_input,
         if threshold_cap is not None:
             f0dls[f0dls > threshold_cap] = threshold_cap
         results_dict['f0dl'] = f0dls
-        if 'f0dl_stddev' not in results_dict.keys():
-            results_dict['f0dl_stddev'] = [0] * len(results_dict['f0dl'])
+        if 'f0dl_err' not in results_dict.keys():
+            results_dict['f0dl_err'] = [0] * len(results_dict['f0dl'])
     elif isinstance(results_dict_input, list):
         f0dls = np.array([rd['f0dl'] for rd in results_dict_input])
         if threshold_cap is not None:
@@ -43,7 +43,7 @@ def make_bernox_threshold_plot(ax, results_dict_input,
             'phase_mode': results_dict_input[0]['phase_mode'],
             'low_harm': results_dict_input[0]['low_harm'],
             'f0dl': np.mean(f0dls, axis=0),
-            'f0dl_stddev': np.std(f0dls, axis=0),
+            'f0dl_err': np.std(f0dls, axis=0) / np.sqrt(f0dls.shape[0]),
         }
     else:
         raise ValueError("INVALID results_dict_input")
@@ -51,14 +51,14 @@ def make_bernox_threshold_plot(ax, results_dict_input,
     phase_mode_list = np.array(results_dict['phase_mode'])
     low_harm_list = np.array(results_dict['low_harm'])
     f0dl_list = np.array(results_dict['f0dl'])
-    f0dl_stddev_list = np.array(results_dict['f0dl_stddev'])
+    f0dl_err_list = np.array(results_dict['f0dl_err'])
     unique_phase_modes = np.flip(np.unique(phase_mode_list))
     if restrict_conditions is not None:
         unique_phase_modes = restrict_conditions
     for phase_mode in unique_phase_modes:
         xval = low_harm_list[phase_mode_list == phase_mode]
         yval = f0dl_list[phase_mode_list == phase_mode]
-        yerr = f0dl_stddev_list[phase_mode_list == phase_mode]
+        yerr = f0dl_err_list[phase_mode_list == phase_mode]
         if phase_mode == 0:
             plot_kwargs = {'label': 'sine', 'color': 'k',
                            'ls':'-', 'lw':2, 'marker':''}
@@ -109,8 +109,8 @@ def make_TT_threshold_plot(ax, results_dict_input,
         if threshold_cap is not None:
             f0dls[f0dls > threshold_cap] = threshold_cap
         results_dict['f0dl'] = f0dls
-        if 'f0dl_stddev' not in results_dict.keys():
-            results_dict['f0dl_stddev'] = [0] * len(results_dict['f0dl'])
+        if 'f0dl_err' not in results_dict.keys():
+            results_dict['f0dl_err'] = [0] * len(results_dict['f0dl'])
     elif isinstance(results_dict_input, list):
         f0dls = np.array([rd['f0dl'] for rd in results_dict_input])
         if threshold_cap is not None:
@@ -119,7 +119,7 @@ def make_TT_threshold_plot(ax, results_dict_input,
             'f0_ref': results_dict_input[0]['f0_ref'],
             'f_carrier': results_dict_input[0]['f_carrier'],
             'f0dl': np.mean(f0dls, axis=0),
-            'f0dl_stddev': np.std(f0dls, axis=0),
+            'f0dl_err': np.std(f0dls, axis=0) / np.sqrt(f0dls.shape[0]),
         }
     else:
         raise ValueError("INVALID results_dict_input")
@@ -127,14 +127,14 @@ def make_TT_threshold_plot(ax, results_dict_input,
     f0_ref = np.array(results_dict['f0_ref'])
     f_carrier_list = np.array(results_dict['f_carrier'])
     f0dl_list = np.array(results_dict['f0dl'])
-    f0dl_stddev_list = np.array(results_dict['f0dl_stddev'])
+    f0dl_err_list = np.array(results_dict['f0dl_err'])
     unique_f_carrier_list = np.unique(f_carrier_list)
     if restrict_conditions is not None:
         unique_f_carrier_list = restrict_conditions
     for f_carrier in unique_f_carrier_list:
         xval = f0_ref[f_carrier_list == f_carrier]
         yval = f0dl_list[f_carrier_list == f_carrier]
-        yerr = f0dl_stddev_list[f_carrier_list == f_carrier]
+        yerr = f0dl_err_list[f_carrier_list == f_carrier]
         if f_carrier > 0:
             label = '{}-Hz TT'.format(int(f_carrier))
             plot_kwargs = {'label': label, 'color': 'k', 'ls':'-', 'lw':2, 'ms':6,
