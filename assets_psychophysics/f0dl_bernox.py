@@ -67,11 +67,47 @@ def load_f0_expt_dict_from_json(json_fn,
     return expt_dict
 
 
+def compute_f0_pred_with_prior(f0_true, f0_bins, expt_dict,
+                               f0_label_prob_key='f0_label:probs_out',
+                               octave_range=[-1, 1]):
+    '''
+    Computes predicted f0 values from a probability distribution
+    over f0 classes and a specified prior.
+    
+    Args
+    ----
+    f0_true (np array): true f0 values in Hz
+    f0_bins (np array): f0 bins in Hz
+    expt_dict (dict): f0 experiment data dict
+    f0_label_prob_key (str): key for f0_label_pred probabilities in expt_dict
+    octave_range (list): sets limits for the uniform prior (in octaves re: f0_true)
+    
+    Returns
+    -------
+    f0_pred (np array): predicted f0 values in Hz
+    '''
+    assert f0_label_prob_key in expt_dict.keys(), "f0_label_prob_key not found in expt_dict"
+    f0_pred_prob = expt_dict[f0_label_prob_key]
+    msg = "f0_bins ({}) and match f0_pred_prob ({}) must match in shape"
+    assert f0_pred.shape[1] == f0_bins.shape[0], msg.format(f0_pred.shape, f0_bins.shape)
+    f0_label_pred = np.empty_like(f0_true)
+    for stimulus_idx, f0 in enumerate(f0_true):
+        f0_prior_range = f0 * np.power(2, np.array(octave_range, dtype=float))
+        bin_mask = np.logical_and(f0_bins >= f0_prior_range[0],
+                                  bins <= f0_prior_range[1]).astype(float)
+        probs_masked = bin_mask * f0_pred_prob[stimulus_idx]
+        f0_label_pred[stimulus_idx] = np.argmax(probs_masked)
+    f0_pred = stimuli_f0_labels.label_to_f0(f0_label_pred, f0_bins)
+    return f0_pred
+
+
 def add_f0_estimates_to_expt_dict(expt_dict,
                                   f0_label_true_key='f0_label:labels_true',
                                   f0_label_pred_key='f0_label:labels_pred',
-                                  f0_label_prob_key='f0_label:probs_out',
-                                  kwargs_f0_bins={}, kwargs_f0_octave={}, kwargs_f0_normalization={}):
+                                  kwargs_f0_bins={},
+                                  kwargs_f0_octave={},
+                                  kwargs_f0_normalization={},
+                                  kwargs_f0_prior={'f0_label_prob_key': 'f0_label:probs_out'}):
     '''
     Function computes f0 estimates corresponding to f0 labels in expt_dict.
     
@@ -80,10 +116,10 @@ def add_f0_estimates_to_expt_dict(expt_dict,
     expt_dict (dict): f0 experiment data dict (f0 and f0_pred keys will be added)
     f0_label_true_key (str): key for f0_label_true in expt_dict
     f0_label_pred_key (str): key for f0_label_pred in expt_dict
-    f0_label_prob_key (str): key for f0_label_pred probabilities in expt_dict
     kwargs_f0_bins (dict): kwargs for computing f0 bins (lower bound used as estimate)
     kwargs_f0_octave (dict): kwargs for converting f0s from Hz to octaves
     kwargs_f0_normalization (dict): kwargs for normalizing f0s
+    kwargs_f0_prior (dict): kwargs for using a prior to compute f0_pred
     
     Returns
     -------
