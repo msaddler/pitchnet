@@ -137,4 +137,4 @@ if __name__ == "__main__":
     else:
         kwargs_f0_prior = {}
     
-    main(json_eval_fn, save_results_to_file=True)
+    main(json_eval_fn, save_results_to_file=True, kwargs_f0_prior=kwargs_f0_prior)
