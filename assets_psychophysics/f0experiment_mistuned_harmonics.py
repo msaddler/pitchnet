@@ -8,8 +8,12 @@ import pdb
 import f0dl_bernox
 
 
-def compute_mistuning_shifts(expt_dict, key_mistuned_harm='mistuned_harm', key_mistuned_pct='mistuned_pct',
-                             f0_ref=100.0, f0_ref_width=0.04, use_relative_shift=True):
+def compute_mistuning_shifts(expt_dict,
+                             key_mistuned_harm='mistuned_harm',
+                             key_mistuned_pct='mistuned_pct',
+                             f0_ref=100.0,
+                             f0_ref_width=0.04,
+                             use_relative_shift=True):
     '''
     '''
     # Filter expt_dict to f0 range specified by f0_ref and f0_ref_width
@@ -54,7 +58,10 @@ def compute_mistuning_shifts(expt_dict, key_mistuned_harm='mistuned_harm', key_m
 def run_f0experiment_mistuned_harmonics(json_fn, use_relative_shift=True,
                                         f0_label_pred_key='f0_label:labels_pred',
                                         f0_label_true_key='f0_label:labels_true',
-                                        f0_ref_list=[100.0, 200.0, 400.0], f0_ref_width=0.04):
+                                        f0_label_prob_key='f0_label:probs_out',
+                                        kwargs_f0_prior={},
+                                        f0_ref_list=[100.0, 200.0, 400.0],
+                                        f0_ref_width=0.04):
     '''
     '''
     # Load JSON file of model predictions into `expt_dict`
@@ -62,10 +69,12 @@ def run_f0experiment_mistuned_harmonics(json_fn, use_relative_shift=True,
     expt_dict = f0dl_bernox.load_f0_expt_dict_from_json(json_fn,
                                                         f0_label_true_key=f0_label_true_key,
                                                         f0_label_pred_key=f0_label_pred_key,
+                                                        f0_label_prob_key=f0_label_prob_key,
                                                         metadata_key_list=metadata_key_list)
     expt_dict = f0dl_bernox.add_f0_estimates_to_expt_dict(expt_dict,
                                                           f0_label_true_key=f0_label_true_key,
-                                                          f0_label_pred_key=f0_label_pred_key)
+                                                          f0_label_pred_key=f0_label_pred_key,
+                                                          kwargs_f0_prior=kwargs_f0_prior)
     # Initialize dictionary to hold psychophysical results
     results_dict = {'f0_ref':{}, 'f0_ref_list':f0_ref_list, 'f0_ref_width':f0_ref_width}
     for f0_ref in f0_ref_list:
@@ -83,6 +92,8 @@ def main(json_eval_fn, json_results_dict_fn=None, save_results_to_file=False,
          use_relative_shift=True,
          f0_label_pred_key='f0_label:labels_pred',
          f0_label_true_key='f0_label:labels_true',
+         f0_label_prob_key='f0_label:probs_out',
+         kwargs_f0_prior={},
          f0_ref_list=[100.0, 200.0, 400.0], f0_ref_width=0.04):
     '''
     '''
@@ -91,9 +102,12 @@ def main(json_eval_fn, json_results_dict_fn=None, save_results_to_file=False,
                                                        use_relative_shift=use_relative_shift,
                                                        f0_label_pred_key=f0_label_pred_key,
                                                        f0_label_true_key=f0_label_true_key,
+                                                       f0_label_prob_key=f0_label_prob_key,
+                                                       kwargs_f0_prior=kwargs_f0_prior,
                                                        f0_ref_list=f0_ref_list,
                                                        f0_ref_width=f0_ref_width)
     results_dict['json_eval_fn'] = json_eval_fn
+    results_dict['kwargs_f0_prior'] = kwargs_f0_prior
     # If specified, save results_dict to file
     if save_results_to_file:
         # Check filename for results_dict
@@ -120,6 +134,8 @@ if __name__ == "__main__":
                         help='regex that globs list of json_eval_fn to process')
     parser.add_argument('-j', '--job_idx', type=int, default=None,
                         help='job index used to select json_eval_fn from list')
+    parser.add_argument('-p', '--prior_range_in_octaves', type=float, default=0,
+                        help='sets octave_range in `kwargs_f0_prior`: [#, #]')
     parsed_args_dict = vars(parser.parse_args())
     assert parsed_args_dict['regex_json_eval_fn'] is not None, "regex_json_eval_fn is a required argument"
     assert parsed_args_dict['job_idx'] is not None, "job_idx is a required argument"
@@ -127,4 +143,17 @@ if __name__ == "__main__":
     json_eval_fn = list_json_eval_fn[parsed_args_dict['job_idx']]
     print('Processing file {} of {}'.format(parsed_args_dict['job_idx'], len(list_json_eval_fn)))
     print('Processing file: {}'.format(json_eval_fn))
-    main(json_eval_fn, save_results_to_file=True)
+    
+    if parsed_args_dict['prior_range_in_octaves'] > 0:
+        kwargs_f0_prior = {
+            'f0_label_prob_key': 'f0_label:probs_out',
+            'f0_prior_ref_key': 'f0',
+            'octave_range': [
+                -parsed_args_dict['prior_range_in_octaves'],
+                parsed_args_dict['prior_range_in_octaves']
+            ],
+        }
+    else:
+        kwargs_f0_prior = {}
+    
+    main(json_eval_fn, save_results_to_file=True, kwargs_f0_prior=kwargs_f0_prior)
