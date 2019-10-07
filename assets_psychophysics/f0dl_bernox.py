@@ -54,8 +54,8 @@ def load_f0_expt_dict_from_json(json_fn,
             f0_label_prob_key_fn = os.path.join(os.path.dirname(json_fn), f0_label_prob_value)
             print('Loading f0_label_prob from {}'.format(f0_label_prob_key_fn), flush=True)
             expt_dict[f0_label_prob_key] = np.load(f0_label_prob_key_fn)
-        else:
-            expt_dict[f0_label_prob_key] = np.array(f0_label_prob_value)
+            print('Loaded f0_label_prob from {}'.format(f0_label_prob_key_fn), flush=True)
+        expt_dict[f0_label_prob_key] = np.array(expt_dict[f0_label_prob_key])[sort_idx]
     # Populate expt_dict with metadata required for specific experiment
     for key in metadata_key_list:
         if key in json_dict.keys():
@@ -87,18 +87,23 @@ def compute_f0_pred_with_prior(f0_true, f0_bins, expt_dict,
     -------
     f0_pred (np array): predicted f0 values in Hz
     '''
+    print('Computing f0_pred using uniform prior: {} octaves'.format(octave_range), flush=True)
     assert f0_label_prob_key in expt_dict.keys(), "f0_label_prob_key not found in expt_dict"
     f0_pred_prob = expt_dict[f0_label_prob_key]
-    msg = "f0_bins ({}) and match f0_pred_prob ({}) must match in shape"
-    assert f0_pred.shape[1] == f0_bins.shape[0], msg.format(f0_pred.shape, f0_bins.shape)
-    f0_label_pred = np.empty_like(f0_true)
+    msg = "f0_pred_prob ({}) and f0_bins ({}) must match in shape"
+    assert f0_pred_prob.shape[1] == f0_bins.shape[0], msg.format(f0_pred_prob.shape, f0_bins.shape)
+    f0_pred = np.zeros_like(f0_true)
+    counter = 0
     for stimulus_idx, f0 in enumerate(f0_true):
         f0_prior_range = f0 * np.power(2, np.array(octave_range, dtype=float))
         bin_mask = np.logical_and(f0_bins >= f0_prior_range[0],
-                                  bins <= f0_prior_range[1]).astype(float)
+                                  f0_bins <= f0_prior_range[1]).astype(float)
         probs_masked = bin_mask * f0_pred_prob[stimulus_idx]
-        f0_label_pred[stimulus_idx] = np.argmax(probs_masked)
-    f0_pred = stimuli_f0_labels.label_to_f0(f0_label_pred, f0_bins)
+        f0_pred[stimulus_idx] = f0_bins[np.argmax(probs_masked)]
+        if not np.argmax(probs_masked) == np.argmax(f0_pred_prob[stimulus_idx]):
+            counter += 1
+    print('Computed f0_pred using uniform prior: {} octaves'.format(octave_range), flush=True)
+    print('Prior adjusted {} f0 predictions'.format(counter))
     return f0_pred
 
 
@@ -586,5 +591,8 @@ if __name__ == "__main__":
     json_eval_fn = list_json_eval_fn[parsed_args_dict['job_idx']]
     print('Processing file {} of {}'.format(parsed_args_dict['job_idx'], len(list_json_eval_fn)))
     print('Processing file: {}'.format(json_eval_fn))
-    main(json_eval_fn, save_results_to_file=True)
+    
+    kwargs_f0_prior = {'f0_label_prob_key': 'f0_label:probs_out', 'octave_range': [-1, 1]}
+    
+    main(json_eval_fn, save_results_to_file=True, kwargs_f0_prior=kwargs_f0_prior)
     
