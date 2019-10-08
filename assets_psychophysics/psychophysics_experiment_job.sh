@@ -3,12 +3,13 @@
 #SBATCH --job-name=psychophysics
 #SBATCH --out="slurm-%A_%a.out"
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=2
-#SBATCH --mem-per-cpu=2000
-#SBATCH --time=0-02:10:00
-#SBATCH --array=0-547%150
+#SBATCH --cpus-per-task=6
+#SBATCH --mem-per-cpu=4000
+#SBATCH --time=0-08:00:00
+#SBATCH --array=108,109,119,120,124,128,131,197,60,62
 #SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
+#SBATCH --exclude=node[001-030]
 #SBATCH --requeue
 
 offset=0
