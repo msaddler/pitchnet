@@ -350,7 +350,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
     ax.set_xticklabels([], minor=False)
     ax.tick_params(which='major', length=6)
     ax.set_ylim(ylimits)
-    ax.set_ylabel('% pitch shift', fontsize=fontsize_labels)
+    ax.set_ylabel('Shift in pred F0 (%F0)', fontsize=fontsize_labels)
     ax.set_yticks(np.arange(0, ylimits[-1], 0.2), minor=False)
     ax.tick_params(axis='both', labelsize=fontsize_ticks)
     return bg_results_dict
@@ -417,7 +417,7 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
         yval = np.array(results_dict[expt_key][condition][pitch_shift_key])
         yerr = np.array(results_dict[expt_key][condition][pitch_shift_err_key])
         plot_kwargs = {
-            'label': condition, 'marker': '.', 'ms':12, 'ls':'-', 'lw': 3,
+            'label': condition, 'marker': '.', 'ms':8, 'ls':'-', 'lw': 2,
         }
         plot_kwargs.update(plot_kwargs_update)
         if not legend_on: plot_kwargs['label'] = None
@@ -427,19 +427,19 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
         ax.plot(xval, yval, **plot_kwargs)
     
     if legend_on:
-        ax.legend(loc='upper right', frameon=False, ncol=2,
+        ax.legend(loc='upper right', frameon=False, ncol=2, markerscale=1.5,
                   fontsize=fontsize_legend, handlelength=0)
     if title_str: ax.set_title(title_str, fontsize=fontsize_title)
     ax.set_xlabel('Harmonic mistuning (%)', fontsize=fontsize_labels)
     ax.set_ylabel('Shift in pred F0 (%F0)', fontsize=fontsize_labels)
-    ax.set_xlim(xlimits)
-    ax.set_ylim(ylimits)
     ax.set_xticks(np.arange(xlimits[0], xlimits[-1]+1, 1), minor=False)
     ax.set_xticks([], minor=True)
     ax.set_yticks(np.arange(0, ylimits[-1]+0.1, 0.5), minor=False)
     ax.set_yticks(np.arange(ylimits[0], ylimits[-1]+0.1, 0.1), minor=True)
     ax.tick_params(axis='both', which='major', labelsize=fontsize_ticks, length=4)
     ax.tick_params(axis='both', which='minor', length=2)
+    ax.set_xlim(xlimits)
+    ax.set_ylim(ylimits)
     return results_dict
 
 
