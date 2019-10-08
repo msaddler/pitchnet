@@ -412,7 +412,7 @@ def make_altphase_plot(ax, results_dict_input,
     
     if legend_on:
         ax.legend(loc=0, frameon=False, fontsize=fontsize_legend,
-                  handlelength=1, markerscale=1)
+                  handlelength=0, markerscale=1.5)
     if title_str: ax.set_title(title_str, fontsize=fontsize_title)
     ax.set_xlabel('F0 (Hz)', fontsize=fontsize_labels)
     ax.set_ylabel('Fraction judged 2*F0 -\n Fraction judged 1*F0',
@@ -429,6 +429,7 @@ def make_altphase_plot(ax, results_dict_input,
     ax.xaxis.set_major_locator(x_locator)
     ax.set_xticks([t for t in np.arange(xmin, xmax + 1) if t%10==0], minor=True)
     ax.set_xticklabels([], minor=True)
+    ax.tick_params(axis='both', labelsize=fontsize_ticks)
     ax.set_ylim(ylimits)
     ax.set_yticks(np.arange(-1, 1.1, 0.5), minor=False)
     ax.set_yticks(np.arange(-1, 1.1, 0.1), minor=True)
