@@ -5,8 +5,8 @@
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem-per-cpu=2000
-#SBATCH --time=0-01:10:00
-#SBATCH --array=0-2
+#SBATCH --time=0-02:10:00
+#SBATCH --array=0-547%150
 #SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --requeue
@@ -15,7 +15,8 @@ offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
 echo $(hostname)
 
-OUTDIR_REGEX='/om2/user/msaddler/pitchnet/saved_models/PND_v04_TLAS_classification*'
+# OUTDIR_REGEX='/om2/user/msaddler/pitchnet/saved_models/PND_v04_TLAS_classification*'
+OUTDIR_REGEX='/om/scratch/Sun/msaddler/pitchnet/saved_models/arch_search_v00/arch*'
 EFN_PREFIX='EVAL_SOFTMAX_'
 PRIOR_RANGE='0.5'
 
