@@ -344,13 +344,15 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
                  np.max(base_xvals) + barwidth*group_xoffsets[-1] + xlimits[1]*barwidth])
     ax.set_xlabel('F0 (Hz)', fontsize=fontsize_labels)
     ax.set_xticks(base_xvals, minor=True)
-    ax.set_xticklabels(f0_ref_values, minor=True)
+    ax.set_xticklabels(f0_ref_values, minor=True, fontsize=fontsize_ticks)
     ax.tick_params(which='minor', length=0)
     ax.set_xticks(base_xvals[:-1]+0.5, minor=False)
     ax.set_xticklabels([], minor=False)
     ax.tick_params(which='major', length=6)
     ax.set_ylim(ylimits)
     ax.set_ylabel('% pitch shift', fontsize=fontsize_labels)
+    ax.set_yticks(np.arange(0, ylimits[-1], 0.2), minor=False)
+    ax.tick_params(axis='both', labelsize=fontsize_ticks)
     return bg_results_dict
 
 
