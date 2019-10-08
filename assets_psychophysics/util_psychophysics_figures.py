@@ -356,6 +356,93 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
     return bg_results_dict
 
 
+def make_mistuned_harmonics_line_plot(ax, results_dict_input,
+                                      use_relative_shift=True,
+                                      expt_key='mistuned_harm',
+                                      pitch_shift_key='f0_pred_pct_median',
+                                      pitch_shift_err_key=None,
+                                      title_str=None,
+                                      legend_on=True,
+                                      include_yerr=False,
+                                      f0_ref=200.0,
+                                      restrict_conditions=[1,2,3,4,5,6],
+                                      plot_kwargs_update={},
+                                      fontsize_title=12,
+                                      fontsize_labels=12,
+                                      fontsize_legend=12,
+                                      fontsize_ticks=12,
+                                      xlimits=[0, 8],
+                                      ylimits=[-0.3, 2.6]):
+    '''
+    Function for plotting mistuned harmonics experiment results:
+    F0 shift as a function of percent mistuning.
+    '''
+    if pitch_shift_err_key is None: pitch_shift_err_key = pitch_shift_key + '_err'
+    if isinstance(results_dict_input, dict):
+        results_dict = results_dict_input['f0_ref'][str(f0_ref)]
+        for condition in results_dict[expt_key].keys():
+            condition_dict = results_dict[expt_key][condition]
+            if pitch_shift_err_key not in condition_dict.keys():
+                condition_dict[pitch_shift_err_key] = [0] * len(condition_dict[pitch_shift_key])
+            if (use_relative_shift) and (0.0 in condition_dict['mistuned_pct']):
+                unshifted_idx = condition_dict['mistuned_pct'].index(0.0)
+                pitch_shifts = np.array(condition_dict[pitch_shift_key])
+                condition_dict[pitch_shift_key] = pitch_shifts - pitch_shifts[unshifted_idx]
+    elif isinstance(results_dict_input, list):
+        results_dict = {expt_key: {}}
+        rd0 = results_dict_input[0]['f0_ref'][str(f0_ref)]
+        for condition in rd0[expt_key].keys():
+            cd0 = rd0[expt_key][condition]
+            if (use_relative_shift) and (0.0 in cd0['mistuned_pct']):
+                unshifted_idx = cd0['mistuned_pct'].index(0.0)
+                for rdi in results_dict_input:
+                    cdi = rdi['f0_ref'][str(f0_ref)][expt_key][condition]
+                    pitch_shifts = np.array(cdi[pitch_shift_key])
+                    cdi[pitch_shift_key] = pitch_shifts - pitch_shifts[unshifted_idx]
+            plot_vals = np.array([rd['f0_ref'][str(f0_ref)][expt_key][condition][pitch_shift_key]
+                                  for rd in results_dict_input])
+            results_dict[expt_key][condition] = {
+                'mistuned_pct': rd0[expt_key][condition]['mistuned_pct'],
+                pitch_shift_key: np.mean(plot_vals, axis=0),
+                pitch_shift_err_key: np.std(plot_vals, axis=0) / np.sqrt(plot_vals.shape[0]),
+            }
+    else:
+        raise ValueError("INVALID results_dict_input")
+    
+    condition_list = sorted(results_dict[expt_key].keys())
+    if restrict_conditions is not None:
+        condition_list = [str(c) for c in restrict_conditions]
+    for condition in condition_list:
+        xval = np.array(results_dict[expt_key][condition]['mistuned_pct'])
+        yval = np.array(results_dict[expt_key][condition][pitch_shift_key])
+        yerr = np.array(results_dict[expt_key][condition][pitch_shift_err_key])
+        plot_kwargs = {
+            'label': condition, 'marker': '.', 'ms':12, 'ls':'-', 'lw': 3,
+        }
+        plot_kwargs.update(plot_kwargs_update)
+        if not legend_on: plot_kwargs['label'] = None
+        if include_yerr:
+            ax.fill_between(xval, yval-yerr, yval+yerr, alpha=0.15,
+                            facecolor=plot_kwargs.get('color', 'k'))
+        ax.plot(xval, yval, **plot_kwargs)
+    
+    if legend_on:
+        ax.legend(loc='upper right', frameon=False, ncol=2,
+                  fontsize=fontsize_legend, handlelength=0)
+    if title_str: ax.set_title(title_str, fontsize=fontsize_title)
+    ax.set_xlabel('Harmonic mistuning (%)', fontsize=fontsize_labels)
+    ax.set_ylabel('Shift in pred F0 (%F0)', fontsize=fontsize_labels)
+    ax.set_xlim(xlimits)
+    ax.set_ylim(ylimits)
+    ax.set_xticks(np.arange(xlimits[0], xlimits[-1]+1, 1), minor=False)
+    ax.set_xticks([], minor=True)
+    ax.set_yticks(np.arange(0, ylimits[-1]+0.1, 0.5), minor=False)
+    ax.set_yticks(np.arange(ylimits[0], ylimits[-1]+0.1, 0.1), minor=True)
+    ax.tick_params(axis='both', which='major', labelsize=fontsize_ticks, length=4)
+    ax.tick_params(axis='both', which='minor', length=2)
+    return results_dict
+
+
 def make_altphase_plot(ax, results_dict_input,
                        expt_key='filter_fl_bin_means',
                        expt_err_key=None,
