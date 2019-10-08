@@ -131,7 +131,7 @@ if __name__ == "__main__":
             'f0_prior_ref_key': 'f0',
             'octave_range': [
                 -parsed_args_dict['prior_range_in_octaves'],
-                parsed_args_dict['prior_range_in_octaves']
+                1 + parsed_args_dict['prior_range_in_octaves']
             ],
         }
     else:
