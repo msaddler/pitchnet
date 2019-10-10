@@ -29,7 +29,7 @@ def make_bernox_threshold_plot(ax, results_dict_input,
     F0 discrimination thresholds as a function of lowest harmonic number.
     '''
     if isinstance(results_dict_input, dict):
-        results_dict = results_dict_input
+        results_dict = copy.deepcopy(results_dict_input)
         f0dls = np.array(results_dict['f0dl'])
         if threshold_cap is not None:
             f0dls[f0dls > threshold_cap] = threshold_cap
@@ -105,7 +105,7 @@ def make_TT_threshold_plot(ax, results_dict_input,
     F0 discrimination thresholds as a function of frequency.
     '''
     if isinstance(results_dict_input, dict):
-        results_dict = results_dict_input
+        results_dict = copy.deepcopy(results_dict_input)
         f0dls = np.array(results_dict['f0dl'])
         if threshold_cap is not None:
             f0dls[f0dls > threshold_cap] = threshold_cap
@@ -289,7 +289,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
     '''
     if pitch_shift_err_key is None: pitch_shift_err_key = pitch_shift_key + '_err'
     if isinstance(results_dict_input, dict):
-        results_dict = results_dict_input
+        results_dict = copy.deepcopy(results_dict_input)
         bg_results_dict = util_human_model_comparison.get_mistuned_harmonics_bar_graph_results_dict(
             results_dict,
             mistuned_pct=mistuned_pct,
@@ -385,7 +385,7 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
     '''
     if pitch_shift_err_key is None: pitch_shift_err_key = pitch_shift_key + '_err'
     if isinstance(results_dict_input, dict):
-        results_dict = results_dict_input['f0_ref'][str(f0_ref)]
+        results_dict = copy.deepcopy(results_dict_input['f0_ref'][str(f0_ref)])
         for condition in results_dict[expt_key].keys():
             condition_dict = results_dict[expt_key][condition]
             if pitch_shift_err_key not in condition_dict.keys():
@@ -467,7 +467,7 @@ def make_altphase_plot(ax, results_dict_input,
     '''
     if expt_err_key is None: expt_err_key = expt_key + '_err'
     if isinstance(results_dict_input, dict):
-        results_dict = results_dict_input
+        results_dict = copy.deepcopy(results_dict_input)
         if expt_err_key not in results_dict.keys():
             results_dict[expt_err_key] = {}
             for condition in results_dict[expt_key].keys():
