@@ -73,14 +73,14 @@ if __name__ == "__main__":
         'meanrates_params': {'dur': 0.050, 'buffer_start_dur': 0.070, 'buffer_end_dur': 0.010},
         'ANmodel_params': {'num_cfs': 100, 'min_cf':125, 'max_cf':14e3},
     }
-    if args.lpf is not None:
+    if args.lowpass_filter_cutoff is not None:
         kwargs_nervegram_meanrates['lpfilter_params'] = {
             'order': args.lowpass_filter_order,
             'cutoff': args.lowpass_filter_cutoff,
         }
     print("### bez2018model nervegram parameters ###")
     for key in kwargs_nervegram_meanrates.keys():
-          print('#\t', key, kwargs_nervegram_meanrates[key])
+          print('#', key, kwargs_nervegram_meanrates[key])
     print("### bez2018model nervegram parameters ###")
     # Run bez2018 model
     parallel_run_dataset_generation(args.source_regex,
