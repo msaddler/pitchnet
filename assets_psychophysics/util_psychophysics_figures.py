@@ -10,6 +10,89 @@ import matplotlib.ticker
 import util_human_model_comparison
 
 
+def bootstrap(data,
+              bootstrap_repeats=1000,
+              sample_size=None,
+              metric_function=None):
+    '''
+    Computes bootstrap mean and standard deviation of data
+    across the primary axis (axis=0).
+    
+    Args
+    ----
+    data (np.array): bootstrap samples will be drawn from the primary axis
+    bootstrap_repeats (int): number of times to sample bootstrap distribution
+    sample_size (int): number of samples drawn (with replacement) each repeat
+        (default is the number of data points: data.shape[0])
+    metric_function (str or function): specifies statistic to be computed for
+        each bootstrap repeat (default is 'mean'; 'median' is also supported)
+    
+    Returns
+    -------
+    bootstrap_mean (np.array): mean of bootstrapped distribution
+    bootstrap_std (np.array): standard deviation of bootstrapped distribution
+    '''
+    if sample_size is None:
+        sample_size = data.shape[0]
+    if metric_function is None:
+        metric_function = np.mean
+    elif isinstance(metric_function, str):
+        if metric_function.lower() == 'mean':
+            metric_function = np.mean
+        elif metric_function.lower() == 'median':
+            metric_function = np.median
+        else:
+            msg = "metric function `{}` is not recognized"
+            raise ValueError(msg.format(metric_function))
+    
+    bootstrap_data_shape = list(data.shape)
+    bootstrap_data_shape[0] = bootstrap_repeats
+    bootstrap_data = np.zeros(bootstrap_data_shape,
+                              dtype=data.dtype)
+    
+    subject_indexes = np.arange(0, data.shape[0])
+    for index in np.arange(0, bootstrap_repeats):
+        sampled_indexes = np.random.choice(subject_indexes,
+                                           size=[sample_size],
+                                           replace=True)
+        sample_data = data[sampled_indexes]
+        sample_metric = metric_function(sample_data, axis=0)
+        bootstrap_data[index] = sample_metric
+    
+    bootstrap_mean = np.mean(bootstrap_data, axis=0)
+    bootstrap_std = np.std(bootstrap_data, axis=0)
+    return bootstrap_mean, bootstrap_std
+
+
+def combine_subjects(subject_data, kwargs_bootstrap={}):
+    '''
+    Helper function for combining data across subjects and computing
+    error bars. Default behavior is to compute mean and standard error
+    of the mean across subjets. If `kwargs_bootstrap` is specified,
+    the bootstrap mean and standard deviation will be returned.
+    
+    Args
+    ----
+    subject_data (np.array): 2D data array with subjects along primary axis
+    kwargs_bootstrap (dict): keyword arguments for `bootstrap` function
+    
+    Returns
+    -------
+    yval (np.array): y-values to plot (combined across subjects)
+    yerr (np.array): y-value errorbars to plot
+    '''
+    if kwargs_bootstrap:
+        # If kwargs_bootstrap is specified, compute mean and
+        # standard deviation from bootstrapped subject data
+        yval, yerr = bootstrap(subject_data, **kwargs_bootstrap)
+    else:
+        # Default behavior is to compute mean and standard error
+        n = subject_data.shape[0]
+        yval = np.mean(subject_data, axis=0)
+        yerr = np.std(subject_data, axis=0) / np.sqrt(n)
+    return yval, yerr
+
+
 def make_bernox_threshold_plot(ax, results_dict_input,
                                title_str=None,
                                legend_on=True,
