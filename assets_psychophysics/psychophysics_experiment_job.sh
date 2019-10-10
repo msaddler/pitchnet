@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=6
 #SBATCH --mem-per-cpu=4000
 #SBATCH --time=0-08:00:00
-#SBATCH --array=108,109,119,120,124,128,131,197,60,62
+#SBATCH --array=0-2
 #SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --exclude=node[001-030]
@@ -16,32 +16,10 @@ offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
 echo $(hostname)
 
-# OUTDIR_REGEX='/om2/user/msaddler/pitchnet/saved_models/PND_v04_TLAS_classification*'
-OUTDIR_REGEX='/om/scratch/Sun/msaddler/pitchnet/saved_models/arch_search_v00/arch*'
+OUTDIR_REGEX='/om2/user/msaddler/pitchnet/saved_models/arch_0628/PND_v04_JWSS_classification*'
+# OUTDIR_REGEX='/om/scratch/Sun/msaddler/pitchnet/saved_models/arch_search_v00/arch*'
 EFN_PREFIX='EVAL_SOFTMAX_'
 PRIOR_RANGE='0.5'
-
-# source activate mdlab
-
-# python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_bernox.py \
-# -r '/om/scratch/Mon/msaddler/pitchnet/saved_models/arch_search_v00/*/EVAL_bernox2005_FixedFilter_bestckpt.json' \
-# -j ${job_idx}
-
-# python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_transposed_tones.py \
-# -r '/om/scratch/Mon/msaddler/pitchnet/saved_models/arch_search_v00/*/EVAL_oxenham2004_080to320Hz_bestckpt.json' \
-# -j ${job_idx}
-
-# python /om2/user/msaddler/pitchnet/assets_psychophysics/f0experiment_alt_phase.py \
-# -r '/om/scratch/Mon/msaddler/pitchnet/saved_models/arch_search_v00/*/EVAL_AltPhase_v01_bestckpt.json' \
-# -j ${job_idx}
-
-# python /om2/user/msaddler/pitchnet/assets_psychophysics/f0experiment_freq_shifted.py \
-# -r '/om/scratch/Mon/msaddler/pitchnet/saved_models/arch_search_v00/*/EVAL_mooremoore2003_080to480Hz_bestckpt.json' \
-# -j ${job_idx}
-
-# python /om2/user/msaddler/pitchnet/assets_psychophysics/f0experiment_mistuned_harmonics.py \
-# -r '/om/scratch/Mon/msaddler/pitchnet/saved_models/arch_search_v00/*/EVAL_MistunedHarm_v00_bestckpt.json' \
-# -j ${job_idx}
 
 
 singularity exec --nv \
