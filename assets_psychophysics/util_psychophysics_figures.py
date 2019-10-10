@@ -106,7 +106,8 @@ def make_bernox_threshold_plot(ax, results_dict_input,
                                fontsize_legend=12,
                                fontsize_ticks=12,
                                xlimits=[0, 33],
-                               ylimits=[1e-1, 1e2]):
+                               ylimits=[1e-1, 1e2],
+                               kwargs_bootstrap={}):
     '''
     Function for plotting Bernstein & Oxenham (2005) experiment results:
     F0 discrimination thresholds as a function of lowest harmonic number.
@@ -123,11 +124,12 @@ def make_bernox_threshold_plot(ax, results_dict_input,
         f0dls = np.array([rd['f0dl'] for rd in results_dict_input])
         if threshold_cap is not None:
             f0dls[f0dls > threshold_cap] = threshold_cap
+        yval, yerr = combine_subjects(f0dls, kwargs_bootstrap=kwargs_bootstrap)
         results_dict = {
             'phase_mode': results_dict_input[0]['phase_mode'],
             'low_harm': results_dict_input[0]['low_harm'],
-            'f0dl': np.mean(f0dls, axis=0),
-            'f0dl_err': np.std(f0dls, axis=0) / np.sqrt(f0dls.shape[0]),
+            'f0dl': yval,
+            'f0dl_err': yerr,
         }
     else:
         raise ValueError("INVALID results_dict_input")
@@ -182,7 +184,8 @@ def make_TT_threshold_plot(ax, results_dict_input,
                            fontsize_legend=9,
                            fontsize_ticks=12,
                            xlimits=[40, 400],
-                           ylimits=[1e-1, 1e2]):
+                           ylimits=[1e-1, 1e2],
+                           kwargs_bootstrap={}):
     '''
     Function for plotting transposed tones discrimination experiment results:
     F0 discrimination thresholds as a function of frequency.
@@ -199,11 +202,12 @@ def make_TT_threshold_plot(ax, results_dict_input,
         f0dls = np.array([rd['f0dl'] for rd in results_dict_input])
         if threshold_cap is not None:
             f0dls[f0dls > threshold_cap] = threshold_cap
+        yval, yerr = combine_subjects(f0dls, kwargs_bootstrap=kwargs_bootstrap)
         results_dict = {
             'f0_ref': results_dict_input[0]['f0_ref'],
             'f_carrier': results_dict_input[0]['f_carrier'],
-            'f0dl': np.mean(f0dls, axis=0),
-            'f0dl_err': np.std(f0dls, axis=0) / np.sqrt(f0dls.shape[0]),
+            'f0dl': yval,
+            'f0dl_err': yerr,
         }
     else:
         raise ValueError("INVALID results_dict_input")
@@ -277,7 +281,8 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
                                    fontsize_legend=12,
                                    fontsize_ticks=12,
                                    xlimits=[-1, 25],
-                                   ylimits=[-4, 12]):
+                                   ylimits=[-4, 12],
+                                   kwargs_bootstrap={}):
     '''
     Function for plotting frequency-shifted complexes experiment results:
     F0 shift as a function of frequency shift.
@@ -302,10 +307,11 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
             if (use_relative_shift) and (0.0 in rd0[expt_key][condition]['f0_shift']):
                 unshifted_idx = rd0[expt_key][condition]['f0_shift'].index(0.0)
                 plot_vals = plot_vals - plot_vals[:, unshifted_idx:unshifted_idx+1]
+            yval, yerr = combine_subjects(plot_vals, kwargs_bootstrap=kwargs_bootstrap)
             results_dict[expt_key][condition] = {
                 'f0_shift': rd0[expt_key][condition]['f0_shift'],
-                pitch_shift_key: np.mean(plot_vals, axis=0),
-                pitch_shift_err_key: np.std(plot_vals, axis=0) / np.sqrt(plot_vals.shape[0]),
+                pitch_shift_key: yval,
+                pitch_shift_err_key: yerr,
             }
     else:
         raise ValueError("INVALID results_dict_input")
@@ -365,7 +371,8 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
                                       fontsize_legend=12,
                                       fontsize_ticks=12,
                                       xlimits=[2, 8],
-                                      ylimits=[-0.1, 1.1]):
+                                      ylimits=[-0.1, 1.1],
+                                      kwargs_bootstrap={}):
     '''
     Function for plotting mistuned harmonics experiment results:
     F0 shift bar graph for a given mistuning percent.
@@ -398,10 +405,11 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
         for group_key in bg_results_dict_list[0].keys():
             plot_vals = np.array([bgrd[group_key][pitch_shift_key]
                                   for bgrd in bg_results_dict_list])
+            yval, yerr = combine_subjects(plot_vals, kwargs_bootstrap=kwargs_bootstrap)
             bg_results_dict[group_key] = {
                 'f0_ref': bg_results_dict_list[0][group_key]['f0_ref'],
-                pitch_shift_key: np.mean(plot_vals, axis=0),
-                pitch_shift_err_key: np.std(plot_vals, axis=0) / np.sqrt(plot_vals.shape[0]),
+                pitch_shift_key: yval,
+                pitch_shift_err_key: yerr,
             }
     else:
         raise ValueError("INVALID results_dict_input")
@@ -461,7 +469,8 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
                                       fontsize_legend=12,
                                       fontsize_ticks=12,
                                       xlimits=[0, 8],
-                                      ylimits=[-0.3, 2.6]):
+                                      ylimits=[-0.3, 2.6],
+                                      kwargs_bootstrap={}):
     '''
     Function for plotting mistuned harmonics experiment results:
     F0 shift as a function of percent mistuning.
@@ -490,10 +499,11 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
                     cdi[pitch_shift_key] = pitch_shifts - pitch_shifts[unshifted_idx]
             plot_vals = np.array([rd['f0_ref'][str(f0_ref)][expt_key][condition][pitch_shift_key]
                                   for rd in results_dict_input])
+            yval, yerr = combine_subjects(plot_vals, kwargs_bootstrap=kwargs_bootstrap)
             results_dict[expt_key][condition] = {
                 'mistuned_pct': rd0[expt_key][condition]['mistuned_pct'],
-                pitch_shift_key: np.mean(plot_vals, axis=0),
-                pitch_shift_err_key: np.std(plot_vals, axis=0) / np.sqrt(plot_vals.shape[0]),
+                pitch_shift_key: yval,
+                pitch_shift_err_key: yerr,
             }
     else:
         raise ValueError("INVALID results_dict_input")
@@ -545,7 +555,8 @@ def make_altphase_plot(ax, results_dict_input,
                        fontsize_legend=12,
                        fontsize_ticks=12,
                        xlimits=[62.5*0.9, 250*1.1],
-                       ylimits=[-1.1, 1.1]):
+                       ylimits=[-1.1, 1.1],
+                       kwargs_bootstrap={}):
     '''
     '''
     if expt_err_key is None: expt_err_key = expt_key + '_err'
@@ -562,9 +573,10 @@ def make_altphase_plot(ax, results_dict_input,
             expt_err_key: {},
         }
         for condition in results_dict_input[0][expt_key].keys():
-            yvals = np.array([rd[expt_key][condition] for rd in results_dict_input])
-            results_dict[expt_key][condition] = np.mean(yvals, axis=0)
-            results_dict[expt_err_key][condition] = np.std(yvals, axis=0) / np.sqrt(yvals.shape[0])
+            plot_vals = np.array([rd[expt_key][condition] for rd in results_dict_input])
+            yval, yerr = combine_subjects(plot_vals, kwargs_bootstrap=kwargs_bootstrap)
+            results_dict[expt_key][condition] = yval
+            results_dict[expt_err_key][condition] = yerr
     else:
         raise ValueError("INVALID results_dict_input")
     
