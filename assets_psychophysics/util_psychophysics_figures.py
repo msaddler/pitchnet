@@ -3,6 +3,7 @@ import os
 import json
 import numpy as np
 import glob
+import copy
 import matplotlib.pyplot as plt
 import matplotlib.ticker
 
@@ -178,6 +179,7 @@ def make_TT_threshold_plot(ax, results_dict_input,
 
 
 def make_freqshiftedcomplexes_plot(ax, results_dict_input,
+                                   use_relative_shift=True,
                                    expt_key='spectral_envelope_centered_harmonic',
                                    pitch_shift_key='f0_pred_shift_median',
                                    pitch_shift_err_key=None,
@@ -199,20 +201,24 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
     '''
     if pitch_shift_err_key is None: pitch_shift_err_key = pitch_shift_key + '_err'
     if isinstance(results_dict_input, dict):
-        results_dict = results_dict_input
+        results_dict = copy.deepcopy(results_dict_input)
         for condition in results_dict[expt_key].keys():
+            condition_dict = results_dict[expt_key][condition]
+            if (use_relative_shift) and (0.0 in condition_dict['f0_shift']):
+                unshifted_idx = condition_dict['f0_shift'].index(0.0)
+                pitch_shifts = np.array(condition_dict[pitch_shift_key])
+                condition_dict[pitch_shift_key] = pitch_shifts - pitch_shifts[unshifted_idx]
             if pitch_shift_err_key not in results_dict[expt_key][condition].keys():
                 dummy_vals = [0] * len(results_dict[expt_key][condition][pitch_shift_key])
                 results_dict[expt_key][condition][pitch_shift_err_key] = dummy_vals
-    
     elif isinstance(results_dict_input, list):
         rd0 = results_dict_input[0]
         results_dict = {expt_key: {}}
-        for key in rd0.keys():
-            if not key == expt_key: results_dict[key] = rd0[key]
-        
         for condition in rd0[expt_key].keys():
             plot_vals = np.array([rd[expt_key][condition][pitch_shift_key] for rd in results_dict_input])
+            if (use_relative_shift) and (0.0 in rd0[expt_key][condition]['f0_shift']):
+                unshifted_idx = rd0[expt_key][condition]['f0_shift'].index(0.0)
+                plot_vals = plot_vals - plot_vals[:, unshifted_idx:unshifted_idx+1]
             results_dict[expt_key][condition] = {
                 'f0_shift': rd0[expt_key][condition]['f0_shift'],
                 pitch_shift_key: np.mean(plot_vals, axis=0),
