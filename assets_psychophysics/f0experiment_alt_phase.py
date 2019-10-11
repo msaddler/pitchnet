@@ -8,6 +8,40 @@ import pdb
 import f0dl_bernox
 
 
+def compute_f0_pred_ratio(expt_dict_list, phase_mode=4,
+                          f0_bin_centers=[80, 125, 250],
+                          f0_bin_width=0.04):
+    '''
+    Helper function parses evaluation dictionaries from the Shackleton
+    and Carlyon (1994) alt-phase stimuli and computes histograms of
+    f0_pred / f0_true ratios for different f0 and filter conditions.
+    '''
+    if not isinstance(expt_dict_list, list):
+        expt_dict_list = [expt_dict_list]
+    filter_conditions = np.unique(expt_dict_list[0]['filter_fl'])
+    f0_pred_ratio_list = []
+    f0_condition_list = []
+    filter_condition_list = []
+    for filt_cond in filter_conditions:
+        for f0_center in f0_bin_centers:
+            f0_range = [f0_center*(1-f0_bin_width), f0_center*(1+f0_bin_width)]
+            f0_pred_ratio_sublist = []
+            for expt_dict in expt_dict_list:
+                filter_dict={
+                    'filter_fl': filt_cond,
+                    'f0': f0_range, 
+                    'phase_mode': phase_mode
+                }
+                sub_expt_dict = f0dl_bernox.filter_expt_dict(expt_dict,
+                                                             filter_dict=filter_dict)
+                sub_expt_dict['f0_pred_ratio'] = sub_expt_dict['f0_pred'] / sub_expt_dict['f0']
+                f0_pred_ratio_sublist.extend(sub_expt_dict['f0_pred_ratio'].tolist())
+            f0_pred_ratio_list.append(f0_pred_ratio_sublist)
+            filter_condition_list.append(filt_cond)
+            f0_condition_list.append(f0_center)
+    return filter_condition_list, f0_condition_list, f0_pred_ratio_list
+
+
 def compute_f0_2x_pref(expt_dict, use_log_scale=True):
     '''
     '''
@@ -28,6 +62,10 @@ def run_f0experiment_alt_phase(json_fn, phase_mode=4, f0_min=None, f0_max=None, 
                                f0_label_pred_key='f0_label:labels_pred',
                                f0_label_true_key='f0_label:labels_true',
                                f0_label_prob_key='f0_label:probs_out',
+                               kwargs_f0_pred_ratio={
+                                   'f0_bin_centers': [80, 125, 250],
+                                   'f0_bin_width': 0.04,
+                               },
                                kwargs_f0_prior={},
                                use_log_scale=True):
     '''
@@ -66,6 +104,16 @@ def run_f0experiment_alt_phase(json_fn, phase_mode=4, f0_min=None, f0_max=None, 
         assert np.all(bin_counts > 0)
         bin_means = bin_judgments / bin_counts
         results_dict['filter_fl_bin_means'][filter_fl] = bin_means
+    # If kwargs_f0_pred_ratio is specified, include f0 pred ratios for histograms
+    if kwargs_f0_pred_ratio:
+        filter_condition_list, f0_condition_list, f0_pred_ratio_list = compute_f0_pred_ratio(
+            expt_dict, phase_mode=phase_mode, **kwargs_f0_pred_ratio)
+        results_dict['f0_pred_ratio_results'] = {
+            'filter_condition_list': filter_condition_list,
+            'f0_condition_list': f0_condition_list,
+            'f0_pred_ratio_list': f0_pred_ratio_list,
+            'kwargs_f0_pred_ratio': kwargs_f0_pred_ratio,
+        }
     # Return dictionary of psychophysical experiment results
     return results_dict
 
