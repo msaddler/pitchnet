@@ -558,6 +558,9 @@ def make_altphase_plot(ax, results_dict_input,
                        ylimits=[-1.1, 1.1],
                        kwargs_bootstrap={}):
     '''
+    Function for plotting alternating phase experiment results:
+    fraction of 2*F0 - 1*F0 judgments as a function of F0 for
+    different filter conditions.
     '''
     if expt_err_key is None: expt_err_key = expt_key + '_err'
     if isinstance(results_dict_input, dict):
@@ -624,3 +627,7 @@ def make_altphase_plot(ax, results_dict_input,
     ax.set_yticks(np.arange(-1, 1.1, 0.5), minor=False)
     ax.set_yticks(np.arange(-1, 1.1, 0.1), minor=True)
     return results_dict
+
+
+def make_altphase_histograms():
+    pass
