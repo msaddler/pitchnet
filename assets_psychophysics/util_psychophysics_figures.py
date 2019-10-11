@@ -629,5 +629,84 @@ def make_altphase_plot(ax, results_dict_input,
     return results_dict
 
 
-def make_altphase_histograms():
-    pass
+def make_altphase_histograms(results_dict_input,
+                             bin_step=0.01,
+                             figsize=(9,6),
+                             fontsize_labels=16,
+                             fontsize_legend=16,
+                             fontsize_ticks=14,
+                             xticks=[1.0, 1.5, 2.0],
+                             xlimits=[0.9, 2.3]):
+    '''
+    Function for plotting alternating phase experiment results:
+    histograms of ratio between predicted F0s and target F0s
+    for different F0 and filter conditions.
+    '''
+    if isinstance(results_dict_input, dict):
+        results_dict_list = [results_dict_input]
+    elif isinstance(results_dict_input, list):
+        results_dict_list = results_dict_input
+    else:
+        raise ValueError("INVALID results_dict_input")
+    # Pool data across subjects in results_dict_list
+    rd0 = results_dict_list[0]
+    filter_condition_list = rd0['f0_pred_ratio_results']['filter_condition_list']
+    f0_condition_list = rd0['f0_pred_ratio_results']['f0_condition_list']
+    kwargs_f0_pred_ratio = rd0['f0_pred_ratio_results']['kwargs_f0_pred_ratio']
+    f0_pred_ratio_list = [[]] * len(filter_condition_list)
+    for rd in results_dict_list:
+        assert rd['f0_pred_ratio_results']['filter_condition_list'] == filter_condition_list
+        assert rd['f0_pred_ratio_results']['f0_condition_list'] == f0_condition_list
+        for idx, data in enumerate(rd['f0_pred_ratio_results']['f0_pred_ratio_list']):
+            f0_pred_ratio_list[idx] = f0_pred_ratio_list[idx] + data
+    
+    filter_condition_to_label_map = {
+        '125.0': 'Low',
+        '1375.0': 'Mid',
+        '3900.0': 'High',
+    }
+    
+    NCOLS = len(np.unique(f0_condition_list))
+    NROWS = len(np.unique(filter_condition_list))
+    fig, ax_arr = plt.subplots(nrows=NROWS, ncols=NCOLS, figsize=figsize, sharex=True, sharey=True)
+    ax_arr = ax_arr.flatten()
+    xlabel_idx = NCOLS * NROWS - int(NCOLS/2) - 1
+    ylabel_idx = NCOLS
+    
+    for itr0 in range(len(f0_pred_ratio_list)):
+        ax = ax_arr[itr0]
+        ax.set_xscale('log')
+        label = '{}, {} Hz'.format(
+            filter_condition_to_label_map[str(filter_condition_list[itr0])],
+            f0_condition_list[itr0])
+        
+        # Create bins for the ratio histogram (log-scale)
+        bins = [xlimits[0]]
+        while bins[-1] < xlimits[1]: bins.append(bins[-1] * (1.0+bin_step))
+        # Manually compute histogram and convert to percentage
+        bin_counts, bin_edges = np.histogram(f0_pred_ratio_list[itr0], bins=bins)
+        bin_percentages = 100.0 * bin_counts / np.sum(bin_counts)
+        bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+        bin_widths = bin_edges[:-1] - bin_edges[1:]
+        ax.bar(bin_centers, bin_percentages, width=bin_widths, align='center', label=label, color='k')
+        ax.legend(loc=0, frameon=False, markerscale=0, handlelength=0, fontsize=fontsize_legend)
+        
+        from matplotlib.ticker import ScalarFormatter, NullFormatter
+        ax.xaxis.set_major_formatter(ScalarFormatter())
+        ax.xaxis.set_minor_formatter(NullFormatter())
+        ax.set_xticks(xticks)
+        ax.set_xticks(np.arange(xlimits[0], xlimits[1], 0.1), minor=True)
+        ax.tick_params(axis='y', which='both', labelsize=fontsize_ticks, length=6,
+                       direction='inout', right=True, left=True)
+        ax.tick_params(axis='x', which='major', labelsize=fontsize_ticks, length=6,
+                       direction='inout', top=True, bottom=True)
+        ax.tick_params(axis='x', which='minor', length=3,
+                       direction='inout', top=True, bottom=True)
+    
+    ax_arr[xlabel_idx].set_xlabel('Ratio of predicted F0 to target F0',
+                                  fontsize=fontsize_labels)
+    ax_arr[ylabel_idx].set_ylabel('Percentage of pitch matches in {:.0f}% wide bins'.format(bin_step*100.0),
+                                  fontsize=fontsize_labels)
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0, hspace=0)
+    return fig, ax_arr
