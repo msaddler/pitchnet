@@ -636,7 +636,10 @@ def make_altphase_histograms(results_dict_input,
                              fontsize_legend=16,
                              fontsize_ticks=14,
                              xticks=[1.0, 1.5, 2.0],
-                             xlimits=[0.9, 2.3]):
+                             xlimits=[0.9, 2.3],
+                             yticks=5,
+                             ylimits=[0, 25],
+                             condition_plot_kwargs={}):
     '''
     Function for plotting alternating phase experiment results:
     histograms of ratio between predicted F0s and target F0s
@@ -660,11 +663,12 @@ def make_altphase_histograms(results_dict_input,
         for idx, data in enumerate(rd['f0_pred_ratio_results']['f0_pred_ratio_list']):
             f0_pred_ratio_list[idx] = f0_pred_ratio_list[idx] + data
     
-    filter_condition_to_label_map = {
-        '125.0': 'Low',
-        '1375.0': 'Mid',
-        '3900.0': 'High',
-    }
+    if not condition_plot_kwargs:
+        condition_plot_kwargs = {
+            '125.0': 'Low',
+            '1375.0': 'Mid',
+            '3900.0': 'High',
+        }
     
     NCOLS = len(np.unique(f0_condition_list))
     NROWS = len(np.unique(filter_condition_list))
@@ -676,9 +680,8 @@ def make_altphase_histograms(results_dict_input,
     for itr0 in range(len(f0_pred_ratio_list)):
         ax = ax_arr[itr0]
         ax.set_xscale('log')
-        label = '{}, {} Hz'.format(
-            filter_condition_to_label_map[str(filter_condition_list[itr0])],
-            f0_condition_list[itr0])
+        label = '{}, {} Hz'.format(condition_plot_kwargs[str(filter_condition_list[itr0])],
+                                   f0_condition_list[itr0])
         
         # Create bins for the ratio histogram (log-scale)
         bins = [xlimits[0]]
@@ -691,11 +694,14 @@ def make_altphase_histograms(results_dict_input,
         ax.bar(bin_centers, bin_percentages, width=bin_widths, align='center', label=label, color='k')
         ax.legend(loc=0, frameon=False, markerscale=0, handlelength=0, fontsize=fontsize_legend)
         
-        from matplotlib.ticker import ScalarFormatter, NullFormatter
+        from matplotlib.ticker import ScalarFormatter, NullFormatter, FormatStrFormatter
         ax.xaxis.set_major_formatter(ScalarFormatter())
         ax.xaxis.set_minor_formatter(NullFormatter())
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
         ax.set_xticks(xticks)
         ax.set_xticks(np.arange(xlimits[0], xlimits[1], 0.1), minor=True)
+        ax.set_ylim(ylimits)
+        ax.set_yticks(np.arange(ylimits[0], ylimits[1], yticks))
         ax.tick_params(axis='y', which='both', labelsize=fontsize_ticks, length=6,
                        direction='inout', right=True, left=True)
         ax.tick_params(axis='x', which='major', labelsize=fontsize_ticks, length=6,
