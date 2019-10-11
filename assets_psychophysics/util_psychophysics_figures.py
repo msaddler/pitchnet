@@ -6,6 +6,9 @@ import glob
 import copy
 import matplotlib.pyplot as plt
 import matplotlib.ticker
+from matplotlib import rc
+# rc('font', **{'family':'sans-serif','sans-serif':['Helvetica']})
+# rc('text', usetex=True)
 
 import util_human_model_comparison
 
@@ -155,7 +158,9 @@ def make_bernox_threshold_plot(ax, results_dict_input,
             plot_kwargs.update(rand_plot_kwargs)
         if not legend_on: plot_kwargs['label'] = None
         if include_yerr:
-            ax.fill_between(xval, yval-yerr, yval+yerr, alpha=0.15,
+            yerr_min = yval / (1+yerr/yval)
+            yerr_max = yval * (1+yerr/yval)
+            ax.fill_between(xval, yerr_min, yerr_max, alpha=0.15,
                             facecolor=plot_kwargs.get('color', 'k'))
         ax.plot(xval, yval, **plot_kwargs)
     
@@ -183,7 +188,7 @@ def make_TT_threshold_plot(ax, results_dict_input,
                            fontsize_labels=12,
                            fontsize_legend=9,
                            fontsize_ticks=12,
-                           xlimits=[40, 400],
+                           xlimits=[40, 360],
                            ylimits=[1e-1, 1e2],
                            kwargs_bootstrap={}):
     '''
@@ -225,19 +230,21 @@ def make_TT_threshold_plot(ax, results_dict_input,
         yerr = f0dl_err_list[f_carrier_list == f_carrier]
         if f_carrier > 0:
             label = '{}-Hz TT'.format(int(f_carrier))
-            plot_kwargs = {'label': label, 'color': 'k', 'ls':'-', 'lw':2, 'ms':6,
+            plot_kwargs = {'label': label, 'color': 'k', 'ls':'-', 'lw':2, 'ms':8,
                            'marker':'o', 'markerfacecolor': 'w'}
             if int(f_carrier) == 10080: plot_kwargs['marker'] = 'D'
             if int(f_carrier) == 6350: plot_kwargs['marker'] = '^'
             if int(f_carrier) == 4000: plot_kwargs['marker'] = 's'
         else:
             label = 'Pure tone'
-            plot_kwargs = {'label': label, 'color': 'k', 'ls':'-', 'lw':2, 'ms':6,
+            plot_kwargs = {'label': label, 'color': 'k', 'ls':'-', 'lw':2, 'ms':8,
                            'marker':'o', 'markerfacecolor': 'k'}
         if not legend_on: plot_kwargs['label'] = None
         plot_kwargs.update(plot_kwargs_update)
         if include_yerr:
-            ax.fill_between(xval, yval-yerr, yval+yerr, alpha=0.15,
+            yerr_min = yval / (1+yerr/yval)
+            yerr_max = yval * (1+yerr/yval)
+            ax.fill_between(xval, yerr_min, yerr_max, alpha=0.15,
                             facecolor=plot_kwargs.get('color', 'k'))
         ax.plot(xval, yval, **plot_kwargs)
     
@@ -608,7 +615,7 @@ def make_altphase_plot(ax, results_dict_input,
                   handlelength=0, markerscale=1.5)
     if title_str: ax.set_title(title_str, fontsize=fontsize_title)
     ax.set_xlabel('F0 (Hz)', fontsize=fontsize_labels)
-    ax.set_ylabel('Fraction judged 2*F0 -\n Fraction judged 1*F0',
+    ax.set_ylabel('2F0 preferences -\nF0 preferences',
                   fontsize=fontsize_labels)
     ax.set_xlim(xlimits)
     ax.set_xscale('log')
