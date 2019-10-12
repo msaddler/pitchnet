@@ -6,8 +6,22 @@ import glob
 import copy
 import matplotlib.pyplot as plt
 import matplotlib.ticker
+import matplotlib.cm
+import matplotlib.colors
 
 import util_human_model_comparison
+
+
+def get_color_list(num_colors, cmap_name='Accent'):
+    '''
+    Helper function returns list of colors for plotting.
+    '''
+    if isinstance(cmap_name, list): return cmap_name
+    cmap = plt.get_cmap(cmap_name)
+    norm = matplotlib.colors.Normalize(vmin=0, vmax=num_colors)
+    scalar_map = matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap)
+    color_list = [scalar_map.to_rgba(x) for x in range(num_colors)]
+    return color_list
 
 
 def bootstrap(data,
@@ -286,6 +300,7 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
                                    fontsize_ticks=12,
                                    xlimits=[-1, 25],
                                    ylimits=[-4, 12],
+                                   cmap_name=['r', 'b', 'k'],
                                    kwargs_bootstrap={}):
     '''
     Function for plotting frequency-shifted complexes experiment results:
@@ -322,16 +337,17 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
     
     if not condition_plot_kwargs:
         condition_plot_kwargs = {
-            '5': {'label': 'RES', 'color': 'r', 'marker': '.', 'ms':8, 'ls':'-', 'lw': 2},
-            '11': {'label': 'INT', 'color': 'b', 'marker': '.', 'ms':8, 'ls':'-', 'lw': 2},
-            '16': {'label': 'UNRES', 'color': 'k', 'marker': '.', 'ms':8, 'ls':'-', 'lw': 2},
+            '5': {'label': 'RES', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2},
+            '11': {'label': 'INT', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2},
+            '16': {'label': 'UNRES', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2},
         }
     
     assert set(results_dict[expt_key].keys()) == set(condition_plot_kwargs.keys())
     condition_list = sorted(results_dict[expt_key].keys())
     if restrict_conditions is not None:
         condition_list = restrict_conditions
-    for condition in condition_list:
+    color_list = get_color_list(2*len(condition_list), cmap_name=cmap_name)
+    for cidx, condition in enumerate(condition_list):
         xval = np.array(results_dict[expt_key][condition]['f0_shift'])
         yval = np.array(results_dict[expt_key][condition][pitch_shift_key])
         yerr = np.array(results_dict[expt_key][condition][pitch_shift_err_key])
@@ -340,8 +356,8 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
         if not legend_on: plot_kwargs['label'] = None
         if include_yerr:
             ax.fill_between(xval, yval-yerr, yval+yerr, alpha=0.15,
-                            facecolor=plot_kwargs.get('color', 'k'))
-        ax.plot(xval, yval, **plot_kwargs)
+                            facecolor=plot_kwargs.get('color', color_list[cidx]))
+        ax.plot(xval, yval, color=color_list[cidx], **plot_kwargs)
     
     if legend_on:
         ax.legend(loc='upper left', frameon=False,
@@ -376,6 +392,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
                                       fontsize_ticks=12,
                                       xlimits=[2, 8],
                                       ylimits=[-0.1, 1.1],
+                                      cmap_name='tab10',
                                       kwargs_bootstrap={}):
     '''
     Function for plotting mistuned harmonics experiment results:
@@ -418,6 +435,9 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
     else:
         raise ValueError("INVALID results_dict_input")
     
+    if cmap_name == 'tab10': num_colors = max(10, len(harmonic_list))
+    else: num_colors = len(harmonic_list)
+    color_list = get_color_list(num_colors, cmap_name=cmap_name)
     num_groups = len(bg_results_dict.keys())
     group_xoffsets = np.arange(num_groups) - np.mean(np.arange(num_groups))
     for group_idx, group_key in enumerate(sorted(bg_results_dict.keys())):
@@ -426,7 +446,12 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
         xval = xval + barwidth*group_xoffsets[group_idx]
         yval = np.array(bg_results_dict[group_key][pitch_shift_key])
         yerr = np.array(bg_results_dict[group_key][pitch_shift_err_key])
-        plot_kwargs = {'width': barwidth, 'edgecolor':'w', 'label':group_key}
+        plot_kwargs = {
+            'width': barwidth,
+            'color': color_list[group_idx],
+            'edgecolor':'k',
+            'label':group_key
+        }
         if not legend_on: plot_kwargs['label'] = None
         if include_yerr:
             plot_kwargs['yerr'] = yerr
@@ -439,7 +464,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
     ax.axhline(y=0, xmin=0, xmax=1, color='k', lw=1)
     if title_str: ax.set_title(title_str, fontsize=fontsize_title)
     if legend_on:
-        ax.legend(loc='upper right', frameon=False, bbox_to_anchor=[1.04, 1.04],
+        ax.legend(loc='upper right', bbox_to_anchor=[1.04, 1.04], frameon=False,
                   fontsize=fontsize_legend, handlelength=1)
     ax.set_xlim([barwidth*group_xoffsets[0]-xlimits[0]*barwidth,
                  np.max(base_xvals) + barwidth*group_xoffsets[-1] + xlimits[1]*barwidth])
@@ -475,6 +500,7 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
                                       xlimits=[0, 8],
                                       ylimits=[-0.3, 2.6],
                                       yticks=0.5,
+                                      cmap_name='tab10',
                                       kwargs_bootstrap={}):
     '''
     Function for plotting mistuned harmonics experiment results:
@@ -516,23 +542,27 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
     condition_list = sorted(results_dict[expt_key].keys())
     if restrict_conditions is not None:
         condition_list = [str(c) for c in restrict_conditions]
-    for condition in condition_list:
+    if cmap_name == 'tab10': num_colors = max(10, len(condition_list))
+    else: num_colors = len(condition_list)
+    color_list = get_color_list(num_colors, cmap_name=cmap_name)
+    for cidx, condition in enumerate(condition_list):
         xval = np.array(results_dict[expt_key][condition]['mistuned_pct'])
         yval = np.array(results_dict[expt_key][condition][pitch_shift_key])
         yerr = np.array(results_dict[expt_key][condition][pitch_shift_err_key])
         plot_kwargs = {
-            'label': condition, 'marker': '.', 'ms':8, 'ls':'-', 'lw': 2,
+            'label': condition, 'color': color_list[cidx],
+            'marker': '.', 'ms':10, 'ls':'-', 'lw': 2,
         }
         plot_kwargs.update(plot_kwargs_update)
         if not legend_on: plot_kwargs['label'] = None
         if include_yerr:
             ax.fill_between(xval, yval-yerr, yval+yerr, alpha=0.15,
-                            facecolor=plot_kwargs.get('color', 'k'))
+                            facecolor=plot_kwargs.get('color', color_list[cidx]))
         ax.plot(xval, yval, **plot_kwargs)
     
     if legend_on:
-        ax.legend(loc='upper right', frameon=False, ncol=2, markerscale=1.5,
-                  fontsize=fontsize_legend, handlelength=0)
+        ax.legend(loc='upper right', bbox_to_anchor=[1.04, 1.04], frameon=False,
+                  ncol=2, markerscale=1.5, fontsize=fontsize_legend, handlelength=0)
     if title_str: ax.set_title(title_str, fontsize=fontsize_title)
     ax.set_xlabel('Harmonic mistuning (%)', fontsize=fontsize_labels)
     ax.set_ylabel('Shift in pred F0\n(%F0)', fontsize=fontsize_labels)
