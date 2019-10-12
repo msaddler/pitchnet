@@ -6,9 +6,6 @@ import glob
 import copy
 import matplotlib.pyplot as plt
 import matplotlib.ticker
-from matplotlib import rc
-# rc('font', **{'family':'sans-serif','sans-serif':['Helvetica']})
-# rc('text', usetex=True)
 
 import util_human_model_comparison
 
@@ -351,7 +348,7 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
                   fontsize=fontsize_legend, handlelength=1.5)
     if title_str: ax.set_title(title_str, fontsize=fontsize_title)
     ax.set_xlabel('Component shift (%F0)', fontsize=fontsize_labels)
-    ax.set_ylabel('Shift in pred F0 (%F0)', fontsize=fontsize_labels)
+    ax.set_ylabel('Shift in pred F0\n(%F0)', fontsize=fontsize_labels)
     ax.set_xlim(xlimits)
     ax.set_ylim(ylimits)
     xval = np.array(results_dict[expt_key]['5']['f0_shift'])
@@ -442,19 +439,19 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
     ax.axhline(y=0, xmin=0, xmax=1, color='k', lw=1)
     if title_str: ax.set_title(title_str, fontsize=fontsize_title)
     if legend_on:
-        ax.legend(loc='upper right', frameon=False,
+        ax.legend(loc='upper right', frameon=False, bbox_to_anchor=[1.04, 1.04],
                   fontsize=fontsize_legend, handlelength=1)
     ax.set_xlim([barwidth*group_xoffsets[0]-xlimits[0]*barwidth,
                  np.max(base_xvals) + barwidth*group_xoffsets[-1] + xlimits[1]*barwidth])
     ax.set_xlabel('F0 (Hz)', fontsize=fontsize_labels)
     ax.set_xticks(base_xvals, minor=True)
-    ax.set_xticklabels(f0_ref_values, minor=True, fontsize=fontsize_ticks)
+    ax.set_xticklabels([int(x) for x in f0_ref_values], minor=True, fontsize=fontsize_ticks)
     ax.tick_params(which='minor', length=0)
     ax.set_xticks(base_xvals[:-1]+0.5, minor=False)
     ax.set_xticklabels([], minor=False)
-    ax.tick_params(which='major', length=6)
+    ax.tick_params(axis='x', which='major', length=12, direction='inout')
     ax.set_ylim(ylimits)
-    ax.set_ylabel('Shift in pred F0 (%F0)', fontsize=fontsize_labels)
+    ax.set_ylabel('Shift in pred F0\n(%F0)', fontsize=fontsize_labels)
     ax.set_yticks(np.arange(0, ylimits[-1], 0.2), minor=False)
     ax.tick_params(axis='both', labelsize=fontsize_ticks)
     return bg_results_dict
@@ -477,6 +474,7 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
                                       fontsize_ticks=12,
                                       xlimits=[0, 8],
                                       ylimits=[-0.3, 2.6],
+                                      yticks=0.5,
                                       kwargs_bootstrap={}):
     '''
     Function for plotting mistuned harmonics experiment results:
@@ -537,10 +535,10 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
                   fontsize=fontsize_legend, handlelength=0)
     if title_str: ax.set_title(title_str, fontsize=fontsize_title)
     ax.set_xlabel('Harmonic mistuning (%)', fontsize=fontsize_labels)
-    ax.set_ylabel('Shift in pred F0 (%F0)', fontsize=fontsize_labels)
+    ax.set_ylabel('Shift in pred F0\n(%F0)', fontsize=fontsize_labels)
     ax.set_xticks(np.arange(xlimits[0], xlimits[-1]+1, 1), minor=False)
     ax.set_xticks([], minor=True)
-    ax.set_yticks(np.arange(0, ylimits[-1]+0.1, 0.5), minor=False)
+    ax.set_yticks(np.arange(0, ylimits[-1]+0.1, yticks), minor=False)
     ax.set_yticks(np.arange(ylimits[0], ylimits[-1]+0.1, 0.1), minor=True)
     ax.tick_params(axis='both', which='major', labelsize=fontsize_ticks, length=4)
     ax.tick_params(axis='both', which='minor', length=2)
@@ -646,7 +644,7 @@ def make_altphase_histograms(results_dict_input,
                              xlimits=[0.9, 2.3],
                              yticks=5,
                              ylimits=[0, 25],
-                             condition_plot_kwargs={}):
+                             condition_plot_labels={}):
     '''
     Function for plotting alternating phase experiment results:
     histograms of ratio between predicted F0s and target F0s
@@ -670,8 +668,8 @@ def make_altphase_histograms(results_dict_input,
         for idx, data in enumerate(rd['f0_pred_ratio_results']['f0_pred_ratio_list']):
             f0_pred_ratio_list[idx] = f0_pred_ratio_list[idx] + data
     
-    if not condition_plot_kwargs:
-        condition_plot_kwargs = {
+    if not condition_plot_labels:
+        condition_plot_labels = {
             '125.0': 'Low',
             '1375.0': 'Mid',
             '3900.0': 'High',
@@ -687,7 +685,7 @@ def make_altphase_histograms(results_dict_input,
     for itr0 in range(len(f0_pred_ratio_list)):
         ax = ax_arr[itr0]
         ax.set_xscale('log')
-        label = '{}, {} Hz'.format(condition_plot_kwargs[str(filter_condition_list[itr0])],
+        label = '{}, {} Hz'.format(condition_plot_labels[str(filter_condition_list[itr0])],
                                    f0_condition_list[itr0])
         
         # Create bins for the ratio histogram (log-scale)
