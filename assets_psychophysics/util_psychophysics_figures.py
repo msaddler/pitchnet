@@ -356,7 +356,7 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
         if not legend_on: plot_kwargs['label'] = None
         if include_yerr:
             ax.fill_between(xval, yval-yerr, yval+yerr, alpha=0.15,
-                            facecolor=plot_kwargs.get('color', color_list[cidx]))
+                            facecolor=color_list[cidx])
         ax.plot(xval, yval, color=color_list[cidx], **plot_kwargs)
     
     if legend_on:
@@ -581,6 +581,7 @@ def make_altphase_plot(ax, results_dict_input,
                        expt_key='filter_fl_bin_means',
                        expt_err_key=None,
                        condition_plot_kwargs={},
+                       restrict_conditions=[3900.0, 1375.0, 125.0],
                        plot_kwargs_update={},
                        title_str=None,
                        legend_on=True,
@@ -591,6 +592,7 @@ def make_altphase_plot(ax, results_dict_input,
                        fontsize_ticks=12,
                        xlimits=[62.5*0.9, 250*1.1],
                        ylimits=[-1.1, 1.1],
+                       cmap_name=['r', 'b', 'k'],
                        kwargs_bootstrap={}):
     '''
     Function for plotting alternating phase experiment results:
@@ -620,13 +622,17 @@ def make_altphase_plot(ax, results_dict_input,
     
     if not condition_plot_kwargs:
         condition_plot_kwargs = {
-            '125.0': {'label': 'LOW', 'color': 'r', 'marker': '.', 'ms':8, 'ls':'-', 'lw': 2},
-            '1375.0': {'label': 'MID', 'color': 'b', 'marker': '.', 'ms':8, 'ls':'-', 'lw': 2},
-            '3900.0': {'label': 'HIGH', 'color': 'k', 'marker': '.', 'ms':8, 'ls':'-', 'lw': 2},
+            '125.0': {'label': 'LOW', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2},
+            '1375.0': {'label': 'MID', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2},
+            '3900.0': {'label': 'HIGH', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2},
         }
     
-    assert set(results_dict[expt_key].keys()) == set(condition_plot_kwargs.keys())
-    for condition in sorted(results_dict[expt_key].keys()):
+    condition_list = sorted(results_dict[expt_key].keys())
+    if restrict_conditions is not None:
+        condition_list = [str(x) for x in restrict_conditions]
+    assert set(condition_list).issubset(set(condition_plot_kwargs.keys()))
+    color_list = get_color_list(2*len(condition_list), cmap_name=cmap_name)
+    for cidx, condition in enumerate(condition_list):
         xval = np.array(results_dict['f0_bin_centers'])
         yval = np.array(results_dict[expt_key][condition])
         yerr = np.array(results_dict[expt_err_key][condition])
@@ -635,12 +641,12 @@ def make_altphase_plot(ax, results_dict_input,
         if not legend_on: plot_kwargs['label'] = None
         if include_yerr:
             ax.fill_between(xval, yval-yerr, yval+yerr, alpha=0.15,
-                            facecolor=plot_kwargs.get('color', 'k'))
-        ax.plot(xval, yval, **plot_kwargs)
+                            facecolor=color_list[cidx])
+        ax.plot(xval, yval, color=color_list[cidx], **plot_kwargs)
     
     if legend_on:
         ax.legend(loc=0, frameon=False, fontsize=fontsize_legend,
-                  handlelength=0, markerscale=1.5)
+                  handlelength=0, markerscale=1.25)
     if title_str: ax.set_title(title_str, fontsize=fontsize_title)
     ax.set_xlabel('F0 (Hz)', fontsize=fontsize_labels)
     ax.set_ylabel('2F0 preferences -\nF0 preferences',
