@@ -15,8 +15,8 @@
 ##SBATCH --dependency=afterok:14702742
 
 ### Define source_regex and dest_filename here (use single quotes to prevent regex from expanding)
-source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v04/noise_TLAS_snr_neg10pos03/PND_sr32000_v04*.hdf5'
-dest_filename="$SCRATCH_PATH"'/data_pitchnet/PND_v04/noise_TLAS_snr_neg10pos03/cf100_species002_spont070_lowpass0320Hz/bez2018meanrates.hdf5'
+source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v04/noise_TLAS_snr_neg10pos03/PND_sr32000*.hdf5'
+dest_filename="$SCRATCH_PATH"'/data_pitchnet/PND_v04/noise_TLAS_snr_neg10pos03/cf100_species002_spont070_lowpass1000Hz/bez2018meanrates.hdf5'
 # source_regex='/om/user/msaddler/data_pitchnet/mooremoore2003/MooreMoore2003_frequencyShiftedComplexes_f0_080to480Hz/*.hdf5'
 # dest_filename='/om/user/msaddler/data_pitchnet/mooremoore2003/MooreMoore2003_frequencyShiftedComplexes_f0_080to480Hz/cf100_species002_spont070_lowpass0320Hz/bez2018meanrates.hdf5'
 
@@ -32,4 +32,4 @@ python -u nervegram_run_parallel.py \
 -d "${dest_filename}" \
 -j ${job_idx} \
 -jps ${jobs_per_source_file} \
--lpf '320.0'
+-lpf '1000.0'
