@@ -3,10 +3,10 @@
 #SBATCH --job-name=psychophysics
 #SBATCH --out="slurm-%A_%a.out"
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=6
+#SBATCH --cpus-per-task=8
 #SBATCH --mem-per-cpu=8000
 #SBATCH --time=0-01:00:00
-#SBATCH --array=0-11
+#SBATCH --array=0-5
 #SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --exclude=node[001-030]
@@ -16,7 +16,7 @@ offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
 echo $(hostname)
 
-OUTDIR_REGEX='/om2/user/msaddler/pitchnet/saved_models/arch_0628/PND_v04_TLAS_ANlowpass*_classification*'
+OUTDIR_REGEX='/om2/user/msaddler/pitchnet/saved_models/arch_0628/PND_v0[5-6]_TLAS_classification*'
 # OUTDIR_REGEX='/om/scratch/Sun/msaddler/pitchnet/saved_models/arch_search_v00/arch*'
 EFN_PREFIX='EVAL_SOFTMAX_'
 PRIOR_RANGE='0.5'
@@ -35,53 +35,54 @@ python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_bernox.py \
 -j ${job_idx}
 
 
-# singularity exec --nv \
-# -B /home \
-# -B /om \
-# -B /nobackup \
-# -B /om2 \
-# -B /om4 \
-# /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
-# python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_transposed_tones.py \
-# -r "${OUTDIR_REGEX}/${EFN_PREFIX}oxenham2004_080to320Hz_bestckpt.json" \
-# -p ${PRIOR_RANGE} \
-# -j ${job_idx}
+singularity exec --nv \
+-B /home \
+-B /om \
+-B /nobackup \
+-B /om2 \
+-B /om4 \
+/om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
+python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_transposed_tones.py \
+-r "${OUTDIR_REGEX}/${EFN_PREFIX}oxenham2004_080to320Hz_bestckpt.json" \
+-p ${PRIOR_RANGE} \
+-j ${job_idx}
 
 
-# singularity exec --nv \
-# -B /home \
-# -B /om \
-# -B /nobackup \
-# -B /om2 \
-# -B /om4 \
-# /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
-# python /om2/user/msaddler/pitchnet/assets_psychophysics/f0experiment_alt_phase.py \
-# -r "${OUTDIR_REGEX}/${EFN_PREFIX}AltPhase_v01_bestckpt.json" \
-# -p ${PRIOR_RANGE} \
-# -j ${job_idx}
+singularity exec --nv \
+-B /home \
+-B /om \
+-B /nobackup \
+-B /om2 \
+-B /om4 \
+/om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
+python /om2/user/msaddler/pitchnet/assets_psychophysics/f0experiment_alt_phase.py \
+-r "${OUTDIR_REGEX}/${EFN_PREFIX}AltPhase_v01_bestckpt.json" \
+-p ${PRIOR_RANGE} \
+-j ${job_idx}
 
 
-# singularity exec --nv \
-# -B /home \
-# -B /om \
-# -B /nobackup \
-# -B /om2 \
-# -B /om4 \
-# /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
-# python /om2/user/msaddler/pitchnet/assets_psychophysics/f0experiment_freq_shifted.py \
-# -r "${OUTDIR_REGEX}/${EFN_PREFIX}mooremoore2003_080to480Hz_bestckpt.json" \
-# -p ${PRIOR_RANGE} \
-# -j ${job_idx}
+singularity exec --nv \
+-B /home \
+-B /om \
+-B /nobackup \
+-B /om2 \
+-B /om4 \
+/om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
+python /om2/user/msaddler/pitchnet/assets_psychophysics/f0experiment_freq_shifted.py \
+-r "${OUTDIR_REGEX}/${EFN_PREFIX}mooremoore2003_080to480Hz_bestckpt.json" \
+-p ${PRIOR_RANGE} \
+-j ${job_idx}
 
 
-# singularity exec --nv \
-# -B /home \
-# -B /om \
-# -B /nobackup \
-# -B /om2 \
-# -B /om4 \
-# /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
-# python /om2/user/msaddler/pitchnet/assets_psychophysics/f0experiment_mistuned_harmonics.py \
-# -r "${OUTDIR_REGEX}/${EFN_PREFIX}MistunedHarm_v00_bestckpt.json" \
-# -p ${PRIOR_RANGE} \
-# -j ${job_idx}
+singularity exec --nv \
+-B /home \
+-B /om \
+-B /nobackup \
+-B /om2 \
+-B /om4 \
+/om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
+python /om2/user/msaddler/pitchnet/assets_psychophysics/f0experiment_mistuned_harmonics.py \
+-r "${OUTDIR_REGEX}/${EFN_PREFIX}MistunedHarm_v00_bestckpt.json" \
+-p ${PRIOR_RANGE} \
+-j ${job_idx}
+s
