@@ -15,7 +15,7 @@
 # OUTDIR='/saved_models/arch_search_v00/arch_'$ZERO_PADDED_JOBID
 # SAVED_MODELS_PATH="$SCRATCH_PATH/pitchnet/saved_models"
 
-OUTDIR='/saved_models/arch_0628/PND_v06_TLAS_classification'$SLURM_ARRAY_TASK_ID
+OUTDIR='/saved_models/arch_0628/PND_v04_JWSS_highSNR_classification'$SLURM_ARRAY_TASK_ID
 SAVED_MODELS_PATH="/om2/user/msaddler/pitchnet/saved_models"
 
 TFRECORDS_REGEX='cf100_species002_spont070/*.tfrecords'
