@@ -752,7 +752,7 @@ def make_altphase_histograms(results_dict_input,
     
     ax_arr[xlabel_idx].set_xlabel('Ratio of predicted F0 to target F0',
                                   fontsize=fontsize_labels)
-    ax_arr[ylabel_idx].set_ylabel('Percentage of pitch matches in {:.0f}% wide bins'.format(bin_step*100.0),
+    ax_arr[ylabel_idx].set_ylabel('Pitch matches in {:.0f}% wide bins (%)'.format(bin_step*100.0),
                                   fontsize=fontsize_labels)
     plt.tight_layout()
     plt.subplots_adjust(wspace=0, hspace=0)
