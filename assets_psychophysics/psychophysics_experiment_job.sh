@@ -85,4 +85,3 @@ python /om2/user/msaddler/pitchnet/assets_psychophysics/f0experiment_mistuned_ha
 -r "${OUTDIR_REGEX}/${EFN_PREFIX}MistunedHarm_v00_bestckpt.json" \
 -p ${PRIOR_RANGE} \
 -j ${job_idx}
-s
