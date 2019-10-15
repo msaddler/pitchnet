@@ -15,7 +15,7 @@
 # OUTDIR='/saved_models/arch_search_v00/arch_'$ZERO_PADDED_JOBID
 # SAVED_MODELS_PATH="$SCRATCH_PATH/pitchnet/saved_models"
 
-OUTDIR='/saved_models/arch_0628/PND_v04_JWSS_highSNR_classification'$SLURM_ARRAY_TASK_ID
+OUTDIR='/saved_models/models_RSB/arch_0628/PND_v04_TLAS_halflowpassnoise_v02_classification'$SLURM_ARRAY_TASK_ID
 SAVED_MODELS_PATH="/om2/user/msaddler/pitchnet/saved_models"
 
 TFRECORDS_REGEX='cf100_species002_spont070/*.tfrecords'
@@ -41,61 +41,61 @@ python pitchnet_evaluate_best.py \
 -wpo $WRITE_PROBS_OUT
 
 
-singularity exec --nv \
--B /home \
--B /om \
--B /om2 \
--B /om2/user/msaddler/python-packages:/python-packages \
--B $SAVED_MODELS_PATH:/saved_models \
--B /om2/user/msaddler/pitchnet/ibmHearingAid:/code_location \
-/om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
-python pitchnet_evaluate_best.py \
--de "/om/user/msaddler/data_pitchnet/mooremoore2003/MooreMoore2003_frequencyShiftedComplexes_f0_080to480Hz/$TFRECORDS_REGEX" \
--efn "${EFN_PREFIX}mooremoore2003_080to480Hz_bestckpt.json" \
--o "$OUTDIR" \
--wpo $WRITE_PROBS_OUT
+# singularity exec --nv \
+# -B /home \
+# -B /om \
+# -B /om2 \
+# -B /om2/user/msaddler/python-packages:/python-packages \
+# -B $SAVED_MODELS_PATH:/saved_models \
+# -B /om2/user/msaddler/pitchnet/ibmHearingAid:/code_location \
+# /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
+# python pitchnet_evaluate_best.py \
+# -de "/om/user/msaddler/data_pitchnet/mooremoore2003/MooreMoore2003_frequencyShiftedComplexes_f0_080to480Hz/$TFRECORDS_REGEX" \
+# -efn "${EFN_PREFIX}mooremoore2003_080to480Hz_bestckpt.json" \
+# -o "$OUTDIR" \
+# -wpo $WRITE_PROBS_OUT
 
 
-singularity exec --nv \
--B /home \
--B /om \
--B /om2 \
--B /om2/user/msaddler/python-packages:/python-packages \
--B $SAVED_MODELS_PATH:/saved_models \
--B /om2/user/msaddler/pitchnet/ibmHearingAid:/code_location \
-/om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
-python pitchnet_evaluate_best.py \
--de "/om/user/msaddler/data_pitchnet/moore1985/Moore1985_MistunedHarmonics_v00/$TFRECORDS_REGEX" \
--efn "${EFN_PREFIX}MistunedHarm_v00_bestckpt.json" \
--o "$OUTDIR" \
--wpo $WRITE_PROBS_OUT
+# singularity exec --nv \
+# -B /home \
+# -B /om \
+# -B /om2 \
+# -B /om2/user/msaddler/python-packages:/python-packages \
+# -B $SAVED_MODELS_PATH:/saved_models \
+# -B /om2/user/msaddler/pitchnet/ibmHearingAid:/code_location \
+# /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
+# python pitchnet_evaluate_best.py \
+# -de "/om/user/msaddler/data_pitchnet/moore1985/Moore1985_MistunedHarmonics_v00/$TFRECORDS_REGEX" \
+# -efn "${EFN_PREFIX}MistunedHarm_v00_bestckpt.json" \
+# -o "$OUTDIR" \
+# -wpo $WRITE_PROBS_OUT
 
 
-singularity exec --nv \
--B /home \
--B /om \
--B /om2 \
--B /om2/user/msaddler/python-packages:/python-packages \
--B $SAVED_MODELS_PATH:/saved_models \
--B /om2/user/msaddler/pitchnet/ibmHearingAid:/code_location \
-/om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
-python pitchnet_evaluate_best.py \
--de "/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to320Hz/$TFRECORDS_REGEX" \
--efn "${EFN_PREFIX}oxenham2004_080to320Hz_bestckpt.json" \
--o "$OUTDIR" \
--wpo $WRITE_PROBS_OUT
+# singularity exec --nv \
+# -B /home \
+# -B /om \
+# -B /om2 \
+# -B /om2/user/msaddler/python-packages:/python-packages \
+# -B $SAVED_MODELS_PATH:/saved_models \
+# -B /om2/user/msaddler/pitchnet/ibmHearingAid:/code_location \
+# /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
+# python pitchnet_evaluate_best.py \
+# -de "/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to320Hz/$TFRECORDS_REGEX" \
+# -efn "${EFN_PREFIX}oxenham2004_080to320Hz_bestckpt.json" \
+# -o "$OUTDIR" \
+# -wpo $WRITE_PROBS_OUT
 
 
-singularity exec --nv \
--B /home \
--B /om \
--B /om2 \
--B /om2/user/msaddler/python-packages:/python-packages \
--B $SAVED_MODELS_PATH:/saved_models \
--B /om2/user/msaddler/pitchnet/ibmHearingAid:/code_location \
-/om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
-python pitchnet_evaluate_best.py \
--de "/om/user/msaddler/data_pitchnet/shackcarl1994/AltPhase_v01_f0min080_f0max320/$TFRECORDS_REGEX" \
--efn "${EFN_PREFIX}AltPhase_v01_bestckpt.json" \
--o "$OUTDIR" \
--wpo $WRITE_PROBS_OUT
+# singularity exec --nv \
+# -B /home \
+# -B /om \
+# -B /om2 \
+# -B /om2/user/msaddler/python-packages:/python-packages \
+# -B $SAVED_MODELS_PATH:/saved_models \
+# -B /om2/user/msaddler/pitchnet/ibmHearingAid:/code_location \
+# /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
+# python pitchnet_evaluate_best.py \
+# -de "/om/user/msaddler/data_pitchnet/shackcarl1994/AltPhase_v01_f0min080_f0max320/$TFRECORDS_REGEX" \
+# -efn "${EFN_PREFIX}AltPhase_v01_bestckpt.json" \
+# -o "$OUTDIR" \
+# -wpo $WRITE_PROBS_OUT

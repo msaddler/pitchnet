@@ -121,6 +121,7 @@ def make_bernox_threshold_plot(ax, results_dict_input,
                                fontsize_ticks=12,
                                xlimits=[0, 33],
                                ylimits=[1e-1, 1e2],
+                               legend_kwargs={},
                                kwargs_bootstrap={}):
     '''
     Function for plotting Bernstein & Oxenham (2005) experiment results:
@@ -184,7 +185,9 @@ def make_bernox_threshold_plot(ax, results_dict_input,
     ax.set_ylabel('F0 discrimination\nthreshold (%F0)', fontsize=fontsize_labels)
     if title_str is not None: ax.set_title(title_str, fontsize=fontsize_title)
     if legend_on:
-        ax.legend(loc='lower right', frameon=False, fontsize=fontsize_legend)
+        legend_plot_kwargs = {'loc':'lower right', 'frameon':False, 'fontsize':fontsize_legend}
+        legend_plot_kwargs.update(legend_kwargs)
+        ax.legend(**legend_plot_kwargs)
     return results_dict
 
 
