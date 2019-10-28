@@ -58,9 +58,9 @@ if __name__ == "__main__":
                         help='regex for source dataset (audio)')
     parser.add_argument('-sksr', '--source_key_sr', type=str, default='sr',
                         help='regex for source dataset (audio)')
-    parser.add_argument('-lpf', '--lowpass_filter_cutoff', type=float, default=None,
+    parser.add_argument('-lpf', '--lowpass_filter_cutoff', type=float, default=3000.0,
                         help='cutoff frequency of lowpass filter applied to nervegrams')
-    parser.add_argument('-lpfo', '--lowpass_filter_order', type=int, default=6,
+    parser.add_argument('-lpfo', '--lowpass_filter_order', type=int, default=7,
                     help='order of lowpass filter applied to nervegrams')
     args = parser.parse_args()
     # Check commandline arguments
@@ -70,17 +70,26 @@ if __name__ == "__main__":
     assert args.jobs_per_source_file is not None
     # Set bez2018model nervegram parameters
     kwargs_nervegram_meanrates = {
-        'meanrates_params': {'dur': 0.050, 'buffer_start_dur': 0.070, 'buffer_end_dur': 0.010},
-        'ANmodel_params': {'num_cfs': 100, 'min_cf':125, 'max_cf':14e3},
+        'meanrates_params': {
+            'dur': 0.050,
+            'buffer_start_dur': 0.070,
+            'buffer_end_dur': 0.010
+        },
+        'ANmodel_params': {
+            'num_cfs': 100,
+            'min_cf':125,
+            'max_cf':14e3,
+            'IhcLowPass_cutoff':args.lowpass_filter_cutoff,
+            'IhcLowPass_order': args.lowpass_filter_order
+        },
     }
-    if args.lowpass_filter_cutoff is not None:
-        kwargs_nervegram_meanrates['lpfilter_params'] = {
-            'order': args.lowpass_filter_order,
-            'cutoff': args.lowpass_filter_cutoff,
-        }
     print("### bez2018model nervegram parameters ###")
     for key in kwargs_nervegram_meanrates.keys():
-          print('#', key, kwargs_nervegram_meanrates[key])
+        if instance(kwargs_nervegram_meanrates[key], dict):
+            for sub_key in kwargs_nervegram_meanrates[key].keys():
+                print('#', key, sub_key, kwargs_nervegram_meanrates[key][sub_key])
+        else:
+            print('#', key, kwargs_nervegram_meanrates[key])
     print("### bez2018model nervegram parameters ###")
     # Run bez2018 model
     parallel_run_dataset_generation(args.source_regex,
