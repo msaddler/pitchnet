@@ -58,10 +58,12 @@ if __name__ == "__main__":
                         help='regex for source dataset (audio)')
     parser.add_argument('-sksr', '--source_key_sr', type=str, default='sr',
                         help='regex for source dataset (audio)')
+    parser.add_argument('-bwsf', '--bandwidth_scale_factor', type=float, default=1.0,
+                        help='scales cochlear filter bandwidths in the Carney model')
     parser.add_argument('-lpf', '--lowpass_filter_cutoff', type=float, default=3000.0,
-                        help='cutoff frequency of lowpass filter applied to nervegrams')
+                        help='IHC lowpass filter cutoff frequency')
     parser.add_argument('-lpfo', '--lowpass_filter_order', type=int, default=7,
-                    help='order of lowpass filter applied to nervegrams')
+                        help='IHC lowpass filter order')
     args = parser.parse_args()
     # Check commandline arguments
     assert args.source_regex is not None
@@ -79,8 +81,9 @@ if __name__ == "__main__":
             'num_cfs': 100,
             'min_cf':125,
             'max_cf':14e3,
+            'bandwidth_scale_factor':args.bandwidth_scale_factor,
             'IhcLowPass_cutoff':args.lowpass_filter_cutoff,
-            'IhcLowPass_order': args.lowpass_filter_order
+            'IhcLowPass_order': args.lowpass_filter_order,
         },
     }
     print("### bez2018model nervegram parameters ###")
