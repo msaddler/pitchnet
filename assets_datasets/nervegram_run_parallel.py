@@ -88,7 +88,7 @@ if __name__ == "__main__":
     }
     print("### bez2018model nervegram parameters ###")
     for key in kwargs_nervegram_meanrates.keys():
-        if instance(kwargs_nervegram_meanrates[key], dict):
+        if isinstance(kwargs_nervegram_meanrates[key], dict):
             for sub_key in kwargs_nervegram_meanrates[key].keys():
                 print('#', key, sub_key, kwargs_nervegram_meanrates[key][sub_key])
         else:
