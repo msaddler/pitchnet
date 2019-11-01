@@ -10,7 +10,7 @@
 #SBATCH --exclude=node[001-030]
 #SBATCH --array=0-9
 ##SBATCH --partition=mcdermott
-#SBATCH --partition=use-everything
+##SBATCH --partition=use-everything
 #SBATCH --requeue
 ##SBATCH --dependency=afterok:14702742
 
@@ -18,7 +18,7 @@
 # source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v04/noise_TLAS_snr_neg10pos03/PND_sr32000*.hdf5'
 # dest_filename="$SCRATCH_PATH"'/data_pitchnet/PND_v04/noise_TLAS_snr_neg10pos03/cf100_species002_spont070_BW10eN1_IHC0250Hz_IHC7order/bez2018meanrates.hdf5'
 source_regex='/om/user/msaddler/data_pitchnet/bernox2005/FixedFilter_f0min100_f0max300/*.hdf5'
-dest_filename='/om/user/msaddler/data_pitchnet/bernox2005/FixedFilter_f0min100_f0max300/cf100_species002_spont070_BW05eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
+dest_filename='/om/user/msaddler/data_pitchnet/bernox2005/FixedFilter_f0min100_f0max300/cf100_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates.hdf5'
 
 jobs_per_source_file=10
 offset=0
@@ -43,8 +43,8 @@ python -u nervegram_run_parallel.py \
 -d "${dest_filename}" \
 -j ${job_idx} \
 -jps ${jobs_per_source_file} \
--bwsf '0.5' \
--lpf '3000.0' \
+-bwsf '1.0' \
+-lpf '50.0' \
 -lpfo '7' \
 -sks 'tone_in_noise' \
 -sksr 'config_tone/fs'
