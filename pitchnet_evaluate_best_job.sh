@@ -8,17 +8,17 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --time=0-2:00:00
 #SBATCH --exclude=node063
-#SBATCH --partition=mcdermott
+##SBATCH --partition=mcdermott
 #SBATCH --array=0-2
 
 # ZERO_PADDED_JOBID=$(printf "%04d" $SLURM_ARRAY_TASK_ID)
 # OUTDIR='/saved_models/arch_search_v00/arch_'$ZERO_PADDED_JOBID
 # SAVED_MODELS_PATH="$SCRATCH_PATH/pitchnet/saved_models"
 
-OUTDIR='/saved_models/models_RSB/arch_0628/PND_v04_TLAS_halflowpassnoise_v02_classification'$SLURM_ARRAY_TASK_ID
+OUTDIR='/saved_models/arch_0628/PND_v04_TLAS_AN_BW25eN1_IHC3000Hz_classification'$SLURM_ARRAY_TASK_ID
 SAVED_MODELS_PATH="/om2/user/msaddler/pitchnet/saved_models"
 
-TFRECORDS_REGEX='cf100_species002_spont070/*.tfrecords'
+TFRECORDS_REGEX='cf100_species002_spont070_BW25eN1_IHC3000Hz_IHC7order/*.tfrecords'
 EFN_PREFIX='EVAL_SOFTMAX_'
 WRITE_PROBS_OUT=1
 
