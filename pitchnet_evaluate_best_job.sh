@@ -8,19 +8,19 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --time=0-2:00:00
 #SBATCH --exclude=node063
-##SBATCH --partition=mcdermott
+#SBATCH --partition=mcdermott
 #SBATCH --array=0-2
 
 # ZERO_PADDED_JOBID=$(printf "%04d" $SLURM_ARRAY_TASK_ID)
 # OUTDIR='/saved_models/arch_search_v00/arch_'$ZERO_PADDED_JOBID
 # SAVED_MODELS_PATH="$SCRATCH_PATH/pitchnet/saved_models"
 
-OUTDIR='/saved_models/arch_0628/models_spike_counts/PND_v04_TLAS_AN_BW10eN1_IHC3000Hz_classification'$SLURM_ARRAY_TASK_ID
+OUTDIR='/om2/user/msaddler/pitchnet/saved_models/models_RSB/arch_0628/PND_v04_TLAS_classification'$SLURM_ARRAY_TASK_ID
 SAVED_MODELS_PATH="/om2/user/msaddler/pitchnet/saved_models"
 
 # TFRECORDS_REGEX='cf100_species002_spont070_BW10eN1_IHC4000Hz_IHC7order/*.tfrecords'
 TFRECORDS_REGEX='cf100_species002_spont070/*.tfrecords'
-EFN_PREFIX='EVAL_SOFTMAX_'
+EFN_PREFIX='EVAL_SOFTMAX_TEST_rsb2pt0xBW_'
 WRITE_PROBS_OUT=1
 
 echo "evaluating model in output directory: $OUTDIR"
