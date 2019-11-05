@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem-per-cpu=8000
 #SBATCH --time=0-01:00:00
-#SBATCH --array=30-32
+#SBATCH --array=0-11
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --exclude=node[001-030]
@@ -18,7 +18,7 @@ echo $(hostname)
 
 OUTDIR_REGEX='/om2/user/msaddler/pitchnet/saved_models/arch_0628/PND_v04_TLAS_AN_BW*_classification*'
 # OUTDIR_REGEX='/om/scratch/Sun/msaddler/pitchnet/saved_models/arch_search_v00/arch*'
-EFN_PREFIX='EVAL_SOFTMAX_'
+EFN_PREFIX='EVAL_SOFTMAX_TEST_*'
 PRIOR_RANGE='0.5'
 
 
