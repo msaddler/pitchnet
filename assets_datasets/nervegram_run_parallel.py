@@ -58,6 +58,8 @@ if __name__ == "__main__":
                         help='regex for source dataset (audio)')
     parser.add_argument('-sksr', '--source_key_sr', type=str, default='sr',
                         help='regex for source dataset (audio)')
+    parser.add_argument('-mrsr', '--meanrates_sr', type=float, default=10e3,
+                        help='sampling rate for auditory nerve firing rates (Hz)')
     parser.add_argument('-bwsf', '--bandwidth_scale_factor', type=float, default=1.0,
                         help='scales cochlear filter bandwidths in the Carney model')
     parser.add_argument('-lpf', '--lowpass_filter_cutoff', type=float, default=3000.0,
@@ -73,6 +75,7 @@ if __name__ == "__main__":
     # Set bez2018model nervegram parameters
     kwargs_nervegram_meanrates = {
         'meanrates_params': {
+            'fs': args.meanrates_sr,
             'dur': 0.050,
             'buffer_start_dur': 0.070,
             'buffer_end_dur': 0.010
