@@ -12,11 +12,11 @@
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --requeue
-##SBATCH --dependency=afterok:14702742
+#SBATCH --dependency=afterok:15515107
 
 ### Define source_regex and dest_filename here (use single quotes to prevent regex from expanding)
-source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v04/noise_TLAS_snr_neg10pos03/PND_sr32000*.hdf5'
-dest_filename="$SCRATCH_PATH"'/data_pitchnet/PND_v04/noise_TLAS_snr_neg10pos03/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
+source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v07/noise_TLAS_snr_neg10pos03/PND_sr32000*.hdf5'
+dest_filename="$SCRATCH_PATH"'/data_pitchnet/PND_v07/noise_TLAS_snr_neg10pos03/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
 # source_regex='/om/user/msaddler/data_pitchnet/bernox2005/FixedFilter_f0min100_f0max300/*.hdf5'
 # dest_filename='/om/user/msaddler/data_pitchnet/bernox2005/FixedFilter_f0min100_f0max300/sr16000_cf100_species002_spont070_BW10eN1_IHC7000Hz_IHC7order/bez2018meanrates.hdf5'
 
