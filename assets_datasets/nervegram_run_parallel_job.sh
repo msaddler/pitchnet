@@ -7,7 +7,7 @@
 #SBATCH --nodes=1
 #SBATCH --time=0-48:00:00
 #SBATCH --time-min=0-12:00:00
-#SBATCH --exclude=node[001-049]
+#SBATCH --exclude=node[001-030]
 #SBATCH --array=0-99
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
