@@ -15,7 +15,7 @@
 
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
-SOURCE_CONFIG_FN='example_config.json'
+SOURCE_CONFIG_FN='config_arch_search_v01.json'
 OUTPUT_DIR_PATTERN="/saved_models/arch_search_v01/arch_{:04d}"
 OUTPUT_LOG_FN=$(printf "/om/scratch/Fri/msaddler/pitchnet/saved_models/arch_search_v01/logs_train/arch_%04d.log" ${job_idx})
 
