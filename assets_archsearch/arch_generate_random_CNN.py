@@ -4,7 +4,17 @@ import numpy as np
 import json
 
 
-def get_random_cnn_architecture():
+def get_random_cnn_architecture(kwargs_sample_repeating_cnn_elements={},
+                                pool_method='hpool',
+                                batch_normalization=True,
+                                activation_type='tf.nn.relu'
+                                activation_name='relu',
+                                dropout=True,
+                                dropout_rate=0.5,
+                                fc_batch_norm=True,
+                                fc_activation=True,
+                                dilation_rate=[1,1],
+                                include_classification_layer=True):
     pass
 
 
@@ -88,9 +98,28 @@ def sample_repeating_cnn_elements(input_shape=[None, 100, 1000, 1],
             current_dims[2] = np.ceil(current_dims[2] / pool_stride_dim2).astype(int)
         else:
             raise ValueError("pool_padding={} is not supported".format(pool_padding))
+        pool_strides.append([pool_stride_dim1, pool_stride_dim2])
+        pool_kernel_shape = [pool_stride_dim1, pool_stride_dim2]
+        if pool_kernel_shape[0] > 1:
+            pool_kernel_shape[0] = pool_kernel_shape[0] * pool_kernel_size_dim1
+        if pool_kernel_shape[1] > 1:
+            pool_kernel_shape[1] = pool_kernel_shape[1] * pool_kernel_size_dim2
+        pool_kernel_shapes.append(pool_kernel_shape)
+        
         print((kernel_dim1, kernel_dim2), (pool_stride_dim1, pool_stride_dim2), current_dims)
-    
-    return conv_kernel_depths, conv_kernel_shapes, conv_strides, pool_kernel_shapes, pool_strides
+        
+    # Return description of repeating CNN elements in a single dictionary
+    repeating_cnn_elements = {
+        'conv_kernel_depths': conv_kernel_depths,
+        'conv_kernel_shapes': conv_kernel_shapes,
+        'conv_strides': conv_strides,
+        'conv_padding': conv_padding,
+        'pool_kernel_shapes': pool_kernel_shapes,
+        'pool_strides': pool_strides,
+        'pool_padding': pool_padding,
+        'max_kernel_area': max_kernel_area,
+    }
+    return repeating_cnn_elements
 
 
 
