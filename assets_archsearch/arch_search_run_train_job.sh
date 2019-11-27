@@ -7,7 +7,7 @@
 #SBATCH --gres=gpu:GEFORCEGTX1080TI:1
 #SBATCH --time=0-48:00:00
 ##SBATCH --time-min=0-24:00:00
-#SBATCH --array=0-99
+#SBATCH --array=0-49
 #SBATCH --exclude=node063
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything

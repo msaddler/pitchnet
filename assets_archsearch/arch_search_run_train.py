@@ -31,13 +31,12 @@ def train_random_arch(output_dir_pattern, source_config_fn, job_idx,
     print('DATA_TRAIN:', tfrecords_regex_train)
     print('DATA_EVAL:', tfrecords_regex_eval)
     print('CONFIG:', config_filename)
-    run_train_or_eval.run_train_or_eval(output_dir, tfrecords_regex_train, tfrecords_regex_eval,
-                                        config_filename=config_filename, eval_only_mode=False, 
-                                        force_overwrite=False,
-                                        eval_brain_ckpt=None,
-                                        eval_wavenet_ckpt=None,
-                                        eval_output_fn=None,
-                                        write_audio_files=False)
+    run_train_or_eval.run_train_or_eval(output_dir,
+                                        tfrecords_regex_train,
+                                        tfrecords_regex_eval,
+                                        config_filename=config_filename,
+                                        eval_only_mode=False, 
+                                        force_overwrite=False)
 
 
 def main():

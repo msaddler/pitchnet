@@ -72,6 +72,5 @@
     "save_iterator": false,
     "save_step": 5000,
     "valid_display_step": null,
-    "valid_step": 5000,
-    "wavenet_ckpt_to_load": null
+    "valid_step": 5000
 }
