@@ -20,14 +20,12 @@ def get_random_cnn_architecture(kwargs_sample_repeating_cnn_elements={},
     '''
     '''
     ### ------ Randomly sample CNN architecture ------ ###
-    
     repeating_cnn_elements = sample_repeating_cnn_elements(**kwargs_sample_repeating_cnn_elements)
     intermediate_fc_layer = {}
     if np.random.choice(range_intermediate_fc_layer):
         intermediate_fc_layer['units'] = np.random.choice(range_intermediate_fc_layer_units)
     
     ### ------ Build the sampled CNN architecture ------ ###
-    
     conv_layer_count = repeating_cnn_elements['conv_layer_count']
     layer_list = []
     for layer_index in range(conv_layer_count):
@@ -135,7 +133,7 @@ def get_random_cnn_architecture(kwargs_sample_repeating_cnn_elements={},
         }
         layer_list.append(class_layer_dict)
     
-    return layer_list
+    return layer_list, repeating_cnn_elements
 
 
 def sample_repeating_cnn_elements(input_shape=[None, 100, 1000, 1],
@@ -225,9 +223,7 @@ def sample_repeating_cnn_elements(input_shape=[None, 100, 1000, 1],
         if pool_kernel_shape[1] > 1:
             pool_kernel_shape[1] = pool_kernel_shape[1] * pool_kernel_size_dim2
         pool_kernel_shapes.append(pool_kernel_shape)
-        
-        #print((kernel_dim1, kernel_dim2), (pool_stride_dim1, pool_stride_dim2), current_dims)
-        
+    
     # Return description of repeating CNN elements in a single dictionary
     repeating_cnn_elements = {
         'conv_layer_count': conv_layer_count,
