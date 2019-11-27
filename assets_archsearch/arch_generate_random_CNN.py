@@ -5,17 +5,137 @@ import json
 
 
 def get_random_cnn_architecture(kwargs_sample_repeating_cnn_elements={},
-                                pool_method='hpool',
-                                batch_normalization=True,
-                                activation_type='tf.nn.relu'
-                                activation_name='relu',
-                                dropout=True,
-                                dropout_rate=0.5,
-                                fc_batch_norm=True,
-                                fc_activation=True,
                                 dilation_rate=[1,1],
+                                activation_type='tf.nn.relu',
+                                activation_name='relu',
+                                pool_method='hpool',
+                                include_batch_normalization=True,
+                                range_intermediate_fc_layer=[False, True],
+                                range_intermediate_fc_layer_units=[128, 256, 512, 1024],
+                                include_fc_batch_normalization=True,
+                                include_fc_activation=True,
+                                include_dropout=True,
+                                dropout_rate=0.5,
                                 include_classification_layer=True):
-    pass
+    '''
+    '''
+    ### ------ Randomly sample CNN architecture ------ ###
+    
+    repeating_cnn_elements = sample_repeating_cnn_elements(**kwargs_sample_repeating_cnn_elements)
+    intermediate_fc_layer = {}
+    if np.random.choice(range_intermediate_fc_layer):
+        intermediate_fc_layer['units'] = np.random.choice(range_intermediate_fc_layer_units)
+    
+    ### ------ Build the sampled CNN architecture ------ ###
+    
+    conv_layer_count = repeating_cnn_elements['conv_layer_count']
+    layer_list = []
+    for layer_index in range(conv_layer_count):
+        # Repeating elements: convolution operation
+        conv_layer_dict = {
+            'layer_type': 'tf.layers.conv2d',
+            'args': {
+                'filters': repeating_cnn_elements['conv_kernel_depths'][layer_index],
+                'kernel_size': repeating_cnn_elements['conv_kernel_shapes'][layer_index],
+                'padding': repeating_cnn_elements['conv_padding'],
+                'strides': repeating_cnn_elements['conv_strides'][layer_index],
+                'dilation_rate': dilation_rate,
+                'activation': None,
+                'name': 'conv_{:d}'.format(layer_index),
+            },
+        }
+        layer_list.append(conv_layer_dict)
+        # Repeating elements: activation function
+        activation_function_dict = {
+            'layer_type': activation_type,
+            'args': {
+                'name': '{}_{:d}'.format(activation_name, layer_index)
+            },
+        }
+        layer_list.append(activation_function_dict)
+        # Repeating elements: pooling operation
+        if pool_method == 'hpool':
+            pool_size = repeating_cnn_elements['pool_kernel_shapes'][layer_index]
+            extra_pooling_args = {'normalize': True, 'sqrt_window': False}
+        elif pool_method == 'tf.layers.max_pooling2d':
+            pool_size = repeating_cnn_elements['pool_strides'][layer_index]
+            extra_pooling_args = {}
+        else:
+            raise ValueError("pool_method={} is not supported".format(pool_method))
+        pool_layer_dict = {
+            'layer_type': pool_method,
+            'args': {
+                'strides': repeating_cnn_elements['pool_strides'][layer_index],
+                'pool_size': pool_size,
+                'padding': repeating_cnn_elements['pool_padding'],
+                'name': 'pool_{:d}'.format(layer_index), 
+                **extra_pooling_args,
+            }
+        }
+        layer_list.append(pool_layer_dict)
+        # Repeating elements: batch normalization operation
+        if include_batch_normalization:
+            batch_norm_layer_dict = {
+                'layer_type': 'tf.layers.batch_normalization',
+                'args': {
+                    'name':'batch_norm_{:d}'.format(layer_index)
+                },
+            }
+            layer_list.append(batch_norm_layer_dict)
+    
+    # Flatten representation following final repeating element
+    layer_list.append({'layer_type': 'tf.layers.flatten', 'args': {'name': 'flatten_end_conv'}})
+    
+    # Intermediate fully-connected layer (dense, activation, normalization)
+    if intermediate_fc_layer:
+        fc_layer_dict = {
+            'layer_type': 'tf.layers.dense',
+            'args': {
+                'units': intermediate_fc_layer['units'], 
+                'activation': None,
+                'name':'fc_intermediate',
+            },
+        }
+        layer_list.append(fc_layer_dict)
+        if include_fc_activation:
+            activation_function_dict = {
+                'layer_type': activation_type,
+                'args': {
+                    'name': '{}_fc_intermediate'.format(activation_name)
+                },
+            }
+            layer_list.append(activation_function_dict)
+        if include_fc_batch_normalization:
+            batch_norm_layer_dict = {
+                'layer_type': 'tf.layers.batch_normalization',
+                'args': {
+                    'name': 'batch_norm_fc_intermediate'
+                },
+            }
+            layer_list.append(batch_norm_layer_dict)
+    
+    # Dropout layer
+    if include_dropout:
+        dropout_layer_dict = {
+            'layer_type': 'tf.layers.dropout',
+            'args': {
+                'rate':dropout_rate,
+                'name': 'dropout'
+            },
+        }
+        layer_list.append(dropout_layer_dict)
+    
+    # Final classification layer
+    if include_classification_layer:
+        class_layer_dict = {
+            'layer_type':'fc_top_classification',
+            'args': {
+                'name': 'fc_top', 'activation': None
+            },
+        }
+        layer_list.append(class_layer_dict)
+    
+    return layer_list
 
 
 def sample_repeating_cnn_elements(input_shape=[None, 100, 1000, 1],
@@ -106,10 +226,11 @@ def sample_repeating_cnn_elements(input_shape=[None, 100, 1000, 1],
             pool_kernel_shape[1] = pool_kernel_shape[1] * pool_kernel_size_dim2
         pool_kernel_shapes.append(pool_kernel_shape)
         
-        print((kernel_dim1, kernel_dim2), (pool_stride_dim1, pool_stride_dim2), current_dims)
+        #print((kernel_dim1, kernel_dim2), (pool_stride_dim1, pool_stride_dim2), current_dims)
         
     # Return description of repeating CNN elements in a single dictionary
     repeating_cnn_elements = {
+        'conv_layer_count': conv_layer_count,
         'conv_kernel_depths': conv_kernel_depths,
         'conv_kernel_shapes': conv_kernel_shapes,
         'conv_strides': conv_strides,
