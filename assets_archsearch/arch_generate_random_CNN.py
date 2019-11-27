@@ -4,6 +4,96 @@ import numpy as np
 import json
 
 
+def get_random_cnn_architecture():
+    pass
+
+
+def sample_repeating_cnn_elements(input_shape=[None, 100, 1000, 1],
+                                  range_conv_layer_count=[1, 8],
+                                  max_kernel_area=500,
+                                  range_conv_kernel_dim1=[1e-3, 5e-1],
+                                  range_conv_kernel_dim2=[1e-1, 5e-1],
+                                  range_conv_stride_dim1=[1],
+                                  range_conv_stride_dim2=[1],
+                                  range_conv_depth=[8, 1024],
+                                  range_conv_depth_step=[0.5, 1.0, 1.0, 2.0, 2.0, 2.0],
+                                  range_conv_depth_initial=[8, 16, 32, 64],
+                                  range_pool_stride_dim1=[1, 3],
+                                  range_pool_stride_dim2=[1, 8],
+                                  pool_kernel_size_dim1=4,
+                                  pool_kernel_size_dim2=4,
+                                  conv_padding='VALID',
+                                  pool_padding='SAME'):
+    '''
+    '''
+    # Initialize output lists
+    conv_kernel_depths = []
+    conv_kernel_shapes = []
+    conv_strides = []
+    pool_kernel_shapes = []
+    pool_strides = []
+    
+    # Sample number of repeated layers and iterate over them
+    current_dims = np.array(input_shape)
+    conv_layer_count = np.random.randint(low=range_conv_layer_count[0],
+                                         high=range_conv_layer_count[1]+1,
+                                         size=None, dtype=int)
+    for layer_index in range(conv_layer_count):
+        # Sample conv layer depth
+        if layer_index == 0:
+            current_dims[3] = np.random.choice(range_conv_depth_initial)
+        else:
+            depth_step = np.random.choice(range_conv_depth_step)
+            current_dims[3] = int(depth_step * current_dims[3])
+            if current_dims[3] < range_conv_depth[0]:
+                current_dims[3] = range_conv_depth[0]
+            if current_dims[3] > range_conv_depth[1]:
+                current_dims[3] = range_conv_depth[1]
+        conv_kernel_depths.append(current_dims[3])
+        
+        # Sample conv kernel shapes and strides
+        acceptable_kernel_shape = False
+        while not acceptable_kernel_shape:
+            fract_dim1 = np.random.uniform(low=range_conv_kernel_dim1[0],
+                                           high=range_conv_kernel_dim1[1])
+            fract_dim2 = np.random.uniform(low=range_conv_kernel_dim2[0],
+                                           high=range_conv_kernel_dim2[1])
+            kernel_dim1 = np.ceil(current_dims[1] * fract_dim1).astype(int)
+            kernel_dim2 = np.ceil(current_dims[2] * fract_dim2).astype(int)
+            if kernel_dim1 * kernel_dim2 <= max_kernel_area:
+                acceptable_kernel_shape = True
+        conv_stride_dim1 = np.random.choice(range_conv_stride_dim1)
+        conv_stride_dim2 = np.random.choice(range_conv_stride_dim2)
+        assert conv_stride_dim1 == 1, "strided convolution is not supported"
+        assert conv_stride_dim2 == 1, "strided convolution is not supported"
+        if conv_padding == 'VALID':
+            current_dims[1] = np.ceil((current_dims[1] - kernel_dim1 + 1) / conv_stride_dim1).astype(int)
+            current_dims[2] = np.ceil((current_dims[2] - kernel_dim2 + 1) / conv_stride_dim2).astype(int)
+        else:
+            raise ValueError("conv_padding={} is not supported".format(conv_padding))
+        conv_kernel_shapes.append([kernel_dim1, kernel_dim2])
+        conv_strides.append([conv_stride_dim1, conv_stride_dim2])
+        
+        # Sample pool kernel shapes and strides
+        dim1_range = np.array(range_pool_stride_dim1)
+        dim1_range[1] = min(dim1_range[1], current_dims[1]/pool_kernel_size_dim1)
+        dim1_range[1] = max(1, dim1_range[1])
+        dim2_range = np.array(range_pool_stride_dim2)
+        dim2_range[1] = min(dim2_range[1], current_dims[2]/pool_kernel_size_dim2)
+        dim2_range[1] = max(1, dim2_range[1])
+        pool_stride_dim1 = np.random.randint(low=dim1_range[0], high=dim1_range[1]+1, dtype=int)
+        pool_stride_dim2 = np.random.randint(low=dim2_range[0], high=dim2_range[1]+1, dtype=int)
+        if pool_padding == 'SAME':
+            current_dims[1] = np.ceil(current_dims[1] / pool_stride_dim1).astype(int)
+            current_dims[2] = np.ceil(current_dims[2] / pool_stride_dim2).astype(int)
+        else:
+            raise ValueError("pool_padding={} is not supported".format(pool_padding))
+        print((kernel_dim1, kernel_dim2), (pool_stride_dim1, pool_stride_dim2), current_dims)
+    
+    return conv_kernel_depths, conv_kernel_shapes, conv_strides, pool_kernel_shapes, pool_strides
+
+
+
 class RandomCNN: 
     '''
     Generates a random CNN architecture class by sampling from a set of priors.
