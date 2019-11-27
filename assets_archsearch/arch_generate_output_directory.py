@@ -17,14 +17,13 @@ def generate_possible_architecture(input_shape=[None, 100, 500, 1], n_classes_di
     impossible_architecture = True
     attempt_count = 0
     while impossible_architecture:
-        network = arch_generate_random_CNN.RandomCNN()
-        net_layer_list = network.all_layer_list
+        network_layer_list, _ = arch_generate_random_CNN.get_random_cnn_architecture()
         try:
             tf.reset_default_graph()
             input_tensor = tf.placeholder(tf.float32, shape=input_shape, name='input_tensor')
             output_tensor, network_tensors = functions_brain_network.make_brain_net(input_tensor,
                                                                                     n_classes_dict,
-                                                                                    net_layer_list,
+                                                                                    network_layer_list,
                                                                                     trainable=True,
                                                                                     batchnorm_flag=True,
                                                                                     dropout_flag=True,
@@ -35,18 +34,27 @@ def generate_possible_architecture(input_shape=[None, 100, 500, 1], n_classes_di
         except ValueError:
             attempt_count += 1
             pass
-    return network, network_tensors, attempt_count
+    return network_layer_list, network_tensors, attempt_count
 
 
-def save_network_architecture(network, network_arch_fn):
+def save_network_architecture(network_layer_list, network_arch_fn):
     '''
     '''
-    if '.json' not in network_arch_fn: network_arch_fn = network_arch_fn + '.json'
-    with open(network_arch_fn, 'w') as f: json.dump(network.all_layer_list, f)
+    # Define helper class to JSON serialize the results_dict
+    class NumpyEncoder(json.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj, np.ndarray): return obj.tolist()
+            if isinstance(obj, np.int64): return int(obj)  
+            return json.JSONEncoder.default(self, obj)
+    # Save network_layer_list to JSON file named network_arch_fn
+    if '.json' not in network_arch_fn:
+        network_arch_fn = network_arch_fn + '.json'
+    with open(network_arch_fn, 'w') as f:
+        json.dump(network_layer_list, f, cls=NumpyEncoder)
     return network_arch_fn
 
 
-def generate_output_directory(output_dir, source_config_fn='example_config.json'):
+def generate_output_directory(output_dir, source_config_fn='config_arch_search_v01.json'):
     '''
     '''
     # Create output directory if it does not exist
@@ -63,9 +71,9 @@ def generate_output_directory(output_dir, source_config_fn='example_config.json'
     input_shape = [None] + input_shape
     while len(input_shape) < 4: input_shape = input_shape + [1]
     n_classes_dict = CONFIG['N_CLASSES_DICT']
-    network, network_tensors, attempt_count = generate_possible_architecture(input_shape=input_shape,
-                                                                             n_classes_dict=n_classes_dict)
-    saved_network_arch_fn = save_network_architecture(network, network_arch_fn)
+    network_layer_list, network_tensors, attempt_count = generate_possible_architecture(input_shape=input_shape,
+                                                                                        n_classes_dict=n_classes_dict)
+    saved_network_arch_fn = save_network_architecture(network_layer_list, network_arch_fn)
     assert saved_network_arch_fn == network_arch_fn, "network_arch_fn was changed"
     return dest_config_fn
 
