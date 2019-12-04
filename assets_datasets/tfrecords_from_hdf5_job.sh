@@ -6,15 +6,15 @@
 #SBATCH --mem-per-cpu=2500
 #SBATCH --nodes=1
 #SBATCH --time=0-1:40:00
-#SBATCH --array=0-599%300
+#SBATCH --array=0-19
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 ##SBATCH --dependency=afterok:14990544
 ##SBATCH --exclude=node[031-077]
 
 ### Define source_regex and dest_filename here (use single quotes to prevent regex from expanding)
-source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_*/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_*.hdf5'
-#source_regex='/om/user/msaddler/data_pitchnet/bernox2005/FixedFilter_f0min100_f0max300/sr20000_cf100_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates_*.hdf5'
+#source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_*/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_*.hdf5'
+source_regex='/om/user/msaddler/data_pitchnet/mooremoore2003/MooreMoore2003_frequencyShiftedComplexes_f0_080to480Hz/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates*.hdf5'
 jobs_per_source_file=1
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
