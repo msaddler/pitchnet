@@ -19,8 +19,8 @@ echo $(hostname)
 ## Define source_regex and dest_filename here (use single quotes to prevent regex from expanding)
 # source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_pos10pos30/PND_sr32000*.hdf5'
 # dest_filename="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_pos10pos30/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
-source_regex='/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to320Hz/*.hdf5'
-dest_filename='/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to320Hz/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
+source_regex='/om/user/msaddler/data_pitchnet/shackcarl1994/AltPhase_v01_f0min080_f0max320/*.hdf5'
+dest_filename='/om/user/msaddler/data_pitchnet/shackcarl1994/AltPhase_v01_f0min080_f0max320/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
 
 jobs_per_source_file=20
 offset=0
@@ -49,6 +49,6 @@ python -u nervegram_run_parallel.py \
 -bwsf '1.0' \
 -lpf '3000.0' \
 -lpfo '7' \
--sks 'stimuli/signal' \
+-sks 'tone_in_noise' \
 -sksr 'config_tone/fs' \
 -mrsr '20000.0'
