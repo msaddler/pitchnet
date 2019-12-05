@@ -55,9 +55,9 @@ if __name__ == "__main__":
     parser.add_argument('-jps', '--jobs_per_source_file', type=int, default=None, 
                         help='number of jobs per source dataset file')
     parser.add_argument('-sks', '--source_key_signal', type=str, default='stimuli/signal_in_noise',
-                        help='regex for source dataset (audio)')
+                        help='key for signal in source dataset')
     parser.add_argument('-sksr', '--source_key_sr', type=str, default='sr',
-                        help='regex for source dataset (audio)')
+                        help='key for signal sampling rate in source dataset')
     parser.add_argument('-mrsr', '--meanrates_sr', type=float, default=10e3,
                         help='sampling rate for auditory nerve firing rates (Hz)')
     parser.add_argument('-bwsf', '--bandwidth_scale_factor', type=float, default=1.0,
@@ -66,6 +66,8 @@ if __name__ == "__main__":
                         help='IHC lowpass filter cutoff frequency')
     parser.add_argument('-lpfo', '--lowpass_filter_order', type=int, default=7,
                         help='IHC lowpass filter order')
+    parser.add_argument('-spont', '--spont_rate', type=str, default='h',
+                        help='string indicating ANF spontaneous rate(s): options are h,m,l')
     args = parser.parse_args()
     # Check commandline arguments
     assert args.source_regex is not None
@@ -73,6 +75,15 @@ if __name__ == "__main__":
     assert args.job_idx is not None
     assert args.jobs_per_source_file is not None
     # Set bez2018model nervegram parameters
+    spont_list = []
+    if 'h' in args.spont_rate.lower():
+        spont_list.append(70.0) # High spont-rate fibers
+    if 'm' in args.spont_rate.lower():
+        spont_list.append(4.0) # Medium spont-rate fibers
+    if 'l' in args.spont_rate.lower():
+        spont_list.append(0.1) # Low spont-rate fibers
+    if len(spont_list) == 0:
+        raise ValueError("invalid spont_list specified")
     kwargs_nervegram_meanrates = {
         'meanrates_params': {
             'fs': args.meanrates_sr,
@@ -87,6 +98,7 @@ if __name__ == "__main__":
             'bandwidth_scale_factor':args.bandwidth_scale_factor,
             'IhcLowPass_cutoff':args.lowpass_filter_cutoff,
             'IhcLowPass_order': args.lowpass_filter_order,
+            'spont_list': spont_list,
         },
     }
     print("### bez2018model nervegram parameters ###")
