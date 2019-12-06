@@ -20,7 +20,7 @@ echo $(hostname)
 #source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/PND_sr32000*.hdf5'
 #dest_filename="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont070_BW10eN1_IHC9000Hz_IHC7order/bez2018meanrates.hdf5'
 source_regex='/om/user/msaddler/data_pitchnet/bernox2005/FixedFilter_f0min100_f0max300/*.hdf5'
-dest_filename='/om/user/msaddler/data_pitchnet/bernox2005/FixedFilter_f0min100_f0max300/sr20000_cf100_species002_spont070_BW10eN1_IHC9000Hz_IHC7order/bez2018meanrates.hdf5'
+dest_filename='/om/user/msaddler/data_pitchnet/bernox2005/FixedFilter_f0min100_f0max300/sr20000_cf100_species002_spont1eN1_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
 
 jobs_per_source_file=20
 offset=0
@@ -48,9 +48,9 @@ python -u nervegram_run_parallel.py \
 -j ${job_idx} \
 -jps ${jobs_per_source_file} \
 -bwsf '1.0' \
--lpf '9000.0' \
+-lpf '3000.0' \
 -lpfo '7' \
 -sks 'tone_in_noise' \
 -sksr 'config_tone/fs' \
 -mrsr '20000.0' \
--spont 'H'
+-spont 'L'
