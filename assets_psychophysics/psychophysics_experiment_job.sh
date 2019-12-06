@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=12
 #SBATCH --mem-per-cpu=8000
 #SBATCH --time=0-02:00:00
-#SBATCH --array=0-399
+#SBATCH --array=0-8
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --exclude=node[001-030]
@@ -16,23 +16,23 @@ offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
 echo $(hostname)
 
-# OUTDIR_REGEX='/om2/user/msaddler/pitchnet/saved_models/models_sr20000/arch_0628mod/PND_v08_TLAS_snr_neg10pos10_AN_BW10eN1_IHC3000Hz_classification*'
-OUTDIR_REGEX='/om/scratch/Wed/msaddler/pitchnet/saved_models/arch_search_v01/arch*'
+OUTDIR_REGEX='/om2/user/msaddler/pitchnet/saved_models/models_sr20000/arch_03*/PND_v08*'
+# OUTDIR_REGEX='/om/scratch/Wed/msaddler/pitchnet/saved_models/arch_search_v01/arch*'
 EFN_PREFIX='EVAL_SOFTMAX_*'
 PRIOR_RANGE='0.5'
 
 
-# singularity exec --nv \
-# -B /home \
-# -B /om \
-# -B /nobackup \
-# -B /om2 \
-# -B /om4 \
-# /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
-# python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_bernox.py \
-# -r "${OUTDIR_REGEX}/${EFN_PREFIX}bernox2005_FixedFilter_bestckpt.json" \
-# -p ${PRIOR_RANGE} \
-# -j ${job_idx}
+singularity exec --nv \
+-B /home \
+-B /om \
+-B /nobackup \
+-B /om2 \
+-B /om4 \
+/om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
+python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_bernox.py \
+-r "${OUTDIR_REGEX}/${EFN_PREFIX}bernox2005_FixedFilter_bestckpt.json" \
+-p ${PRIOR_RANGE} \
+-j ${job_idx}
 
 
 singularity exec --nv \
