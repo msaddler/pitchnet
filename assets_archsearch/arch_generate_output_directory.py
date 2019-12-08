@@ -50,7 +50,7 @@ def save_network_architecture(network_layer_list, network_arch_fn):
     if '.json' not in network_arch_fn:
         network_arch_fn = network_arch_fn + '.json'
     with open(network_arch_fn, 'w') as f:
-        json.dump(network_layer_list, f, cls=NumpyEncoder)
+        json.dump(network_layer_list, f, cls=NumpyEncoder, sort_keys=True)
     return network_arch_fn
 
 
