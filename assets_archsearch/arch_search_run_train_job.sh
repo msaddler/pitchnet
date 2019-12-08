@@ -7,7 +7,7 @@
 #SBATCH --gres=gpu:GEFORCEGTX1080TI:1
 #SBATCH --time=0-48:00:00
 ##SBATCH --time-min=0-24:00:00
-#SBATCH --array=317,320,329,341,322,327,338,342,346,335,343,325,319,349
+#SBATCH --array=0-46
 #SBATCH --exclude=node063
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
@@ -16,8 +16,8 @@
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
 SOURCE_CONFIG_FN='config_arch_search_v01.json'
-OUTPUT_DIR_PATTERN="/saved_models/arch_search_v01/arch_{:04d}"
-OUTPUT_LOG_FN=$(printf "/om/scratch/Fri/msaddler/pitchnet/saved_models/arch_search_v01/logs_train/arch_%04d.log" ${job_idx})
+OUTPUT_DIR_PATTERN="/saved_models/arch_search_v01_arch_0302_manipulations/arch_0302_{:04d}"
+OUTPUT_LOG_FN=$(printf "$SCRATCH_PATH/pitchnet/saved_models/arch_search_v01_arch_0302_manipulations/logs_train/arch_0302_%04d.log" ${job_idx})
 
 echo $OUTPUT_LOG_FN
 echo $(hostname)
@@ -29,8 +29,8 @@ singularity exec --nv \
 -B /om2 \
 -B /om4 \
 -B /om2/user/msaddler/python-packages:/python-packages \
--B /om/scratch/Fri/msaddler/data_pitchnet:/data \
--B /om/scratch/Fri/msaddler/pitchnet/saved_models:/saved_models \
+-B $SCRATCH_PATH/data_pitchnet:/data \
+-B $SCRATCH_PATH/pitchnet/saved_models:/saved_models \
 -B /om2/user/msaddler/pitchnet/ibmHearingAid:/code_location \
 /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
 python /om2/user/msaddler/pitchnet/assets_archsearch/arch_search_run_train.py \
