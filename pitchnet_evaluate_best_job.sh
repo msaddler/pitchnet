@@ -12,7 +12,7 @@
 #SBATCH --array=0-46
 
 ZERO_PADDED_JOBID=$(printf "%04d" $SLURM_ARRAY_TASK_ID)
-OUTDIR='/saved_models/arch_search_v01_arch_0302_manipulations/arch_'$ZERO_PADDED_JOBID
+OUTDIR='/saved_models/arch_search_v01_arch_0302_manipulations/arch_0302_'$ZERO_PADDED_JOBID
 SAVED_MODELS_PATH="$SCRATCH_PATH/pitchnet/saved_models"
 
 # OUTDIR='/saved_models/models_sr20000/arch_0302/PND_v08_TLAS_snr_neg10pos10_AN_BW10eN1_IHC0050Hz_classification'$SLURM_ARRAY_TASK_ID
