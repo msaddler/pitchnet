@@ -204,11 +204,41 @@ def make_TT_threshold_plot(ax, results_dict_input,
                            fontsize_ticks=12,
                            xlimits=[40, 360],
                            ylimits=[1e-1, 1e2],
-                           kwargs_bootstrap={}):
+                           kwargs_bootstrap={},
+                           collapse_transposed_tones=True):
     '''
     Function for plotting transposed tones discrimination experiment results:
     F0 discrimination thresholds as a function of frequency.
     '''
+    if collapse_transposed_tones:
+        # F0 discrimination thresholds will be averaged across transposed tones
+        # with different carrier frequencies
+        collapsed_results_dict_input = []
+        if isinstance(results_dict_input, dict):
+            results_dict_input = [results_dict_input]
+        for results_dict in results_dict_input:
+            results_dict = copy.deepcopy(results_dict)
+            f_carrier = np.array(results_dict['f_carrier'])
+            f0dl = np.array(results_dict['f0dl'])
+            f0_ref = np.array(results_dict['f0_ref'])
+            if threshold_cap is not None:
+                f0dl[f0dl > threshold_cap] = threshold_cap
+            PT_f_carrier = f_carrier[f_carrier == 0.0]
+            PT_f0_ref = f0_ref[f_carrier == 0.0]
+            PT_f0dl = f0dl[f_carrier == 0.0]
+            TT_f_carrier = np.ones_like(PT_f_carrier)
+            TT_f0_ref = np.zeros_like(PT_f0_ref)
+            TT_f0dl = np.zeros_like(PT_f0dl)
+            for idx, f0_ref_value in enumerate(PT_f0_ref):
+                COLLAPSE_IDX = np.logical_and(f_carrier > 0.0, f0_ref == f0_ref_value)
+                TT_f0_ref[idx] = f0_ref_value
+                TT_f0dl[idx] = np.mean(f0dl[COLLAPSE_IDX])
+            results_dict['f_carrier'] = np.concatenate([PT_f_carrier, TT_f_carrier], axis=0)
+            results_dict['f0_ref'] = np.concatenate([PT_f0_ref, TT_f0_ref], axis=0)
+            results_dict['f0dl'] = np.concatenate([PT_f0dl, TT_f0dl], axis=0)
+            collapsed_results_dict_input.append(results_dict)
+        results_dict_input = collapsed_results_dict_input
+    
     if isinstance(results_dict_input, dict):
         results_dict = copy.deepcopy(results_dict_input)
         f0dls = np.array(results_dict['f0dl'])
@@ -235,24 +265,25 @@ def make_TT_threshold_plot(ax, results_dict_input,
     f_carrier_list = np.array(results_dict['f_carrier'])
     f0dl_list = np.array(results_dict['f0dl'])
     f0dl_err_list = np.array(results_dict['f0dl_err'])
-    unique_f_carrier_list = np.unique(f_carrier_list)
+    unique_f_carrier_list = np.flip(np.unique(f_carrier_list))
     if restrict_conditions is not None:
         unique_f_carrier_list = restrict_conditions
     for f_carrier in unique_f_carrier_list:
         xval = f0_ref[f_carrier_list == f_carrier]
         yval = f0dl_list[f_carrier_list == f_carrier]
         yerr = f0dl_err_list[f_carrier_list == f_carrier]
-        if f_carrier > 0:
+        if f_carrier == 0.0:
+            label = 'Pure tones'
+            plot_kwargs = {'label': label, 'color': 'k', 'ls':'-', 'lw':2, 'ms':8,
+                           'marker':'o', 'markerfacecolor': 'k'}
+        else:
             label = '{}-Hz TT'.format(int(f_carrier))
             plot_kwargs = {'label': label, 'color': 'k', 'ls':'-', 'lw':2, 'ms':8,
                            'marker':'o', 'markerfacecolor': 'w'}
             if int(f_carrier) == 10080: plot_kwargs['marker'] = 'D'
             if int(f_carrier) == 6350: plot_kwargs['marker'] = '^'
             if int(f_carrier) == 4000: plot_kwargs['marker'] = 's'
-        else:
-            label = 'Pure tone'
-            plot_kwargs = {'label': label, 'color': 'k', 'ls':'-', 'lw':2, 'ms':8,
-                           'marker':'o', 'markerfacecolor': 'k'}
+            if int(f_carrier) == 1: plot_kwargs['label'] = 'Transposed tones'
         if not legend_on: plot_kwargs['label'] = None
         plot_kwargs.update(plot_kwargs_update)
         if include_yerr:
