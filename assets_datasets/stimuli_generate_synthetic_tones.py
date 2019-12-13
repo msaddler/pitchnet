@@ -105,7 +105,7 @@ def random_filtered_complex_tone_dataset(hdf5_filename, N,
         # Prepare data_dict for hdf5 filewriting
         data_dict['f0'] = f0
         data_dict['phase_mode'] = int(phase_mode_encoding[phase_mode])
-        data_dict[out_combined_key + 'dBSPL'] = dbspl
+        data_dict[out_combined_key + '_dBSPL'] = dbspl
         data_dict[out_snr_key] = snr
         data_dict[out_combined_key] = signal_and_noise.astype(np.float32)
         if out_signal_key is not None: data_dict[out_signal_key] = signal.astype(np.float32)
@@ -661,7 +661,7 @@ if __name__ == "__main__":
     assert len(sys.argv) == 3, "scipt usage: python <script_name> <hdf5_filename> <N>"
     hdf5_filename = str(sys.argv[1])
     N = int(sys.argv[2])
-
+    
     augmentation_filter_params = {
        'filter_signal': True, # filter_signalBPv00
         'filter_noise': False,
