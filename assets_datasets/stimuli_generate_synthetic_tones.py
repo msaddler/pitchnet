@@ -79,6 +79,9 @@ def random_filtered_complex_tone_dataset(hdf5_filename, N,
         'config_tone/f0_max': range_f0[1],
         'config_tone/amplitude_jitter': amplitude_jitter,
     }
+    for key in kwargs_modified_uniform_masking_noise.keys():
+        noise_augmentation_key = out_augmentation_prefix + 'modified_uniform_masking_noise_' + key
+        data_dict[noise_augmentation_key] = kwargs_modified_uniform_masking_noise[key]
     config_key_pair_list = [(k, k) for k in data_dict.keys()]
     data_key_pair_list = [] # Will be populated right before initializing hdf5 file
     # Main loop to generate dataset
@@ -99,10 +102,12 @@ def random_filtered_complex_tone_dataset(hdf5_filename, N,
                                                                  noise=noise,
                                                                  snr=snr,
                                                                  rms_out=20e-6*np.power(10, dbspl/20))
-        # Prepare data_dict
-        data_dict[out_combined_key] = signal_and_noise.astype(np.float32)
+        # Prepare data_dict for hdf5 filewriting
+        data_dict['f0'] = f0
+        data_dict['phase_mode'] = int(phase_mode_encoding[phase_mode])
         data_dict[out_combined_key + 'dBSPL'] = dbspl
         data_dict[out_snr_key] = snr
+        data_dict[out_combined_key] = signal_and_noise.astype(np.float32)
         if out_signal_key is not None: data_dict[out_signal_key] = signal.astype(np.float32)
         if out_noise_key is not None: data_dict[out_noise_key] = noise.astype(np.float32)
         for key in signal_filter_params.keys():
@@ -120,7 +125,8 @@ def random_filtered_complex_tone_dataset(hdf5_filename, N,
         # Write each data_dict to hdf5 file
         write_example_to_hdf5(hdf5_f, data_dict, itrN, data_key_pair_list=data_key_pair_list)
         if itrN % disp_step == 0:
-            print('... signal {} of {} (f0={:.2f}, dbspl={:.2f}, snr={:.2f})'.format(itrN, N, f0, dbspl, snr))
+            print('... signal {} of {} (f0={:.2f}, dbspl={:.2f}, snr={:.2f})'.format(itrN, N, f0, dbspl, snr),
+                  signal_filter_params)
     # Close hdf5 file
     hdf5_f.close()
     print('[END]: {}'.format(hdf5_filename))
@@ -655,19 +661,53 @@ if __name__ == "__main__":
     assert len(sys.argv) == 3, "scipt usage: python <script_name> <hdf5_filename> <N>"
     hdf5_filename = str(sys.argv[1])
     N = int(sys.argv[2])
-#     generate_bandpass_complex_tone_dataset(hdf5_filename, N)
-#     generate_lowpass_complex_tone_dataset(hdf5_filename, N)
-    generate_bernox2005_dataset(hdf5_filename, fs=32e3, dur=0.150, f0_min=80., f0_max=1e3,
-                                step_size_in_octaves=1/(12*16*64), phase_modes=['sine', 'rand'],
-                                highpass_filter_cutoff=5e3, lowpass_filter_cutoff=7e3,
-                                filter_order=4, threshold_dBSPL=33.3, component_dBSL=15.,
-                                noise_dBHzSPL=15., noise_attenuation_start=600.,
-                                noise_attenuation_slope=2, disp_step=100)
 
-#     generate_bernoxMovingFilter_dataset(hdf5_filename, fs=32e3, dur=0.150, f0_min=80., f0_max=640.,
-#                                         step_size_in_octaves=1/768, phase_modes=['sine', 'rand'],
-#                                         low_harm_min=1, low_harm_max=15,
-#                                         highpass_filter_cutoff=2.5e3, lowpass_filter_cutoff=3.5e3,
-#                                         filter_order=4, threshold_dBSPL=33.3, component_dBSL=15.,
-#                                         noise_dBHzSPL=15., noise_attenuation_start=600.,
-#                                         noise_attenuation_slope=2, disp_step=100)
+    augmentation_filter_params = {
+       'filter_signal': True, # filter_signalBPv00
+        'filter_noise': False,
+        'btype': 'bandpass',
+        'sampling_kwargs': {
+            'filter_fraction': 1.0,
+            'N_range': [1, 5],
+            'fc_range': [1e2, 5e3],
+            'bw_range': [2e3, 1e4],
+            'fc_log_scale': True,
+            'bw_log_scale': False
+        },
+    }
+#    augmentation_filter_params = {
+#       'filter_signal': True, # filter_signalHPv00
+#        'filter_noise': False,
+#        'btype': 'highpass',
+#        'sampling_kwargs': {
+#            'filter_fraction': 1.0,
+#            'N_range': [1, 5],
+#            'fc_range': [1e3, 1e4],
+#            'fc_log_scale': True,
+#        },
+#    }
+    
+    kwargs_modified_uniform_masking_noise = {
+        'dBHzSPL': 15.0,
+        'attenuation_start': 600.0,
+        'attenuation_slope': 2.0,
+    }
+    
+    random_filtered_complex_tone_dataset(hdf5_filename, N,
+                                         fs=32e3,
+                                         dur=0.150,
+                                         amplitude_jitter=0.5,
+                                         phase_modes=['sine'],
+                                         augmentation_filter_params=augmentation_filter_params,
+                                         kwargs_modified_uniform_masking_noise=kwargs_modified_uniform_masking_noise,
+                                         range_f0=[80.0, 1000.0],
+                                         range_snr=[-10., 10.],
+                                         range_dbspl=[30., 90.],
+                                         out_combined_key='stimuli/signal_in_noise',
+                                         out_signal_key=None,
+                                         out_noise_key=None,
+                                         out_snr_key='snr',
+                                         out_augmentation_prefix='augmentation/',
+                                         random_seed=858,
+                                         disp_step=1000)
+
