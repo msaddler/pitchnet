@@ -10,6 +10,29 @@ import stimuli_util
 
 sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
 from dataset_util import initialize_hdf5_file, write_example_to_hdf5
+from augment_dataset import sample_and_apply_random_filter
+
+
+def random_filtered_complex_tone(f0, fs, dur,
+                                 phase_mode='sine',
+                                 amplitude_jitter=0.5,
+                                 augmentation_filter_params={}):
+    '''
+    '''
+    frequencies = np.arange(f0, fs/2, f0)
+    amplitudes = np.random.uniform(low=1-amplitude_jitter,
+                                   high=1+amplitude_jitter,
+                                   size=frequencies.shape)
+    signal = stimuli_util.complex_tone(f0, fs, dur,
+                                       harmonic_numbers=None,
+                                       frequencies=frequencies,
+                                       amplitudes=amplitudes,
+                                       phase_mode=phase_mode,
+                                       offset_start=True,
+                                       strict_nyquist=True)
+    signal, signal_filter_params = sample_and_apply_random_filter(signal, fs,
+                                                                  **augmentation_filter_params)
+    return signal, signal_filter_params
 
 
 def lowpass_complex_tone(f0, fs, dur, attenuation_start=1000., attenuation_slope=0.,
