@@ -662,19 +662,19 @@ if __name__ == "__main__":
     hdf5_filename = str(sys.argv[1])
     N = int(sys.argv[2])
     
-    augmentation_filter_params = {
-       'filter_signal': True, # filter_signalBPv00
-        'filter_noise': False,
-        'btype': 'bandpass',
-        'sampling_kwargs': {
-            'filter_fraction': 1.0,
-            'N_range': [1, 5],
-            'fc_range': [1e2, 5e3],
-            'bw_range': [2e3, 1e4],
-            'fc_log_scale': True,
-            'bw_log_scale': False
-        },
-    }
+#     augmentation_filter_params = {
+#        'filter_signal': True, # filter_signalBPv00
+#         'filter_noise': False,
+#         'btype': 'bandpass',
+#         'sampling_kwargs': {
+#             'filter_fraction': 1.0,
+#             'N_range': [1, 5],
+#             'fc_range': [1e2, 5e3],
+#             'bw_range': [2e3, 1e4],
+#             'fc_log_scale': True,
+#             'bw_log_scale': False
+#         },
+#     }
 #    augmentation_filter_params = {
 #       'filter_signal': True, # filter_signalHPv00
 #        'filter_noise': False,
@@ -686,6 +686,17 @@ if __name__ == "__main__":
 #            'fc_log_scale': True,
 #        },
 #    }
+    augmentation_filter_params = {
+        'filter_signal': True, # filter_signalLPv00
+        'filter_noise': False,
+        'btype': 'lowpass',
+        'sampling_kwargs': {
+           'filter_fraction': 1.0,
+           'N_range': [1, 5],
+           'fc_range': [1e3, 1e4],
+           'fc_log_scale': True,
+        },
+    }
     
     kwargs_modified_uniform_masking_noise = {
         'dBHzSPL': 15.0,
