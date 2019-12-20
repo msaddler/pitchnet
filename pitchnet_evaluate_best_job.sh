@@ -11,34 +11,34 @@
 ##SBATCH --partition=mcdermott
 #SBATCH --array=0-46
 
-ZERO_PADDED_JOBID=$(printf "%04d" $SLURM_ARRAY_TASK_ID)
-OUTDIR='/saved_models/IHC0050Hz_arch_search_v01_arch_0302_manipulations/arch_0302_'$ZERO_PADDED_JOBID
-SAVED_MODELS_PATH="$SCRATCH_PATH/pitchnet/saved_models"
+# ZERO_PADDED_JOBID=$(printf "%04d" $SLURM_ARRAY_TASK_ID)
+# OUTDIR='/saved_models/IHC0050Hz_arch_search_v01_arch_0302_manipulations/arch_0302_'$ZERO_PADDED_JOBID
+# SAVED_MODELS_PATH="$SCRATCH_PATH/pitchnet/saved_models"
 
 # OUTDIR='/saved_models/models_sr20000/arch_0302/PND_synthetic_noise_UMNm_snr_neg10pos10_phase0_filter_signalLPv00_AN_BW10eN1_IHC3000Hz_classification'$SLURM_ARRAY_TASK_ID
 # SAVED_MODELS_PATH="/om2/user/msaddler/pitchnet/saved_models"
 
-TFRECORDS_REGEX='sr20000_cf100_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/*.tfrecords'
-EFN_PREFIX='EVAL_SOFTMAX_'
-WRITE_PROBS_OUT=1
+# TFRECORDS_REGEX='sr20000_cf100_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/*.tfrecords'
+# EFN_PREFIX='EVAL_SOFTMAX_'
+# WRITE_PROBS_OUT=1
 
-echo "evaluating model in output directory: $OUTDIR"
-echo "evaluation data: $TFRECORDS_REGEX"
+# echo "evaluating model in output directory: $OUTDIR"
+# echo "evaluation data: $TFRECORDS_REGEX"
 
 
-singularity exec --nv \
--B /home \
--B /om \
--B /om2 \
--B /om2/user/msaddler/python-packages:/python-packages \
--B $SAVED_MODELS_PATH:/saved_models \
--B /om2/user/msaddler/pitchnet/ibmHearingAid:/code_location \
-/om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
-python pitchnet_evaluate_best.py \
--de "/om/user/msaddler/data_pitchnet/bernox2005/FixedFilter_f0min100_f0max300/$TFRECORDS_REGEX" \
--efn "${EFN_PREFIX}bernox2005_FixedFilter_bestckpt.json" \
--o "$OUTDIR" \
--wpo $WRITE_PROBS_OUT
+# singularity exec --nv \
+# -B /home \
+# -B /om \
+# -B /om2 \
+# -B /om2/user/msaddler/python-packages:/python-packages \
+# -B $SAVED_MODELS_PATH:/saved_models \
+# -B /om2/user/msaddler/pitchnet/ibmHearingAid:/code_location \
+# /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
+# python pitchnet_evaluate_best.py \
+# -de "/om/user/msaddler/data_pitchnet/bernox2005/FixedFilter_f0min100_f0max300/$TFRECORDS_REGEX" \
+# -efn "${EFN_PREFIX}bernox2005_FixedFilter_bestckpt.json" \
+# -o "$OUTDIR" \
+# -wpo $WRITE_PROBS_OUT
 
 
 # singularity exec --nv \
@@ -103,25 +103,25 @@ python pitchnet_evaluate_best.py \
 
 # ############ RUN VALIDATION SET ############
 
-# ZERO_PADDED_JOBID=$(printf "%04d" $SLURM_ARRAY_TASK_ID)
-# OUTDIR='/saved_models/arch_search_v01_arch_0302_manipulations/arch_0302_'$ZERO_PADDED_JOBID
-# SAVED_MODELS_PATH="$SCRATCH_PATH/pitchnet/saved_models"
-# DATA_PATH="$SCRATCH_PATH/data_pitchnet"
+ZERO_PADDED_JOBID=$(printf "%04d" $SLURM_ARRAY_TASK_ID)
+OUTDIR='/saved_models/IHC0050Hz_arch_search_v01_arch_0302_manipulations/arch_0302_'$ZERO_PADDED_JOBID
+SAVED_MODELS_PATH="$SCRATCH_PATH/pitchnet/saved_models"
+DATA_PATH="$SCRATCH_PATH/data_pitchnet"
 
-# echo "evaluating model in output directory: $OUTDIR"
-# echo "evaluation data: >>> validation set <<<"
+echo "evaluating model in output directory: $OUTDIR"
+echo "evaluation data: >>> validation set <<<"
 
-# singularity exec --nv \
-# -B /home \
-# -B /om \
-# -B /om2 \
-# -B /om2/user/msaddler/python-packages:/python-packages \
-# -B $SAVED_MODELS_PATH:/saved_models \
-# -B $DATA_PATH:/data \
-# -B /om2/user/msaddler/pitchnet/ibmHearingAid:/code_location \
-# /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
-# python pitchnet_evaluate_best.py \
-# -de "/data/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_0[8-9]*.tfrecords" \
-# -efn "EVAL_validation_bestckpt.json" \
-# -o "$OUTDIR" \
-# -wpo 0
+singularity exec --nv \
+-B /home \
+-B /om \
+-B /om2 \
+-B /om2/user/msaddler/python-packages:/python-packages \
+-B $SAVED_MODELS_PATH:/saved_models \
+-B $DATA_PATH:/data \
+-B /om2/user/msaddler/pitchnet/ibmHearingAid:/code_location \
+/om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
+python pitchnet_evaluate_best.py \
+-de "/data/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates_0[8-9]*.tfrecords" \
+-efn "EVAL_validation_bestckpt.json" \
+-o "$OUTDIR" \
+-wpo 0
