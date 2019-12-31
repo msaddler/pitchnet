@@ -15,10 +15,10 @@
 # OUTDIR='/saved_models/IHC0050Hz_arch_search_v01_arch_0302_manipulations/arch_0302_'$ZERO_PADDED_JOBID
 # SAVED_MODELS_PATH="$SCRATCH_PATH/pitchnet/saved_models"
 
-OUTDIR='/saved_models/models_sr20000/arch_0302/PND_v08_TLAS_snr_neg10pos10_AN_BW20eN1_IHC3000Hz_classification'$SLURM_ARRAY_TASK_ID
+OUTDIR='/saved_models/models_sr20000/arch_0302/PND_v08_TLAS_snr_neg10pos10_AN_BW10eN1_IHC0050Hz_classification'$SLURM_ARRAY_TASK_ID
 SAVED_MODELS_PATH="/om2/user/msaddler/pitchnet/saved_models"
 
-TFRECORDS_REGEX='sr20000_cf100_species002_spont070_BW20eN1_IHC3000Hz_IHC7order/*.tfrecords'
+TFRECORDS_REGEX='sr20000_cf100_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/*.tfrecords'
 EFN_PREFIX='EVAL_SOFTMAX_'
 WRITE_PROBS_OUT=1
 
@@ -26,19 +26,19 @@ echo "evaluating model in output directory: $OUTDIR"
 echo "evaluation data: $TFRECORDS_REGEX"
 
 
-singularity exec --nv \
--B /home \
--B /om \
--B /om2 \
--B /om2/user/msaddler/python-packages:/python-packages \
--B $SAVED_MODELS_PATH:/saved_models \
--B /om2/user/msaddler/pitchnet/ibmHearingAid:/code_location \
-/om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
-python pitchnet_evaluate_best.py \
--de "/om/user/msaddler/data_pitchnet/bernox2005/FixedFilter_f0min100_f0max300/$TFRECORDS_REGEX" \
--efn "${EFN_PREFIX}bernox2005_FixedFilter_bestckpt.json" \
--o "$OUTDIR" \
--wpo $WRITE_PROBS_OUT
+# singularity exec --nv \
+# -B /home \
+# -B /om \
+# -B /om2 \
+# -B /om2/user/msaddler/python-packages:/python-packages \
+# -B $SAVED_MODELS_PATH:/saved_models \
+# -B /om2/user/msaddler/pitchnet/ibmHearingAid:/code_location \
+# /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
+# python pitchnet_evaluate_best.py \
+# -de "/om/user/msaddler/data_pitchnet/bernox2005/FixedFilter_f0min100_f0max300/$TFRECORDS_REGEX" \
+# -efn "${EFN_PREFIX}bernox2005_FixedFilter_bestckpt.json" \
+# -o "$OUTDIR" \
+# -wpo $WRITE_PROBS_OUT
 
 
 singularity exec --nv \
