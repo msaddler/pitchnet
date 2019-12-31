@@ -26,8 +26,8 @@ echo $(hostname)
 # dest_filename="$SCRATCH_PATH"'/data_pitchnet/PND_synthetic/noise_UMNm_snr_neg10pos10_phase0_filter_signalHPv00/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
 # jobs_per_source_file=100
 
-source_regex='/om/user/msaddler/data_pitchnet/bernox2005/FixedFilter_f0min100_f0max300/*.hdf5'
-dest_filename='/om/user/msaddler/data_pitchnet/bernox2005/FixedFilter_f0min100_f0max300/sr20000_cf100_species002_spont070_BW05eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
+source_regex='/om/user/msaddler/data_pitchnet/shackcarl1994/AltPhase_v01_f0min080_f0max320/*.hdf5'
+dest_filename='/om/user/msaddler/data_pitchnet/shackcarl1994/AltPhase_v01_f0min080_f0max320/sr20000_cf100_species002_spont070_BW05eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
 jobs_per_source_file=20
 
 # source_regex='/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to320Hz_dense4x/*.hdf5'
