@@ -153,6 +153,7 @@ if __name__ == "__main__":
     dest_filename = dest_filename[:sidx] + '_{:07d}-{:07d}' + dest_filename[sidx:]
     dest_filename = dest_filename.format(idx_start, idx_end)
     print('[START] {}'.format(dest_filename))
+    print('job_idx={}, N={}'.format(args.job_idx, N))
     
 #     augmentation_filter_params = {
 #        'filter_signal': True, # filter_signalBPv00
@@ -168,14 +169,14 @@ if __name__ == "__main__":
 #         },
 #     }
     augmentation_filter_params = {
-        'filter_signal': True, # filter_signalHPv00
+        'filter_signal': True, # filter_signalHPv02
         'filter_noise': False,
         'btype': 'highpass',
         'sampling_kwargs': {
            'filter_fraction': 1.0,
            'N_range': [1, 5],
            'fc_range': [1e3, 1e4],
-           'fc_log_scale': True,
+           'fc_log_scale': False,
         },
     }
 #     augmentation_filter_params = {
@@ -196,11 +197,15 @@ if __name__ == "__main__":
         'attenuation_slope': 2.0,
     }
     
+    for key in sorted(augmentation_filter_params.keys()):
+        print('augmentation_filter_params/', key, augmentation_filter_params[key])
+    for key in sorted(kwargs_modified_uniform_masking_noise.keys()):
+        print('kwargs_modified_uniform_masking_noise/', key, kwargs_modified_uniform_masking_noise[key])
     random_filtered_complex_tone_dataset(dest_filename, N,
                                          fs=32e3,
                                          dur=0.150,
                                          amplitude_jitter=0.5,
-                                         phase_modes=['sine'],
+                                         phase_modes=['sine', 'cos'],
                                          augmentation_filter_params=augmentation_filter_params,
                                          kwargs_modified_uniform_masking_noise=kwargs_modified_uniform_masking_noise,
                                          range_f0=[80.0, 1001.3713909809752],

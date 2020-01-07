@@ -1,19 +1,27 @@
 #!/bin/bash
 #
-#SBATCH --partition=mcdermott
-#SBATCH --job-name=synth_tones
-#SBATCH --out="trash/slurm-%A_%a.out"
-#SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=2500
+#SBATCH --job-name=synthetic_tones
+#SBATCH --out="slurm-%A_%a.out"
+#SBATCH --cpus-per-task=2
+#SBATCH --mem-per-cpu=2000
 #SBATCH --nodes=1
-#SBATCH --time=0-3:30:00
+#SBATCH --time=0-2:00:00
+#SBATCH --time-min=0-1:00:00
+##SBATCH --exclude=node[001-030]
 #SBATCH --array=0-99
-##SBATCH --dependency=afterok:12702768
+##SBATCH --partition=mcdermott
 
-offset=100
+dest_filename="$SCRATCH_PATH/data_pitchnet/PND_synthetic/noise_UMNm_snr_neg10pos10_phase03_filter_signalHPv02/PND_sr32000_HPv02.hdf5"
+num_parallel_jobs=100
+num_total_stimuli=700000
+offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
-hdf5_filename='/om/user/msaddler/data_pitchnet/bernox2005/SyntheticTonesBandpass/SyntheticTonesBandpass_v0.hdf5-'
 
-# python -u stimuli_generate_synthetic_tones.py "${hdf5_filename}${job_idx}" 6000
+export HDF5_USE_FILE_LOCKING=FALSE
+source activate mdlab
 
-python -u stimuli_jwss_background_noise.py "${hdf5_filename}${job_idx}" "/om/user/msaddler/data_pitchnet/JarrodWiktorSoundSegments.hdf5"
+python -u stimuli_generate_synthetic_tones.py \
+-d "${dest_filename}" \
+-j ${job_idx} \
+-npj ${num_parallel_jobs} \
+-nts ${num_total_stimuli}
