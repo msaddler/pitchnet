@@ -4,6 +4,7 @@ import numpy as np
 import h5py
 import scipy.signal
 import itertools
+import argparse
 import pdb
 
 import stimuli_util
@@ -134,10 +135,24 @@ def random_filtered_complex_tone_dataset(hdf5_filename, N,
 
 
 if __name__ == "__main__":
-    ''' TEMPORARY COMMAND-LINE USAGE '''
-    assert len(sys.argv) == 3, "scipt usage: python <script_name> <hdf5_filename> <N>"
-    hdf5_filename = str(sys.argv[1])
-    N = int(sys.argv[2])
+    parser = argparse.ArgumentParser(description="Parallel add background noise to dataset")
+    parser.add_argument('-d', '--dest_filename', type=str, help='destination dataset filename')
+    parser.add_argument('-j', '--job_idx', type=int, default=0, help='job index')
+    parser.add_argument('-npj', '--num_parallel_jobs', type=int, default=1, help='number of parallel jobs')
+    parser.add_argument('-nts', '--num_total_stimuli', type=int, default=2100000, help='total number of stimuli')
+    args = parser.parse_args()
+    assert args.dest_filename is not None, "-d (--dest_filename) is a required argument"
+    
+    # Modify dest_filename to reflect parallelization
+    partitions = np.linspace(0, args.num_total_stimuli, args.num_parallel_jobs+1, dtype=int)
+    idx_start = partitions[args.job_idx]
+    idx_end = partitions[args.job_idx + 1]
+    N = idx_end - idx_start
+    dest_filename = args.dest_filename
+    sidx = dest_filename.rfind('.')
+    dest_filename = dest_filename[:sidx] + '_{:07d}-{:07d}' + dest_filename[sidx:]
+    dest_filename = dest_filename.format(idx_start, idx_end)
+    print('[START] {}'.format(dest_filename))
     
 #     augmentation_filter_params = {
 #        'filter_signal': True, # filter_signalBPv00
@@ -181,7 +196,7 @@ if __name__ == "__main__":
         'attenuation_slope': 2.0,
     }
     
-    random_filtered_complex_tone_dataset(hdf5_filename, N,
+    random_filtered_complex_tone_dataset(dest_filename, N,
                                          fs=32e3,
                                          dur=0.150,
                                          amplitude_jitter=0.5,
@@ -196,5 +211,5 @@ if __name__ == "__main__":
                                          out_noise_key='stimuli/noise',
                                          out_snr_key='snr',
                                          out_augmentation_prefix='augmentation/',
-                                         random_seed=858,
+                                         random_seed=args.job_idx,
                                          disp_step=1000)
