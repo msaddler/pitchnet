@@ -15,11 +15,11 @@
 # OUTDIR='/saved_models/IHC0050Hz_arch_search_v01_arch_0302_manipulations/arch_0302_'$ZERO_PADDED_JOBID
 # SAVED_MODELS_PATH="$SCRATCH_PATH/pitchnet/saved_models"
 
-OUTDIR='/saved_models/models_sr20000/arch_0302/PND_v08_TLAS_snr_neg10pos10_AN_BW10eN1_IHC3000Hz_classification'$SLURM_ARRAY_TASK_ID
+OUTDIR='/saved_models/models_sr20000/arch_0302/PND_v08_TLAS_snr_neg10pos10_AN_BW30eN1_IHC3000Hz_classification'$SLURM_ARRAY_TASK_ID
 SAVED_MODELS_PATH="/om2/user/msaddler/pitchnet/saved_models"
 
 TFRECORDS_REGEX='sr20000_cf100_species002_spont070_BW30eN1_IHC3000Hz_IHC7order/*.tfrecords'
-EFN_PREFIX='EVAL_SOFTMAX_test_AN_BW30eN1_'
+EFN_PREFIX='EVAL_SOFTMAX_'
 WRITE_PROBS_OUT=1
 
 echo "evaluating model in output directory: $OUTDIR"
