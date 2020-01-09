@@ -1,8 +1,10 @@
 import sys
 import os
 import numpy as np
+import glob
 import h5py
 import json
+import copy
 import argparse
 import pdb
 
@@ -28,7 +30,7 @@ def compute_running_mean_power_spectrum(signal_list,
         if rescaled_dBSPL is not None:
             x = stimuli_util.set_dBSPL(x, rescaled_dBSPL)
         fxx, pxx = stimuli_util.power_spectrum(x, sr, **kwargs_power_spectrum)
-        if running_mean is None:
+        if running_freqs is None:
             running_freqs = fxx
             running_mean_spectrum = np.zeros_like(pxx)
             running_n = 0
@@ -38,7 +40,7 @@ def compute_running_mean_power_spectrum(signal_list,
 
 
 def serial_compute_mean_power_spectrum(source_fn_regex,
-                                       output_fn,
+                                       output_fn=None,
                                        key_signal='/stimuli/signal',
                                        key_sr='/sr',
                                        buffer_start_dur=0.070,
@@ -47,12 +49,30 @@ def serial_compute_mean_power_spectrum(source_fn_regex,
                                        kwargs_power_spectrum={}):
     '''
     '''
-    source_fn_list = sorted(glob.glob(source_fn_regex))
+    CONFIG = copy.deepcopy(locals())
+    source_fn_list = sorted(glob.glob(source_fn_regex))[0:5]
+    initial_source_fn_idx = 0
     running_freqs = None
     running_mean_spectrum = None
     running_n = None
-    print('Processing {} files'.format(len(source_fn_list)), flush=True)
-    source_fn_idx in range(0, len(source_fn_list)):
+    print('Total files to process: {}'.format(len(source_fn_list)), flush=True)
+    for key in sorted(CONFIG.keys()):
+        print('CONFIG', key, CONFIG[key], flush=True)
+    
+    if (output_fn is not None) and (os.path.isfile(output_fn)):
+        print('Loading data from existing output_fn: {}'.format(output_fn), flush=True)
+        with open(output_fn, 'r') as output_f:
+            results_dict = json.load(output_f)
+        initial_source_fn_idx = results_dict['source_fn_idx'] + 1
+        running_freqs = np.array(results_dict['freqs'])
+        running_mean_spectrum = np.array(results_dict['mean_spectrum'])
+        running_n = results_dict['n']
+        assert results_dict['key_signal'] == key_signal
+        assert results_dict['key_sr'] == key_sr
+        print('Setting initial_source_fn_idx={} (running_n={})'.format(
+            initial_source_fn_idx, running_n), flush=True)
+    
+    for source_fn_idx in range(initial_source_fn_idx, len(source_fn_list)):
         source_fn = source_fn_list[source_fn_idx]
         source_f = h5py.File(source_fn, 'r')
         sr = source_f[key_sr][0]
@@ -70,8 +90,31 @@ def serial_compute_mean_power_spectrum(source_fn_regex,
             running_n=running_n,
             kwargs_power_spectrum=kwargs_power_spectrum)
         source_f.close()
-        progress_str = 'Processed file {} of {} (running_n = {})'
+        progress_str = 'Processed file {} of {} (running_n={})'
         print(progress_str.format(source_fn_idx+1, len(source_fn_list), running_n), flush=True)
+        if output_fn is not None:
+            results_dict = {
+                'CONFIG': CONFIG,
+                'source_fn_regex': source_fn_regex,
+                'source_fn_idx': source_fn_idx,
+                'key_signal': key_signal,
+                'key_sr': key_sr,
+                'freqs': running_freqs,
+                'mean_spectrum': running_mean_spectrum,
+                'n': running_n,
+            }
+            # Write results_dict to json_results_dict_fn
+            with open(output_fn, 'w') as output_f:
+                json.dump(results_dict, output_f, cls=NumpyEncoder)
+            save_str = 'Updated output file: {}'
+            print(save_str.format(output_fn), flush=True)
     
     return running_freqs, running_mean_spectrum, running_n
 
+
+class NumpyEncoder(json.JSONEncoder):
+    ''' Helper class to JSON serialize the results_dict '''
+    def default(self, obj):
+        if isinstance(obj, np.ndarray): return obj.tolist()
+        if isinstance(obj, np.int64): return int(obj)  
+        return json.JSONEncoder.default(self, obj)
