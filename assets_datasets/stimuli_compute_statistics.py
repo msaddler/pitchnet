@@ -50,7 +50,7 @@ def serial_compute_mean_power_spectrum(source_fn_regex,
     '''
     '''
     CONFIG = copy.deepcopy(locals())
-    source_fn_list = sorted(glob.glob(source_fn_regex))[0:5]
+    source_fn_list = sorted(glob.glob(source_fn_regex))
     initial_source_fn_idx = 0
     running_freqs = None
     running_mean_spectrum = None
@@ -118,3 +118,31 @@ class NumpyEncoder(json.JSONEncoder):
         if isinstance(obj, np.ndarray): return obj.tolist()
         if isinstance(obj, np.int64): return int(obj)  
         return json.JSONEncoder.default(self, obj)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="compute mean power spectrum of hdf5 dataset")
+    parser.add_argument('-r', '--source_fn_regex', type=str, default=None)
+    parser.add_argument('-o', '--output_fn', type=str, default=None)
+    parser.add_argument('-k', '--key_signal', type=str, default='/stimuli/signal')
+    parser.add_argument('-ksr', '--key_sr', type=str, default='/sr')
+    parsed_args_dict = vars(parser.parse_args())
+    
+    source_fn_regex = parsed_args_dict['source_fn_regex']
+    output_fn = parsed_args_dict['output_fn']
+    key_signal = parsed_args_dict['key_signal']
+    key_sr = parsed_args_dict['key_sr']
+    assert source_fn_regex is not None, "source_fn_regex is a required argument"
+    if output_fn is None:
+        output_fn_dirname = os.path.dirname(source_fn_regex)
+        output_fn_basename = 'TMP_mean_spectrum_KEY{}.json'.format(key_signal.replace('/', '_'))
+        output_fn = os.path.join(output_fn_dirname, output_fn_basename)
+    
+    serial_compute_mean_power_spectrum(source_fn_regex,
+                                       output_fn=output_fn,
+                                       key_signal=key_signal,
+                                       key_sr=key_sr,
+                                       buffer_start_dur=0.070,
+                                       buffer_end_dur=0.010,
+                                       rescaled_dBSPL=60.0,
+                                       kwargs_power_spectrum={})
