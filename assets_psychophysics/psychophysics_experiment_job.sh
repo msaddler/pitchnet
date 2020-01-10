@@ -16,7 +16,7 @@ offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
 echo $(hostname)
 
-OUTDIR_REGEX='/om2/user/msaddler/pitchnet/saved_models/models_sr20000/arch_0302/PND_synthetic_noise_UMNm_snr_neg10pos10_phase03_filter_signalBPv02_AN_BW10eN1_IHC3000Hz_classification*'
+OUTDIR_REGEX='/om2/user/msaddler/pitchnet/saved_models/models_sr20000/arch_0302/PND_v08_TLAS_snr_posInf_AN_BW10eN1_IHC3000Hz_classification*'
 # OUTDIR_REGEX='/om/scratch/Sat/msaddler/pitchnet/saved_models/IHC0050Hz_arch_search_v01_arch_0302_manipulations/arch*'
 EFN_PREFIX='EVAL_SOFTMAX_*'
 PRIOR_RANGE='0.5'
