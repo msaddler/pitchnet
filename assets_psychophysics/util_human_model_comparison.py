@@ -551,6 +551,59 @@ def get_human_results_dict_altphasecomplexes(average_conditions=True):
         return [results_dict_subjectTS, results_dict_subjectJS, results_dict_subjectSD, results_dict_subjectRB]
 
 
+def extract_data_from_alt_phase_histogram_ps_file(fn='alt_hist.ps'):
+    '''
+    Helper script to extract alt-phase pitch-match data from histograms
+    (Figure 2 of Shackleton & Carlyon, 1994 JASA). Argument is filename of
+    post-script file received by email from Carlyon & Shackleton (2020JAN10).
+    '''
+    # Load post-script file as text file
+    with open(fn, 'r') as f:
+        line_list = f.readlines()
+    relevant_line_list = []
+    # Hacked-together code to extract all relevant lines
+    for tmp_line in line_list:
+        x = tmp_line.strip()
+        if len(x) > 4:
+            if (x[0] == '(') and (x[3] == ')'):
+                relevant_line_list.append(x[1])
+            if (x[-2:] == ' h'):
+                relevant_line_list.append(x.replace(' h', ''))
+    # Sort relevant lines into labels (keys) and values (floats)
+    results_dict = {}
+    current_key = None
+    for tmp_line in relevant_line_list:
+        if '.' not in tmp_line:
+            results_dict[tmp_line] = []
+            current_key = tmp_line
+        else:
+            assert current_key is not None
+            results_dict[current_key].append(float(tmp_line))
+    for key in results_dict.keys():
+        results_dict[key] = np.array(results_dict[key])
+    # Organize output in human_hist_results_dict for re-plotting
+    bin_heights_array = np.zeros([9, 95])
+    for idx, key in enumerate(sorted(results_dict.keys())):
+        bin_heights_array[idx, :] = results_dict[key]
+    bins = [0.9]
+    while bins[-1] < 2.3:
+        bins.append(bins[-1] * (1.01))
+    bins = np.array(bins)
+    bin_centers = (bins[:-1] + bins[1:]) / 2
+    bin_widths = bins[:-1] - bins[1:]
+    filter_conditions = np.array([ 125., 125., 125., 1375., 1375., 1375., 3900., 3900., 3900.])
+    f0_conditions = np.array([ 62.5, 125., 250., 62.5, 125., 250., 62.5, 125., 250.])
+    human_hist_results_dict = {
+        'filter_conditions': filter_conditions,
+        'f0_conditions': f0_conditions,
+        'bins': bins,
+        'bin_centers': bin_centers,
+        'bin_widths': bin_widths,
+        'bin_heights_array': bin_heights_array,
+    }
+    return human_hist_results_dict
+
+
 def get_mistuned_harmonics_bar_graph_results_dict(results_dict, mistuned_pct=3.0,
                                                   pitch_shift_key='f0_pred_pct_median',
                                                   harmonic_list=[1,2,3,4,5,6],
