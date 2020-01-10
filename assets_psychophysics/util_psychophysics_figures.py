@@ -773,15 +773,16 @@ def make_altphase_histograms(results_dict_input,
         ax.xaxis.set_major_formatter(ScalarFormatter())
         ax.xaxis.set_minor_formatter(NullFormatter())
         ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+        ax.set_xlim(xlimits)
         ax.set_xticks(xticks)
         ax.set_xticks(np.arange(xlimits[0], xlimits[1], 0.1), minor=True)
         ax.set_ylim(ylimits)
         ax.set_yticks(np.arange(ylimits[0], ylimits[1], yticks))
-        ax.tick_params(axis='y', which='both', labelsize=fontsize_ticks, length=6,
+        ax.tick_params(axis='y', which='both', labelsize=fontsize_ticks, length=5,
                        direction='inout', right=True, left=True)
-        ax.tick_params(axis='x', which='major', labelsize=fontsize_ticks, length=6,
+        ax.tick_params(axis='x', which='major', labelsize=fontsize_ticks, length=9,
                        direction='inout', top=True, bottom=True)
-        ax.tick_params(axis='x', which='minor', length=3,
+        ax.tick_params(axis='x', which='minor', length=5,
                        direction='inout', top=True, bottom=True)
     
     ax_arr[xlabel_idx].set_xlabel('Ratio of predicted F0 to target F0',
