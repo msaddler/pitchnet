@@ -478,6 +478,44 @@ def get_mistuned_harmonics_bar_graph_results_dict(results_dict, mistuned_pct=3.0
     return bar_graph_results_dict
 
 
+def get_alt_phase_histogram_results_dict(results_dict,
+                                         bin_step=0.01,
+                                         bin_limits=[0.9, 2.3]):
+    '''
+    This helper function parses a results_dict from the Shackleton and Carlyon (1994, JASA)
+    alternating phase experiment into a smaller histogram_results_dict, which allows for
+    easier plotting of the Shackleton & Carlyon (1994, JASA) pitch match histograms (Fig 2).
+    '''
+    filter_conditions = np.array(results_dict['f0_pred_ratio_results']['filter_condition_list'])
+    f0_conditions = np.array(results_dict['f0_pred_ratio_results']['f0_condition_list'])
+    f0_pred_ratio_list = results_dict['f0_pred_ratio_results']['f0_pred_ratio_list']
+    assert len(f0_pred_ratio_list) == len(filter_conditions)
+    assert len(f0_pred_ratio_list) == len(f0_conditions)
+    # Create the histogram bins (shared for all conditions)
+    bins = [bin_limits[0]]
+    while bins[-1] < bin_limits[1]:
+        bins.append(bins[-1] * (1.0+bin_step))
+    bins = np.array(bins)
+    bin_centers = (bins[:-1] + bins[1:]) / 2
+    bin_widths = bins[:-1] - bins[1:]
+    bin_heights_array = np.zeros([len(f0_pred_ratio_list), len(bin_centers)])
+    # Manually compute histogram and convert to percentage for each condition
+    for idx in range(len(f0_pred_ratio_list)):
+        bin_counts, bin_edges = np.histogram(f0_pred_ratio_list[idx], bins=bins)
+        bin_percentages = 100.0 * bin_counts / np.sum(bin_counts)
+        bin_heights_array[idx, :] = bin_percentages
+    # Return outputs in an orderly dictionary, ready for plotting / averaging
+    histogram_results_dict = {
+        'filter_conditions': filter_conditions,
+        'f0_conditions': f0_conditions,
+        'bins': bins,
+        'bin_centers': bin_centers,
+        'bin_widths': bin_widths,
+        'bin_heights_array': bin_heights_array,
+    }
+    return histogram_results_dict
+
+
 def interpolate_data(xvals, yvals, interp_xvals, kind='linear',
                      bounds_error=True, fill_value=np.nan):
     '''
