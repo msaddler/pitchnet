@@ -726,49 +726,49 @@ def make_altphase_histograms(results_dict_input,
         results_dict_list = results_dict_input
     else:
         raise ValueError("INVALID results_dict_input")
-    # Pool data across subjects in results_dict_list
-    rd0 = results_dict_list[0]
-    filter_condition_list = rd0['f0_pred_ratio_results']['filter_condition_list']
-    f0_condition_list = rd0['f0_pred_ratio_results']['f0_condition_list']
-    kwargs_f0_pred_ratio = rd0['f0_pred_ratio_results']['kwargs_f0_pred_ratio']
-    f0_pred_ratio_list = [[]] * len(filter_condition_list)
-    for rd in results_dict_list:
-        assert rd['f0_pred_ratio_results']['filter_condition_list'] == filter_condition_list
-        assert rd['f0_pred_ratio_results']['f0_condition_list'] == f0_condition_list
-        for idx, data in enumerate(rd['f0_pred_ratio_results']['f0_pred_ratio_list']):
-            f0_pred_ratio_list[idx] = f0_pred_ratio_list[idx] + data
-    
+    # Convert list on input result dictionaries to histogram result dictionaries
+    hist_results_dict_list = []
+    for results_dict in results_dict_list:
+        if 'bin_heights_array' in results_dict.keys():
+            # If input contains histogram results, skip conversion step
+            hist_results_dict_list.append(results_dict)
+        else:
+            tmp = util_human_model_comparison.get_alt_phase_histogram_results_dict(results_dict,
+                                                                                   bin_step=bin_step,
+                                                                                   bin_limits=xlimits)
+            hist_results_dict_list.append(tmp)
+    # Pool data across subjects in hist_results_dict_list
+    filter_conditions = hist_results_dict_list[0]['filter_conditions']
+    f0_conditions = hist_results_dict_list[0]['f0_conditions']
+    bin_centers = hist_results_dict_list[0]['bin_centers']
+    bin_widths = hist_results_dict_list[0]['bin_widths']
+    bin_heights_array = np.zeros_like(hist_results_dict_list[0]['bin_heights_array'])
+    for hist_results_dict in hist_results_dict_list:
+        assert np.all(filter_conditions == hist_results_dict['filter_conditions'])
+        assert np.all(f0_conditions == hist_results_dict['f0_conditions'])
+        assert np.all(bin_centers == hist_results_dict['bin_centers'])
+        assert np.all(bin_widths == hist_results_dict['bin_widths'])
+        bin_heights_array += (hist_results_dict['bin_heights_array'] / len(hist_results_dict_list))
+    # Construct the grid of histograms
+    NROWS = len(np.unique(filter_conditions))
+    NCOLS = len(np.unique(f0_conditions))
+    fig, ax_arr = plt.subplots(nrows=NROWS, ncols=NCOLS, figsize=figsize, sharex=True, sharey=True)
+    ax_arr = ax_arr.flatten()
+    xlabel_idx = NCOLS * NROWS - int(NCOLS/2) - 1
+    ylabel_idx = NCOLS
     if not condition_plot_labels:
         condition_plot_labels = {
             '125.0': 'Low',
             '1375.0': 'Mid',
             '3900.0': 'High',
         }
-    
-    NCOLS = len(np.unique(f0_condition_list))
-    NROWS = len(np.unique(filter_condition_list))
-    fig, ax_arr = plt.subplots(nrows=NROWS, ncols=NCOLS, figsize=figsize, sharex=True, sharey=True)
-    ax_arr = ax_arr.flatten()
-    xlabel_idx = NCOLS * NROWS - int(NCOLS/2) - 1
-    ylabel_idx = NCOLS
-    
-    for itr0 in range(len(f0_pred_ratio_list)):
-        ax = ax_arr[itr0]
+    for idx in range(bin_heights_array.shape[0]):
+        ax = ax_arr[idx]
         ax.set_xscale('log')
-        label = '{}, {} Hz'.format(condition_plot_labels[str(filter_condition_list[itr0])],
-                                   f0_condition_list[itr0])
-        
-        # Create bins for the ratio histogram (log-scale)
-        bins = [xlimits[0]]
-        while bins[-1] < xlimits[1]: bins.append(bins[-1] * (1.0+bin_step))
-        # Manually compute histogram and convert to percentage
-        bin_counts, bin_edges = np.histogram(f0_pred_ratio_list[itr0], bins=bins)
-        bin_percentages = 100.0 * bin_counts / np.sum(bin_counts)
-        bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
-        bin_widths = bin_edges[:-1] - bin_edges[1:]
-        ax.bar(bin_centers, bin_percentages, width=bin_widths, align='center', label=label, color='k')
+        label = '{}, {} Hz'.format(condition_plot_labels[str(filter_conditions[idx])],
+                                   f0_conditions[idx])
+        ax.bar(bin_centers, bin_heights_array[idx], width=bin_widths, align='center', label=label, color='k')
         ax.legend(loc=0, frameon=False, markerscale=0, handlelength=0, fontsize=fontsize_legend)
-        
         from matplotlib.ticker import ScalarFormatter, NullFormatter, FormatStrFormatter
         ax.xaxis.set_major_formatter(ScalarFormatter())
         ax.xaxis.set_minor_formatter(NullFormatter())
