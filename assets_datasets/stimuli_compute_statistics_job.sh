@@ -10,7 +10,7 @@
 #SBATCH --exclude=node[001-030]
 #SBATCH --partition=mcdermott
 
-source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10_filter_signalBPv02/*.hdf5'
+source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10_filter_signalHPv02/*.hdf5'
 
 export HDF5_USE_FILE_LOCKING=FALSE
 source activate mdlab
