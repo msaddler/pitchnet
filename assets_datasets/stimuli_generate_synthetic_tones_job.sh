@@ -11,7 +11,7 @@
 #SBATCH --array=0-99
 ##SBATCH --partition=mcdermott
 
-dest_filename="$SCRATCH_PATH/data_pitchnet/PND_synthetic/noise_UMNm_snr_neg10pos10_phase01_filter_signalLPv00/PND_sr32000_LPv00.hdf5"
+dest_filename="$SCRATCH_PATH/data_pitchnet/PND_synthetic/noise_UMNm_snr_neg10pos10_phase01_filter_signalHPv00/PND_sr32000_HPv00.hdf5"
 num_parallel_jobs=100
 num_total_stimuli=700000
 offset=0
