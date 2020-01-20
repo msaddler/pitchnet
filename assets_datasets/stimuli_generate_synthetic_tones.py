@@ -155,30 +155,30 @@ if __name__ == "__main__":
     print('[START] {}'.format(dest_filename))
     print('job_idx={}, N={}'.format(args.job_idx, N))
     
-#     augmentation_filter_params = {
-#         'filter_signal': True, # filter_signalBPv00
-#         'filter_noise': False,
-#         'btype': 'bandpass',
-#         'sampling_kwargs': {
-#             'filter_fraction': 1.0,
-#             'N_range': [1, 5],
-#             'fc_range': [1e2, 5e3],
-#             'bw_range': [2e3, 1e4],
-#             'fc_log_scale': True,
-#             'bw_log_scale': False
-#         },
-#     }
     augmentation_filter_params = {
-        'filter_signal': True, # filter_signalHPv00
+        'filter_signal': True, # filter_signalBPv00
         'filter_noise': False,
-        'btype': 'highpass',
+        'btype': 'bandpass',
         'sampling_kwargs': {
             'filter_fraction': 1.0,
             'N_range': [1, 5],
-            'fc_range': [1e3, 1e4],
+            'fc_range': [1e2, 5e3],
+            'bw_range': [2e3, 1e4],
             'fc_log_scale': True,
+            'bw_log_scale': False
         },
     }
+#     augmentation_filter_params = {
+#         'filter_signal': True, # filter_signalHPv00
+#         'filter_noise': False,
+#         'btype': 'highpass',
+#         'sampling_kwargs': {
+#             'filter_fraction': 1.0,
+#             'N_range': [1, 5],
+#             'fc_range': [1e3, 1e4],
+#             'fc_log_scale': True,
+#         },
+#     }
 #     augmentation_filter_params = {
 #         'filter_signal': True, # filter_signalLPv00
 #         'filter_noise': False,
