@@ -838,9 +838,9 @@ def make_altphase_histogram_plot(ax, results_dict_input,
             # If input contains histogram results, skip conversion step
             hist_results_dict_list.append(results_dict)
         else:
-            tmp = util_human_model_comparison.get_alt_phase_histogram_results_dict(results_dict,
-                                                                                   bin_step=bin_step,
-                                                                                   bin_limits=xlimits)
+            tmp = util_human_model_comparison.get_altphase_histogram_results_dict(results_dict,
+                                                                                  bin_step=bin_step,
+                                                                                  bin_limits=xlimits)
             hist_results_dict_list.append(tmp)
     # Pool data across subjects in hist_results_dict_list
     filter_conditions = hist_results_dict_list[0]['filter_conditions']
