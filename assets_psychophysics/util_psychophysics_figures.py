@@ -839,6 +839,8 @@ def make_altphase_histogram_plot(ax, results_dict_input,
     bin_centers = hist_results_dict_list[0]['bin_centers']
     bin_widths = hist_results_dict_list[0]['bin_widths']
     bin_heights_array = np.zeros_like(hist_results_dict_list[0]['bin_heights_array'])
+
+    bin_xvals = np.ravel(np.column_stack((bin_centers-bin_widths/2, bin_centers+bin_widths/2)))
     for hist_results_dict in hist_results_dict_list:
         assert np.all(filter_conditions == hist_results_dict['filter_conditions'])
         assert np.all(f0_conditions == hist_results_dict['f0_conditions'])
@@ -849,9 +851,9 @@ def make_altphase_histogram_plot(ax, results_dict_input,
     # Plot pitch match histograms for specified conditions
     if not condition_plot_kwargs_filter:
         condition_plot_kwargs_filter = {
-            '125.0': {'label': 'LOW', 'color': 'k', 'alpha':0.5},
-            '1375.0': {'label': 'MID', 'color': 'b', 'alpha':0.5}, 
-            '3900.0': {'label': 'HIGH', 'color': 'r', 'alpha':0.5},
+            '125.0': {'label': 'LOW', 'color': 'k', 'alpha':0.3, 'lw':1.5},
+            '1375.0': {'label': 'MID', 'color': 'b', 'alpha':0.3, 'lw':1.5}, 
+            '3900.0': {'label': 'HIGH', 'color': 'r', 'alpha':0.3, 'lw':1.5},
         }
     
     ax.set_xscale('log')
@@ -862,10 +864,14 @@ def make_altphase_histogram_plot(ax, results_dict_input,
             idx = list(idx).index(True)
             plot_kwargs = condition_plot_kwargs_filter[str(filter_val)]
             label = '{}, {:.0f} Hz'.format(plot_kwargs.pop('label'), f0_val)
-            ax.bar(bin_centers, bin_heights_array[idx], width=bin_widths, align='center',
-                   label=label, **plot_kwargs)
+            bin_yvals = np.ravel(np.column_stack((bin_heights_array[idx], bin_heights_array[idx])))
+            ax.fill_between(bin_xvals, bin_yvals, **plot_kwargs)
+            plot_kwargs.pop('alpha')
+            ax.plot(bin_xvals, bin_yvals, label=label, **plot_kwargs)
     if legend_on:
-        ax.legend(loc=0, frameon=False, markerscale=0, handlelength=1, fontsize=fontsize_legend)
+        leg = ax.legend(loc=0, frameon=False, markerscale=0, handlelength=1, fontsize=fontsize_legend)
+        for legobj in leg.legendHandles:
+            legobj.set_linewidth(8.0)
     if title_str:
         ax.set_title(title_str, fontsize=fontsize_title)
     ax.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
@@ -879,6 +885,6 @@ def make_altphase_histogram_plot(ax, results_dict_input,
     ax.tick_params(axis='y', which='both', labelsize=fontsize_ticks, direction='out', right=False, left=True)
     ax.tick_params(axis='x', which='major', labelsize=fontsize_ticks, direction='out', top=False, bottom=True)
     ax.tick_params(axis='x', which='minor', direction='out', top=False, bottom=True)
-    ax.set_xlabel('Predicted F0 / Target F0', fontsize=fontsize_labels)
+    ax.set_xlabel('Predicted F0 / target F0', fontsize=fontsize_labels)
     ax.set_ylabel('Pitch matches (%)', fontsize=fontsize_labels)
     return hist_results_dict_list
