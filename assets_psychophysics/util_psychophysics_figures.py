@@ -200,7 +200,7 @@ def make_TT_threshold_plot(ax, results_dict_input,
                            threshold_cap=100.0,
                            fontsize_title=12,
                            fontsize_labels=12,
-                           fontsize_legend=9,
+                           fontsize_legend=11,
                            fontsize_ticks=12,
                            xlimits=[40, 360],
                            ylimits=[1e-1, 1e2],
@@ -327,14 +327,14 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
                                    title_str=None,
                                    legend_on=True,
                                    include_yerr=False,
-                                   restrict_conditions=None,
+                                   restrict_conditions=['5', '11', '16'],
                                    fontsize_title=12,
                                    fontsize_labels=12,
                                    fontsize_legend=12,
                                    fontsize_ticks=12,
                                    xlimits=[-1, 25],
                                    ylimits=[-4, 12],
-                                   cmap_name=['r', 'b', 'k'],
+                                   cmap_name=['k', 'b', 'r'],
                                    kwargs_bootstrap={}):
     '''
     Function for plotting frequency-shifted complexes experiment results:
@@ -377,7 +377,7 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
         }
     
     assert set(results_dict[expt_key].keys()) == set(condition_plot_kwargs.keys())
-    condition_list = sorted(results_dict[expt_key].keys())
+    condition_list = sorted([int(x) for x in results_dict[expt_key].keys()])
     if restrict_conditions is not None:
         condition_list = restrict_conditions
     color_list = get_color_list(2*len(condition_list), cmap_name=cmap_name)
@@ -801,7 +801,7 @@ def make_altphase_histogram_plot(ax, results_dict_input,
                                  ylimits=[0, 25],
                                  condition_plot_kwargs_filter={},
                                  condition_plot_kwargs_f0={},
-                                 restrict_conditions_filter=[125.0, 1375.0, 3900.0],#[3900.0, 1375.0, 125.0],#
+                                 restrict_conditions_filter=[125.0, 1375.0, 3900.0],
                                  restrict_conditions_f0=[125.0],
                                  title_str=None,
                                  legend_on=True,
@@ -869,7 +869,7 @@ def make_altphase_histogram_plot(ax, results_dict_input,
             plot_kwargs.pop('alpha')
             ax.plot(bin_xvals, bin_yvals, label=label, **plot_kwargs)
     if legend_on:
-        leg = ax.legend(loc=0, frameon=False, markerscale=0, handlelength=1, fontsize=fontsize_legend)
+        leg = ax.legend(loc=9, frameon=False, markerscale=0, handlelength=0.4, fontsize=fontsize_legend)
         for legobj in leg.legendHandles:
             legobj.set_linewidth(8.0)
     if title_str:
