@@ -636,9 +636,9 @@ def get_mistuned_harmonics_bar_graph_results_dict(results_dict, mistuned_pct=3.0
     return bar_graph_results_dict
 
 
-def get_alt_phase_histogram_results_dict(results_dict,
-                                         bin_step=0.01,
-                                         bin_limits=[0.9, 2.3]):
+def get_altphase_histogram_results_dict(results_dict,
+                                        bin_step=0.01,
+                                        bin_limits=[0.9, 2.3]):
     '''
     This helper function parses a results_dict from the Shackleton and Carlyon (1994, JASA)
     alternating phase experiment into a smaller histogram_results_dict, which allows for
