@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=12
 #SBATCH --mem-per-cpu=8000
 #SBATCH --time=0-02:00:00
-#SBATCH --array=0-89
+#SBATCH --array=0-391
 #SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --exclude=node[001-030]
@@ -16,8 +16,8 @@ offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
 echo $(hostname)
 
-OUTDIR_REGEX='/om2/user/msaddler/pitchnet/saved_models/models_sr20000/arch_0302/*'
-# OUTDIR_REGEX='/om/scratch/Sat/msaddler/pitchnet/saved_models/IHC0050Hz_arch_search_v01_arch_0302_manipulations/arch*'
+# OUTDIR_REGEX='/om2/user/msaddler/pitchnet/saved_models/models_sr20000/arch_0302/*'
+OUTDIR_REGEX='/om/scratch/Wed/msaddler/pitchnet/saved_models/arch_search_v01/arch*'
 EFN_PREFIX='EVAL_SOFTMAX_*'
 PRIOR_RANGE='0.5'
 
