@@ -448,7 +448,7 @@ def get_human_results_dict_altphasecomplexes(average_conditions=True):
         bins.append(bins[-1] * (1.01))
     bins = np.array(bins)
     bin_centers = (bins[:-1] + bins[1:]) / 2
-    bin_widths = bins[:-1] - bins[1:]
+    bin_widths = bins[1:] - bins[:-1]
     filter_conditions = np.array([ 125., 125., 125., 1375., 1375., 1375., 3900., 3900., 3900.])
     f0_conditions = np.array([ 62.5, 125., 250., 62.5, 125., 250., 62.5, 125., 250.])
     bin_heights_array = np.array([[ 0. ,  0. ,  0.7,  0. ,  0. ,  0.7,  1.4,  1.4,  7.6,  9. , 13.2,
@@ -590,7 +590,7 @@ def extract_data_from_alt_phase_histogram_ps_file(fn='alt_hist.ps'):
         bins.append(bins[-1] * (1.01))
     bins = np.array(bins)
     bin_centers = (bins[:-1] + bins[1:]) / 2
-    bin_widths = bins[:-1] - bins[1:]
+    bin_widths = bins[1:] - bins[:-1]
     filter_conditions = np.array([ 125., 125., 125., 1375., 1375., 1375., 3900., 3900., 3900.])
     f0_conditions = np.array([ 62.5, 125., 250., 62.5, 125., 250., 62.5, 125., 250.])
     human_hist_results_dict = {
@@ -655,7 +655,7 @@ def get_alt_phase_histogram_results_dict(results_dict,
         bins.append(bins[-1] * (1.0+bin_step))
     bins = np.array(bins)
     bin_centers = (bins[:-1] + bins[1:]) / 2
-    bin_widths = bins[:-1] - bins[1:]
+    bin_widths = bins[1:] - bins[:-1]
     bin_heights_array = np.zeros([len(f0_pred_ratio_list), len(bin_centers)])
     # Manually compute histogram and convert to percentage for each condition
     for idx in range(len(f0_pred_ratio_list)):
