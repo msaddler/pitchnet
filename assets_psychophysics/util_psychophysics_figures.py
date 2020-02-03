@@ -726,7 +726,7 @@ def make_altphase_histograms(results_dict_input,
         results_dict_list = results_dict_input
     else:
         raise ValueError("INVALID results_dict_input")
-    # Convert list on input result dictionaries to histogram result dictionaries
+    # Convert list of input result dictionaries to histogram result dictionaries
     hist_results_dict_list = []
     for results_dict in results_dict_list:
         if 'bin_heights_array' in results_dict.keys():
@@ -769,10 +769,9 @@ def make_altphase_histograms(results_dict_input,
                                    f0_conditions[idx])
         ax.bar(bin_centers, bin_heights_array[idx], width=bin_widths, align='center', label=label, color='k')
         ax.legend(loc=0, frameon=False, markerscale=0, handlelength=0, fontsize=fontsize_legend)
-        from matplotlib.ticker import ScalarFormatter, NullFormatter, FormatStrFormatter
-        ax.xaxis.set_major_formatter(ScalarFormatter())
-        ax.xaxis.set_minor_formatter(NullFormatter())
-        ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+        ax.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+        ax.yaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter('%.1f'))
         ax.set_xlim(xlimits)
         ax.set_xticks(xticks)
         ax.set_xticks(np.arange(xlimits[0], xlimits[1], 0.1), minor=True)
@@ -792,3 +791,94 @@ def make_altphase_histograms(results_dict_input,
     plt.tight_layout()
     plt.subplots_adjust(wspace=0, hspace=0)
     return fig, ax_arr
+
+
+def make_altphase_histogram_plot(ax, results_dict_input,
+                                 bin_step=0.01,
+                                 xticks=[1.0, 1.5, 2.0],
+                                 xlimits=[0.9, 2.3],
+                                 yticks=5,
+                                 ylimits=[0, 25],
+                                 condition_plot_kwargs_filter={},
+                                 condition_plot_kwargs_f0={},
+                                 restrict_conditions_filter=[125.0, 1375.0, 3900.0],#[3900.0, 1375.0, 125.0],#
+                                 restrict_conditions_f0=[125.0],
+                                 title_str=None,
+                                 legend_on=True,
+                                 fontsize_title=12,
+                                 fontsize_labels=12,
+                                 fontsize_legend=12,
+                                 fontsize_ticks=12,
+                                 include_yerr=False,
+                                 kwargs_bootstrap={}):
+    '''
+    Function for plotting alternating phase experiment results:
+    histograms of ratio between predicted F0s and target F0s
+    for limited number of F0 and spectral conditions.
+    '''
+    if isinstance(results_dict_input, dict):
+        results_dict_list = [results_dict_input]
+    elif isinstance(results_dict_input, list):
+        results_dict_list = results_dict_input
+    else:
+        raise ValueError("INVALID results_dict_input")
+    # Convert list of input result dictionaries to histogram result dictionaries
+    hist_results_dict_list = []
+    for results_dict in results_dict_list:
+        if 'bin_heights_array' in results_dict.keys():
+            # If input contains histogram results, skip conversion step
+            hist_results_dict_list.append(results_dict)
+        else:
+            tmp = util_human_model_comparison.get_alt_phase_histogram_results_dict(results_dict,
+                                                                                   bin_step=bin_step,
+                                                                                   bin_limits=xlimits)
+            hist_results_dict_list.append(tmp)
+    # Pool data across subjects in hist_results_dict_list
+    filter_conditions = hist_results_dict_list[0]['filter_conditions']
+    f0_conditions = hist_results_dict_list[0]['f0_conditions']
+    bin_centers = hist_results_dict_list[0]['bin_centers']
+    bin_widths = hist_results_dict_list[0]['bin_widths']
+    bin_heights_array = np.zeros_like(hist_results_dict_list[0]['bin_heights_array'])
+    for hist_results_dict in hist_results_dict_list:
+        assert np.all(filter_conditions == hist_results_dict['filter_conditions'])
+        assert np.all(f0_conditions == hist_results_dict['f0_conditions'])
+        assert np.all(bin_centers == hist_results_dict['bin_centers'])
+        assert np.all(bin_widths == hist_results_dict['bin_widths'])
+        bin_heights_array += (hist_results_dict['bin_heights_array'] / len(hist_results_dict_list))
+    
+    # Plot pitch match histograms for specified conditions
+    if not condition_plot_kwargs_filter:
+        condition_plot_kwargs_filter = {
+            '125.0': {'label': 'LOW', 'color': 'k', 'alpha':0.5},
+            '1375.0': {'label': 'MID', 'color': 'b', 'alpha':0.5}, 
+            '3900.0': {'label': 'HIGH', 'color': 'r', 'alpha':0.5},
+        }
+    
+    ax.set_xscale('log')
+    for f0_val in restrict_conditions_f0:
+        for filter_val in restrict_conditions_filter:
+            idx = np.logical_and(f0_conditions==f0_val, filter_conditions==filter_val)
+            assert np.sum(idx) == 1
+            idx = list(idx).index(True)
+            plot_kwargs = condition_plot_kwargs_filter[str(filter_val)]
+            label = '{}, {:.0f} Hz'.format(plot_kwargs.pop('label'), f0_val)
+            ax.bar(bin_centers, bin_heights_array[idx], width=bin_widths, align='center',
+                   label=label, **plot_kwargs)
+    if legend_on:
+        ax.legend(loc=0, frameon=False, markerscale=0, handlelength=1, fontsize=fontsize_legend)
+    if title_str:
+        ax.set_title(title_str, fontsize=fontsize_title)
+    ax.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+    ax.yaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter('%.1f'))
+    ax.set_xlim(xlimits)
+    ax.set_xticks(xticks)
+    ax.set_xticks(np.arange(xlimits[0], xlimits[1], 0.1), minor=True)
+    ax.set_ylim(ylimits)
+    ax.set_yticks(np.arange(ylimits[0], ylimits[1]+1, yticks))
+    ax.tick_params(axis='y', which='both', labelsize=fontsize_ticks, direction='out', right=False, left=True)
+    ax.tick_params(axis='x', which='major', labelsize=fontsize_ticks, direction='out', top=False, bottom=True)
+    ax.tick_params(axis='x', which='minor', direction='out', top=False, bottom=True)
+    ax.set_xlabel('Predicted F0 / Target F0', fontsize=fontsize_labels)
+    ax.set_ylabel('Pitch matches (%)', fontsize=fontsize_labels)
+    return hist_results_dict_list
