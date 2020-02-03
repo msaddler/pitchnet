@@ -163,10 +163,14 @@ def make_bernox_threshold_plot(ax, results_dict_input,
         if phase_mode == 0:
             plot_kwargs = {'label': 'sine', 'color': 'k',
                            'ls':'-', 'lw':2, 'marker':''}
+            if len(xval) <= 10:
+                plot_kwargs.update({'ms':10, 'marker':'.'})
             plot_kwargs.update(sine_plot_kwargs)
         else:
             plot_kwargs = {'label': 'rand', 'color': 'k',
                            'ls':'--', 'lw':2, 'marker':''}
+            if len(xval) <= 10:
+                plot_kwargs.update({'ms':10, 'marker':'.'})
             plot_kwargs.update(rand_plot_kwargs)
         if not legend_on: plot_kwargs['label'] = None
         if include_yerr:
@@ -185,7 +189,12 @@ def make_bernox_threshold_plot(ax, results_dict_input,
     ax.set_ylabel('F0 discrimination\nthreshold (%F0)', fontsize=fontsize_labels)
     if title_str is not None: ax.set_title(title_str, fontsize=fontsize_title)
     if legend_on:
-        legend_plot_kwargs = {'loc':'lower right', 'frameon':False, 'fontsize':fontsize_legend}
+        legend_plot_kwargs = {
+            'loc': 'lower right',
+            'frameon': False,
+            'fontsize': fontsize_legend,
+            'markerscale': 0,
+        }
         legend_plot_kwargs.update(legend_kwargs)
         ax.legend(**legend_plot_kwargs)
     return results_dict
@@ -398,7 +407,7 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
                   fontsize=fontsize_legend, handlelength=1.5)
     if title_str: ax.set_title(title_str, fontsize=fontsize_title)
     ax.set_xlabel('Component shift (%F0)', fontsize=fontsize_labels)
-    ax.set_ylabel('Shift in pred F0\n(%F0)', fontsize=fontsize_labels)
+    ax.set_ylabel('Shift in predicted\nF0 (%F0)', fontsize=fontsize_labels)
     ax.set_xlim(xlimits)
     ax.set_ylim(ylimits)
     xval = np.array(results_dict[expt_key]['5']['f0_shift'])
@@ -498,7 +507,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
     ax.axhline(y=0, xmin=0, xmax=1, color='k', lw=1)
     if title_str: ax.set_title(title_str, fontsize=fontsize_title)
     if legend_on:
-        ax.legend(loc='upper right', bbox_to_anchor=[1.04, 1.04], frameon=False,
+        ax.legend(loc='upper right', bbox_to_anchor=[1.03, 1.03], frameon=False,
                   fontsize=fontsize_legend, handlelength=1)
     ax.set_xlim([barwidth*group_xoffsets[0]-xlimits[0]*barwidth,
                  np.max(base_xvals) + barwidth*group_xoffsets[-1] + xlimits[1]*barwidth])
@@ -510,7 +519,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
     ax.set_xticklabels([], minor=False)
     ax.tick_params(axis='x', which='major', length=12, direction='inout')
     ax.set_ylim(ylimits)
-    ax.set_ylabel('Shift in pred F0\n(%F0)', fontsize=fontsize_labels)
+    ax.set_ylabel('Shift in predicted\nF0 (%F0)', fontsize=fontsize_labels)
     ax.set_yticks(np.arange(0, ylimits[-1], 0.2), minor=False)
     ax.tick_params(axis='both', labelsize=fontsize_ticks)
     return bg_results_dict
@@ -798,7 +807,7 @@ def make_altphase_histogram_plot(ax, results_dict_input,
                                  xticks=[1.0, 1.5, 2.0],
                                  xlimits=[0.9, 2.3],
                                  yticks=5,
-                                 ylimits=[0, 25],
+                                 ylimits=[0, 20],
                                  condition_plot_kwargs_filter={},
                                  condition_plot_kwargs_f0={},
                                  restrict_conditions_filter=[125.0, 1375.0, 3900.0],
@@ -851,9 +860,9 @@ def make_altphase_histogram_plot(ax, results_dict_input,
     # Plot pitch match histograms for specified conditions
     if not condition_plot_kwargs_filter:
         condition_plot_kwargs_filter = {
-            '125.0': {'label': 'LOW', 'color': 'k', 'alpha':0.3, 'lw':1.5},
-            '1375.0': {'label': 'MID', 'color': 'b', 'alpha':0.3, 'lw':1.5}, 
-            '3900.0': {'label': 'HIGH', 'color': 'r', 'alpha':0.3, 'lw':1.5},
+            '125.0': {'label': 'LOW', 'color': 'k', 'alpha':0.3, 'lw':1.3},
+            '1375.0': {'label': 'MID', 'color': 'b', 'alpha':0.3, 'lw':1.3}, 
+            '3900.0': {'label': 'HIGH', 'color': 'r', 'alpha':0.3, 'lw':1.3},
         }
     
     ax.set_xscale('log')
@@ -886,5 +895,6 @@ def make_altphase_histogram_plot(ax, results_dict_input,
     ax.tick_params(axis='x', which='major', labelsize=fontsize_ticks, direction='out', top=False, bottom=True)
     ax.tick_params(axis='x', which='minor', direction='out', top=False, bottom=True)
     ax.set_xlabel('Predicted F0 / target F0', fontsize=fontsize_labels)
-    ax.set_ylabel('Pitch matches (%)', fontsize=fontsize_labels)
+#     ax.set_ylabel('% F0 predictions in\n{:.0f}% wide bins'.format(bin_step*100.0), fontsize=fontsize_labels)
+    ax.set_ylabel('% of F0 predictions'.format(bin_step*100.0), fontsize=fontsize_labels)
     return hist_results_dict_list
