@@ -64,7 +64,7 @@ def run_f0experiment_alt_phase(json_fn, phase_mode=4, f0_min=None, f0_max=None, 
                                f0_label_prob_key='f0_label:probs_out',
                                kwargs_f0_pred_ratio={
                                    'f0_bin_centers': [80, 125, 250],
-                                   'f0_bin_width': 0.04,
+                                   'f0_bin_width': 0.10,
                                },
                                kwargs_f0_prior={},
                                use_log_scale=True):
