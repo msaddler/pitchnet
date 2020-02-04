@@ -620,23 +620,23 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
     return results_dict
 
 
-def make_altphase_plot(ax, results_dict_input,
-                       expt_key='filter_fl_bin_means',
-                       expt_err_key=None,
-                       condition_plot_kwargs={},
-                       restrict_conditions=[3900.0, 1375.0, 125.0],
-                       plot_kwargs_update={},
-                       title_str=None,
-                       legend_on=True,
-                       include_yerr=False,
-                       fontsize_title=12,
-                       fontsize_labels=12,
-                       fontsize_legend=12,
-                       fontsize_ticks=12,
-                       xlimits=[62.5*0.9, 250*1.1],
-                       ylimits=[-1.1, 1.1],
-                       cmap_name=['r', 'b', 'k'],
-                       kwargs_bootstrap={}):
+def make_altphase_line_plot(ax, results_dict_input,
+                            expt_key='filter_fl_bin_means',
+                            expt_err_key=None,
+                            condition_plot_kwargs={},
+                            restrict_conditions=[3900.0, 1375.0, 125.0],
+                            plot_kwargs_update={},
+                            title_str=None,
+                            legend_on=True,
+                            include_yerr=False,
+                            fontsize_title=12,
+                            fontsize_labels=12,
+                            fontsize_legend=12,
+                            fontsize_ticks=12,
+                            xlimits=[62.5*0.9, 250*1.1],
+                            ylimits=[-1.1, 1.1],
+                            cmap_name=['r', 'b', 'k'],
+                            kwargs_bootstrap={}):
     '''
     Function for plotting alternating phase experiment results:
     fraction of 2*F0 - 1*F0 judgments as a function of F0 for
@@ -895,6 +895,5 @@ def make_altphase_histogram_plot(ax, results_dict_input,
     ax.tick_params(axis='x', which='major', labelsize=fontsize_ticks, direction='out', top=False, bottom=True)
     ax.tick_params(axis='x', which='minor', direction='out', top=False, bottom=True)
     ax.set_xlabel('Predicted F0 / target F0', fontsize=fontsize_labels)
-#     ax.set_ylabel('% F0 predictions in\n{:.0f}% wide bins'.format(bin_step*100.0), fontsize=fontsize_labels)
     ax.set_ylabel('% of F0 predictions'.format(bin_step*100.0), fontsize=fontsize_labels)
     return hist_results_dict_list
