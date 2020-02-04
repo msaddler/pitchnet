@@ -853,36 +853,45 @@ def compare_mistunedharmonics(human_results_dict, model_results_dict,
 
 
 def compare_altphasecomplexes(human_results_dict, model_results_dict,
-                              kwargs_interp={}, kwargs_compare={'log_scale':False}):
+                              restrict_conditions_filter=[125.0, 1375.0, 3900.0],
+                              restrict_conditions_f0=[125.0],
+                              kwargs_histogram={},
+                              kwargs_compare={'log_scale':False}):
     '''
     '''
-    human_conditions = human_results_dict['filter_fl_bin_means'].keys()
-    model_conditions = model_results_dict['filter_fl_bin_means'].keys()
-    assert np.array_equal(human_conditions, model_conditions)
+    if 'bin_heights_array' not in human_results_dict.keys():
+        human_hist_results_dict = get_altphase_histogram_results_dict(human_results_dict,
+                                                                      **kwargs_histogram)
+    else:
+        human_hist_results_dict = human_results_dict
+    if 'bin_heights_array' not in human_results_dict.keys():
+        model_hist_results_dict = get_altphase_histogram_results_dict(model_results_dict,
+                                                                      **kwargs_histogram)
+    else:
+        model_hist_results_dict = model_results_dict
     
-    results_vector_human = []
-    results_vector_model = []
-    for condition_key in human_conditions:
-        human_xvals = np.array(human_results_dict['f0_bin_centers'])
-        human_yvals = np.array(human_results_dict['filter_fl_bin_means'][condition_key])
-        model_xvals = np.array(model_results_dict['f0_bin_centers'])
-        model_yvals = np.array(model_results_dict['filter_fl_bin_means'][condition_key])
-        
-        interp_human_xvals, interp_human_yvals = interpolate_data(human_xvals,
-                                                                  human_yvals,
-                                                                  model_xvals,
-                                                                  **kwargs_interp)
-        interp_human_xvals = interp_human_xvals.tolist()
-        interp_human_yvals = interp_human_yvals.tolist()
-        model_xvals = model_xvals.tolist()
-        model_yvals = model_yvals.tolist()
-        
-        for idx_human, xval in enumerate(interp_human_xvals):
-            idx_model = model_xvals.index(xval)
-            results_vector_human.append(interp_human_yvals[idx_human])
-            results_vector_model.append(model_yvals[idx_model])
+    human_filter_conditions = human_hist_results_dict['filter_conditions']
+    human_f0_conditions = human_hist_results_dict['f0_conditions']
+    human_bin_centers = human_hist_results_dict['bin_centers']
+    human_bin_widths = human_hist_results_dict['bin_widths']
+    human_bin_heights_array = human_hist_results_dict['bin_heights_array']
     
-    results_vector_human = np.array(results_vector_human)
-    results_vector_model = np.array(results_vector_model)
-    return compare_human_model_data(results_vector_human, results_vector_model,
-                                    **kwargs_compare)
+    model_filter_conditions = model_hist_results_dict['filter_conditions']
+    model_f0_conditions = model_hist_results_dict['f0_conditions']
+    model_bin_centers = model_hist_results_dict['bin_centers']
+    model_bin_widths = model_hist_results_dict['bin_widths']
+    model_bin_heights_array = model_hist_results_dict['bin_heights_array']
+    
+    total_wasserstein_distance = 0.0
+    for f0_val in restrict_conditions_f0:
+        for filter_val in restrict_conditions_filter:
+            idx_human = np.logical_and(human_f0_conditions==f0_val, human_filter_conditions==filter_val)
+            idx_model = np.logical_and(model_f0_conditions==f0_val, model_filter_conditions==filter_val)
+            assert np.array_equal(idx_human, idx_model)
+            assert np.sum(idx_human) == 1
+            idx = list(idx_human).index(True)
+            
+            human_dist = human_bin_heights_array[idx] / np.sum(human_bin_heights_array[idx])
+            model_dist = model_bin_heights_array[idx] / np.sum(model_bin_heights_array[idx])
+            total_wasserstein_distance += scipy.stats.wasserstein_distance(human_dist, model_dist)
+    return total_wasserstein_distance
