@@ -947,5 +947,7 @@ def compare_altphasecomplexes_hist(human_results_dict, model_results_dict,
     
     results_vector_human = np.array(results_vector_human)
     results_vector_model = np.array(results_vector_model)
+    distance_metrics = np.mean(np.array(distance_metrics))
+#     return -distance_metrics, None
     return compare_human_model_data(results_vector_human, results_vector_model,
                                     **kwargs_compare)
