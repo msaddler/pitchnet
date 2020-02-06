@@ -336,14 +336,13 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
                                    title_str=None,
                                    legend_on=True,
                                    include_yerr=False,
-                                   restrict_conditions=['5', '11', '16'],
+                                   restrict_conditions=['5', '16'],#['5', '11', '16'],
                                    fontsize_title=12,
                                    fontsize_labels=12,
                                    fontsize_legend=12,
                                    fontsize_ticks=12,
                                    xlimits=[-1, 25],
                                    ylimits=[-4, 12],
-                                   cmap_name=['k', 'b', 'r'],
                                    kwargs_bootstrap={}):
     '''
     Function for plotting frequency-shifted complexes experiment results:
@@ -380,17 +379,16 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
     
     if not condition_plot_kwargs:
         condition_plot_kwargs = {
-            '5': {'label': 'RES', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2},
-            '11': {'label': 'INT', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2},
-            '16': {'label': 'UNRES', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2},
+            '5': {'label': 'LOW', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2, 'color':'k'},
+            '11': {'label': 'MID', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2, 'color':'b'},
+            '16': {'label': 'HIGH', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2, 'color':'r'},
         }
     
     assert set(results_dict[expt_key].keys()) == set(condition_plot_kwargs.keys())
     condition_list = sorted([int(x) for x in results_dict[expt_key].keys()])
     if restrict_conditions is not None:
         condition_list = restrict_conditions
-    color_list = get_color_list(2*len(condition_list), cmap_name=cmap_name)
-    for cidx, condition in enumerate(condition_list):
+    for condition in condition_list:
         xval = np.array(results_dict[expt_key][condition]['f0_shift'])
         yval = np.array(results_dict[expt_key][condition][pitch_shift_key])
         yerr = np.array(results_dict[expt_key][condition][pitch_shift_err_key])
@@ -399,8 +397,8 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
         if not legend_on: plot_kwargs['label'] = None
         if include_yerr:
             ax.fill_between(xval, yval-yerr, yval+yerr, alpha=0.15,
-                            facecolor=color_list[cidx])
-        ax.plot(xval, yval, color=color_list[cidx], **plot_kwargs)
+                            facecolor=plot_kwargs['color'])
+        ax.plot(xval, yval, **plot_kwargs)
     
     if legend_on:
         ax.legend(loc='upper left', frameon=False,
@@ -624,7 +622,7 @@ def make_altphase_line_plot(ax, results_dict_input,
                             expt_key='filter_fl_bin_means',
                             expt_err_key=None,
                             condition_plot_kwargs={},
-                            restrict_conditions=[3900.0, 1375.0, 125.0],
+                            restrict_conditions=[125.0, 3900.0],#[125.0, 1375.0, 3900.0],
                             plot_kwargs_update={},
                             title_str=None,
                             legend_on=True,
@@ -635,7 +633,6 @@ def make_altphase_line_plot(ax, results_dict_input,
                             fontsize_ticks=12,
                             xlimits=[62.5*0.9, 250*1.1],
                             ylimits=[-1.1, 1.1],
-                            cmap_name=['r', 'b', 'k'],
                             kwargs_bootstrap={}):
     '''
     Function for plotting alternating phase experiment results:
@@ -665,17 +662,16 @@ def make_altphase_line_plot(ax, results_dict_input,
     
     if not condition_plot_kwargs:
         condition_plot_kwargs = {
-            '125.0': {'label': 'LOW', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2},
-            '1375.0': {'label': 'MID', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2},
-            '3900.0': {'label': 'HIGH', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2},
+            '125.0': {'label': 'LOW', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2, 'color': 'r'},
+            '1375.0': {'label': 'MID', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2, 'color': 'b'},
+            '3900.0': {'label': 'HIGH', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2, 'color': 'k'},
         }
     
     condition_list = sorted(results_dict[expt_key].keys())
     if restrict_conditions is not None:
         condition_list = [str(x) for x in restrict_conditions]
     assert set(condition_list).issubset(set(condition_plot_kwargs.keys()))
-    color_list = get_color_list(2*len(condition_list), cmap_name=cmap_name)
-    for cidx, condition in enumerate(condition_list):
+    for condition in condition_list:
         xval = np.array(results_dict['f0_bin_centers'])
         yval = np.array(results_dict[expt_key][condition])
         yerr = np.array(results_dict[expt_err_key][condition])
@@ -684,8 +680,8 @@ def make_altphase_line_plot(ax, results_dict_input,
         if not legend_on: plot_kwargs['label'] = None
         if include_yerr:
             ax.fill_between(xval, yval-yerr, yval+yerr, alpha=0.15,
-                            facecolor=color_list[cidx])
-        ax.plot(xval, yval, color=color_list[cidx], **plot_kwargs)
+                            facecolor=plot_kwargs['color'])
+        ax.plot(xval, yval, **plot_kwargs)
     
     if legend_on:
         ax.legend(loc=0, frameon=False, fontsize=fontsize_legend,
@@ -810,7 +806,7 @@ def make_altphase_histogram_plot(ax, results_dict_input,
                                  ylimits=[0, 20],
                                  condition_plot_kwargs_filter={},
                                  condition_plot_kwargs_f0={},
-                                 restrict_conditions_filter=[125.0, 1375.0, 3900.0],
+                                 restrict_conditions_filter=[125.0, 3900.0],#[125.0, 1375.0, 3900.0],
                                  restrict_conditions_f0=[125.0],
                                  title_str=None,
                                  legend_on=True,
@@ -872,7 +868,7 @@ def make_altphase_histogram_plot(ax, results_dict_input,
             assert np.sum(idx) == 1
             idx = list(idx).index(True)
             plot_kwargs = condition_plot_kwargs_filter[str(filter_val)]
-            label = '{}, {:.0f} Hz'.format(plot_kwargs.pop('label'), f0_val)
+            label = '{} ({:.0f} Hz)'.format(plot_kwargs.pop('label'), f0_val)
             bin_yvals = np.ravel(np.column_stack((bin_heights_array[idx], bin_heights_array[idx])))
             ax.fill_between(bin_xvals, bin_yvals, **plot_kwargs)
             plot_kwargs.pop('alpha')
