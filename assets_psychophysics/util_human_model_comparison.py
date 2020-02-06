@@ -644,33 +644,38 @@ def get_altphase_histogram_results_dict(results_dict,
     alternating phase experiment into a smaller histogram_results_dict, which allows for
     easier plotting of the Shackleton & Carlyon (1994, JASA) pitch match histograms (Fig 2).
     '''
-    filter_conditions = np.array(results_dict['f0_pred_ratio_results']['filter_condition_list'])
-    f0_conditions = np.array(results_dict['f0_pred_ratio_results']['f0_condition_list'])
-    f0_pred_ratio_list = results_dict['f0_pred_ratio_results']['f0_pred_ratio_list']
-    assert len(f0_pred_ratio_list) == len(filter_conditions)
-    assert len(f0_pred_ratio_list) == len(f0_conditions)
-    # Create the histogram bins (shared for all conditions)
-    bins = [bin_limits[0]]
-    while bins[-1] < bin_limits[1]:
-        bins.append(bins[-1] * (1.0+bin_step))
-    bins = np.array(bins)
-    bin_centers = (bins[:-1] + bins[1:]) / 2
-    bin_widths = bins[1:] - bins[:-1]
-    bin_heights_array = np.zeros([len(f0_pred_ratio_list), len(bin_centers)])
-    # Manually compute histogram and convert to percentage for each condition
-    for idx in range(len(f0_pred_ratio_list)):
-        bin_counts, bin_edges = np.histogram(f0_pred_ratio_list[idx], bins=bins)
-        bin_percentages = 100.0 * bin_counts / np.sum(bin_counts)
-        bin_heights_array[idx, :] = bin_percentages
-    # Return outputs in an orderly dictionary, ready for plotting / averaging
-    histogram_results_dict = {
-        'filter_conditions': filter_conditions,
-        'f0_conditions': f0_conditions,
-        'bins': bins,
-        'bin_centers': bin_centers,
-        'bin_widths': bin_widths,
-        'bin_heights_array': bin_heights_array,
-    }
+    if 'bin_heights_array' not in results_dict.keys():
+        # Compute histogram results if they do not already exist in results_dict
+        filter_conditions = np.array(results_dict['f0_pred_ratio_results']['filter_condition_list'])
+        f0_conditions = np.array(results_dict['f0_pred_ratio_results']['f0_condition_list'])
+        f0_pred_ratio_list = results_dict['f0_pred_ratio_results']['f0_pred_ratio_list']
+        assert len(f0_pred_ratio_list) == len(filter_conditions)
+        assert len(f0_pred_ratio_list) == len(f0_conditions)
+        # Create the histogram bins (shared for all conditions)
+        bins = [bin_limits[0]]
+        while bins[-1] < bin_limits[1]:
+            bins.append(bins[-1] * (1.0+bin_step))
+        bins = np.array(bins)
+        bin_centers = (bins[:-1] + bins[1:]) / 2
+        bin_widths = bins[1:] - bins[:-1]
+        bin_heights_array = np.zeros([len(f0_pred_ratio_list), len(bin_centers)])
+        # Manually compute histogram and convert to percentage for each condition
+        for idx in range(len(f0_pred_ratio_list)):
+            bin_counts, bin_edges = np.histogram(f0_pred_ratio_list[idx], bins=bins)
+            bin_percentages = 100.0 * bin_counts / np.sum(bin_counts)
+            bin_heights_array[idx, :] = bin_percentages
+        # Return outputs in an orderly dictionary, ready for plotting / averaging
+        histogram_results_dict = {
+            'filter_conditions': filter_conditions,
+            'f0_conditions': f0_conditions,
+            'bins': bins,
+            'bin_centers': bin_centers,
+            'bin_widths': bin_widths,
+            'bin_heights_array': bin_heights_array,
+        }
+    else:
+        # Do not compute histogram results if they already exist in results_dict
+        histogram_results_dict = results_dict
     return histogram_results_dict
 
 
@@ -895,16 +900,10 @@ def compare_altphasecomplexes_hist(human_results_dict, model_results_dict,
                                    kwargs_compare={'log_scale':False}):
     '''
     '''
-    if 'bin_heights_array' not in human_results_dict.keys():
-        human_hist_results_dict = get_altphase_histogram_results_dict(human_results_dict,
-                                                                      **kwargs_histogram)
-    else:
-        human_hist_results_dict = human_results_dict
-    if 'bin_heights_array' not in model_results_dict.keys():
-        model_hist_results_dict = get_altphase_histogram_results_dict(model_results_dict,
-                                                                      **kwargs_histogram)
-    else:
-        model_hist_results_dict = model_results_dict
+    human_hist_results_dict = get_altphase_histogram_results_dict(human_results_dict,
+                                                                  **kwargs_histogram)
+    model_hist_results_dict = get_altphase_histogram_results_dict(model_results_dict,
+                                                                  **kwargs_histogram)
     
     human_filter_conditions = human_hist_results_dict['filter_conditions']
     human_f0_conditions = human_hist_results_dict['f0_conditions']
