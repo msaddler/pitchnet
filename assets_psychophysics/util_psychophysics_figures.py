@@ -795,11 +795,11 @@ def make_altphase_histograms(results_dict_input,
 
 
 def make_altphase_histogram_plot(ax, results_dict_input,
-                                 bin_step=0.01,
+                                 bin_step=0.0201,
                                  xticks=[1.0, 1.5, 2.0],
                                  xlimits=[0.9, 2.3],
                                  yticks=5,
-                                 ylimits=[0, 20],
+                                 ylimits=[0, 35],
                                  condition_plot_kwargs_filter={},
                                  condition_plot_kwargs_f0={},
                                  restrict_conditions_filter=[125.0, 3900.0],#[125.0, 1375.0, 3900.0],

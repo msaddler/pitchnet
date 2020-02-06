@@ -6,6 +6,7 @@ import glob
 import pdb
 import scipy.interpolate
 import scipy.stats
+import copy
 
 
 def get_human_results_dict_bernox2005(average_conditions=True):
@@ -637,13 +638,20 @@ def get_mistuned_harmonics_bar_graph_results_dict(results_dict, mistuned_pct=3.0
 
 
 def get_altphase_histogram_results_dict(results_dict,
-                                        bin_step=0.01,
+                                        bin_step=0.0201,
                                         bin_limits=[0.9, 2.3]):
     '''
     This helper function parses a results_dict from the Shackleton and Carlyon (1994, JASA)
     alternating phase experiment into a smaller histogram_results_dict, which allows for
     easier plotting of the Shackleton & Carlyon (1994, JASA) pitch match histograms (Fig 2).
     '''
+    # Create the histogram bins (shared for all conditions)
+    bins = [bin_limits[0]]
+    while bins[-1] < bin_limits[1]:
+        bins.append(bins[-1] * (1.0+bin_step))
+    bins = np.array(bins)
+    bin_centers = (bins[:-1] + bins[1:]) / 2
+    bin_widths = bins[1:] - bins[:-1]
     if 'bin_heights_array' not in results_dict.keys():
         # Compute histogram results if they do not already exist in results_dict
         filter_conditions = np.array(results_dict['f0_pred_ratio_results']['filter_condition_list'])
@@ -651,13 +659,6 @@ def get_altphase_histogram_results_dict(results_dict,
         f0_pred_ratio_list = results_dict['f0_pred_ratio_results']['f0_pred_ratio_list']
         assert len(f0_pred_ratio_list) == len(filter_conditions)
         assert len(f0_pred_ratio_list) == len(f0_conditions)
-        # Create the histogram bins (shared for all conditions)
-        bins = [bin_limits[0]]
-        while bins[-1] < bin_limits[1]:
-            bins.append(bins[-1] * (1.0+bin_step))
-        bins = np.array(bins)
-        bin_centers = (bins[:-1] + bins[1:]) / 2
-        bin_widths = bins[1:] - bins[:-1]
         bin_heights_array = np.zeros([len(f0_pred_ratio_list), len(bin_centers)])
         # Manually compute histogram and convert to percentage for each condition
         for idx in range(len(f0_pred_ratio_list)):
@@ -675,7 +676,18 @@ def get_altphase_histogram_results_dict(results_dict,
         }
     else:
         # Do not compute histogram results if they already exist in results_dict
-        histogram_results_dict = results_dict
+        histogram_results_dict = copy.deepcopy(results_dict)
+        if not np.array_equal(bins, histogram_results_dict['bins']):
+            original_bin_centers = histogram_results_dict['bin_centers']
+            new_bin_center_indexes = np.digitize(original_bin_centers, bins, right=False) - 1
+            new_bin_heights_array = np.zeros([histogram_results_dict['bin_heights_array'].shape[0],
+                                              len(bin_centers)])
+            for old_idx, new_idx in enumerate(new_bin_center_indexes):
+                new_bin_heights_array[:, new_idx] += histogram_results_dict['bin_heights_array'][:, old_idx]
+            histogram_results_dict['bins'] = bins
+            histogram_results_dict['bin_centers'] = bin_centers
+            histogram_results_dict['bin_widths'] = bin_widths
+            histogram_results_dict['bin_heights_array'] = new_bin_heights_array
     return histogram_results_dict
 
 
