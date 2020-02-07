@@ -802,16 +802,19 @@ def compare_transposedtones(human_results_dict, model_results_dict,
 
 def compare_freqshiftedcomplexes(human_results_dict, model_results_dict,
                                  pitch_shift_key='f0_pred_shift_median',
+                                 restrict_conditions=['5', '11', '16'],#['5', '11', '16'],
                                  kwargs_interp={}, kwargs_compare={'log_scale':False}):
     '''
     '''
     human_conditions = human_results_dict['spectral_envelope_centered_harmonic'].keys()
     model_conditions = model_results_dict['spectral_envelope_centered_harmonic'].keys()
     assert np.array_equal(human_conditions, model_conditions)
-    
+    condition_list = human_conditions
     results_vector_human = []
     results_vector_model = []
-    for condition_key in human_conditions:
+    if restrict_conditions is not None:
+        condition_list = restrict_conditions
+    for condition_key in condition_list:
         human_xvals = np.array(human_results_dict['spectral_envelope_centered_harmonic'][condition_key]['f0_shift'])
         human_yvals = np.array(human_results_dict['spectral_envelope_centered_harmonic'][condition_key][pitch_shift_key])
         model_xvals = np.array(model_results_dict['spectral_envelope_centered_harmonic'][condition_key]['f0_shift'])
@@ -935,7 +938,11 @@ def compare_altphasecomplexes_hist(human_results_dict, model_results_dict,
     for f0_val in restrict_conditions_f0:
         for filter_val in restrict_conditions_filter:
             idx_human = np.logical_and(human_f0_conditions==f0_val, human_filter_conditions==filter_val)
-            idx_model = np.logical_and(model_f0_conditions==f0_val, model_filter_conditions==filter_val)
+            if np.all(f0_val < model_f0_conditions):
+                adjusted_f0_val = np.min(model_f0_conditions)
+                idx_model = np.logical_and(model_f0_conditions==adjusted_f0_val, model_filter_conditions==filter_val)
+            else:
+                idx_model = np.logical_and(model_f0_conditions==f0_val, model_filter_conditions==filter_val)
             assert np.array_equal(idx_human, idx_model)
             assert np.sum(idx_human) == 1
             idx = list(idx_human).index(True)
@@ -943,11 +950,12 @@ def compare_altphasecomplexes_hist(human_results_dict, model_results_dict,
             model_dist = model_bin_heights_array[idx] / np.sum(model_bin_heights_array[idx])
             results_vector_human.extend(list(human_dist))
             results_vector_model.extend(list(model_dist))
-            distance_metrics.append(-np.log(np.sum(np.sqrt(human_dist * model_dist))))
+#             distance_metrics.append(-np.log(np.sum(np.sqrt(human_dist * model_dist)))) # Bhattacharyya distance
+            distance_metrics.append(np.sum(np.sqrt(human_dist * model_dist))) # Bhattacharyya coefficient
     
     results_vector_human = np.array(results_vector_human)
     results_vector_model = np.array(results_vector_model)
-    distance_metrics = np.mean(np.array(distance_metrics))
-#     return -distance_metrics, None
+#     distance_metrics = np.sum(np.array(distance_metrics))
+#     return distance_metrics, None
     return compare_human_model_data(results_vector_human, results_vector_model,
                                     **kwargs_compare)
