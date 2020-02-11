@@ -7,17 +7,17 @@
 #SBATCH --gres=gpu:GEFORCEGTX1080TI:1
 #SBATCH --time=0-48:00:00
 ##SBATCH --time-min=0-24:00:00
-#SBATCH --array=0-46
+#SBATCH --array=0-29%15
 ##SBATCH --exclude=node063
-##SBATCH --partition=mcdermott
+#SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --requeue
 
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
 SOURCE_CONFIG_FN='config_arch_search_v01.json'
-OUTPUT_DIR_PATTERN="/saved_models/IHC0050Hz_arch_search_v01_arch_0302_manipulations/arch_0302_{:04d}"
-OUTPUT_LOG_FN=$(printf "$SCRATCH_PATH/pitchnet/saved_models/IHC0050Hz_arch_search_v01_arch_0302_manipulations/logs_train/arch_0302_%04d.log" ${job_idx})
+OUTPUT_DIR_PATTERN="/saved_models/arch_search_v01_arch_0302_manipulations_v01/arch_0302_{:04d}"
+OUTPUT_LOG_FN=$(printf "$SCRATCH_PATH/pitchnet/saved_models/arch_search_v01_arch_0302_manipulations_v01/logs_train/arch_0302_%04d.log" ${job_idx})
 
 echo $OUTPUT_LOG_FN
 echo $(hostname)
@@ -37,6 +37,6 @@ python /om2/user/msaddler/pitchnet/assets_archsearch/arch_search_run_train.py \
 -o "${OUTPUT_DIR_PATTERN}" \
 -c "${SOURCE_CONFIG_FN}" \
 -j ${job_idx} \
--dt /data/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates_0[0-7]*.tfrecords \
--de /data/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates_0[8-9]*.tfrecords \
+-dt /data/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_0[0-7]*.tfrecords \
+-de /data/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_0[8-9]*.tfrecords \
 2>&1 | tee $OUTPUT_LOG_FN
