@@ -3,17 +3,17 @@
 #SBATCH --job-name=pitchnet_eval
 #SBATCH --out="/om2/user/msaddler/pitchnet/slurm_pitchnet_test_%A_%a.out"
 ##SBATCH --gres=gpu:GEFORCEGTX1080TI:1
-#SBATCH --gres=gpu:gpu:QUADRORTX6000:1
+#SBATCH --gres=gpu:QUADRORTX6000:1
 ##SBATCH --gres=gpu:titan-x:1
 #SBATCH --mem=18000
 #SBATCH --cpus-per-task=6
 #SBATCH --time=0-4:00:00
 ##SBATCH --exclude=node063
 ##SBATCH --partition=mcdermott
-#SBATCH --array=0-2
+#SBATCH --array=0-29
 
 ZERO_PADDED_JOBID=$(printf "%04d" $SLURM_ARRAY_TASK_ID)
-OUTDIR='/saved_models/arch_search_v01_arch_0302_manipulations_v01/arch_0302_'$ZERO_PADDED_JOBID
+OUTDIR='/saved_models/arch_search_v01_arch_0302_manipulations_v02/arch_0302_'$ZERO_PADDED_JOBID
 SAVED_MODELS_PATH="$SCRATCH_PATH/pitchnet/saved_models"
 
 # OUTDIR='/saved_models/models_sr20000/arch_0302/PND_synthetic_noise_UMNm_snr_neg10pos10_phase01_filter_signalBPv00_AN_BW10eN1_IHC3000Hz_classification'$SLURM_ARRAY_TASK_ID
