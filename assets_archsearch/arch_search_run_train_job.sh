@@ -7,7 +7,7 @@
 #SBATCH --gres=gpu:GEFORCEGTX1080TI:1
 #SBATCH --time=0-48:00:00
 ##SBATCH --time-min=0-24:00:00
-#SBATCH --array=0-29%15
+#SBATCH --array=20-29
 ##SBATCH --exclude=node063
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
@@ -16,8 +16,8 @@
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
 SOURCE_CONFIG_FN='config_arch_search_v01.json'
-OUTPUT_DIR_PATTERN="/saved_models/arch_search_v01_arch_0302_manipulations_v02/arch_0302_{:04d}"
-OUTPUT_LOG_FN=$(printf "$SCRATCH_PATH/pitchnet/saved_models/arch_search_v01_arch_0302_manipulations_v02/logs_train/arch_0302_%04d.log" ${job_idx})
+OUTPUT_DIR_PATTERN="/saved_models/arch_search_v01_arch_0302_manipulations_v03/arch_0302_{:04d}"
+OUTPUT_LOG_FN=$(printf "$SCRATCH_PATH/pitchnet/saved_models/arch_search_v01_arch_0302_manipulations_v03/logs_train/arch_0302_%04d.log" ${job_idx})
 
 echo $OUTPUT_LOG_FN
 echo $(hostname)
