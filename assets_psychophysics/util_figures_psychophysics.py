@@ -97,7 +97,7 @@ def combine_subjects(subject_data, kwargs_bootstrap={}):
 
 
 def make_bernox_threshold_plot(ax, results_dict_input,
-                               title_str=None,
+                               str_title=None,
                                legend_on=True,
                                include_yerr=False,
                                restrict_conditions=None,
@@ -169,14 +169,25 @@ def make_bernox_threshold_plot(ax, results_dict_input,
                             facecolor=plot_kwargs.get('color', 'k'))
         ax.plot(xval, yval, **plot_kwargs)
     
-    ax.set_xlim(xlimits)
-    ax.set_xticks(np.arange(xlimits[0], xlimits[1], 5))
-    ax.set_ylim(ylimits)
-    ax.set_yscale('log')
-    ax.tick_params(axis='both', labelsize=fontsize_ticks)
-    ax.set_xlabel('Lowest harmonic number', fontsize=fontsize_labels)
-    ax.set_ylabel('F0 discrimination\nthreshold (%F0)', fontsize=fontsize_labels)
-    if title_str is not None: ax.set_title(title_str, fontsize=fontsize_title)
+    ax = util_figures.format_axes(ax,
+                                  str_xlabel='Lowest harmonic number',
+                                  str_ylabel='F0 discrimination\nthreshold (%F0)',
+                                  fontsize_labels=fontsize_labels,
+                                  fontsize_ticks=fontsize_ticks,
+                                  fontweight_labels=None,
+                                  xscale='linear',
+                                  yscale='log',
+                                  xlimits=xlimits,
+                                  ylimits=ylimits,
+                                  xticks=np.arange(xlimits[0], xlimits[1], 5),
+                                  xticklabels=None,
+                                  yticks=None,
+                                  yticklabels=None,
+                                  spines_to_hide=[],
+                                  major_tick_params_kwargs_update={},
+                                  minor_tick_params_kwargs_update={})
+    
+    if str_title is not None: ax.set_title(str_title, fontsize=fontsize_title)
     if legend_on:
         legend_plot_kwargs = {
             'loc': 'lower right',
@@ -190,7 +201,7 @@ def make_bernox_threshold_plot(ax, results_dict_input,
 
 
 def make_TT_threshold_plot(ax, results_dict_input,
-                           title_str=None,
+                           str_title=None,
                            legend_on=True,
                            include_yerr=False,
                            restrict_conditions=None,
@@ -308,7 +319,7 @@ def make_TT_threshold_plot(ax, results_dict_input,
     ax.tick_params(axis='both', labelsize=fontsize_ticks)
     ax.set_xlabel('Frequency (Hz)', fontsize=fontsize_labels)
     ax.set_ylabel('Discrimination\nthreshold (%)', fontsize=fontsize_labels)
-    if title_str is not None: ax.set_title(title_str, fontsize=fontsize_title)
+    if str_title is not None: ax.set_title(str_title, fontsize=fontsize_title)
     if legend_on:
         ax.legend(loc='lower left', frameon=False,
                   fontsize=fontsize_legend, handlelength=0)
@@ -322,7 +333,7 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
                                    pitch_shift_err_key=None,
                                    condition_plot_kwargs={},
                                    plot_kwargs_update={},
-                                   title_str=None,
+                                   str_title=None,
                                    legend_on=True,
                                    include_yerr=False,
                                    restrict_conditions=['5', '16'],#['5', '11', '16'],
@@ -392,7 +403,7 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
     if legend_on:
         ax.legend(loc='upper left', frameon=False,
                   fontsize=fontsize_legend, handlelength=1.5)
-    if title_str: ax.set_title(title_str, fontsize=fontsize_title)
+    if str_title: ax.set_title(str_title, fontsize=fontsize_title)
     ax.set_xlabel('Component shift (%F0)', fontsize=fontsize_labels)
     ax.set_ylabel('Shift in predicted\nF0 (%F0)', fontsize=fontsize_labels)
     ax.set_xlim(xlimits)
@@ -411,7 +422,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
                                       use_relative_shift=True,
                                       pitch_shift_key='f0_pred_pct_median',
                                       pitch_shift_err_key=None,
-                                      title_str=None,
+                                      str_title=None,
                                       legend_on=True,
                                       include_yerr=False,
                                       barwidth=0.12,
@@ -492,7 +503,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
     f0_ref_values = bg_results_dict[group_key]['f0_ref']
     
     ax.axhline(y=0, xmin=0, xmax=1, color='k', lw=1)
-    if title_str: ax.set_title(title_str, fontsize=fontsize_title)
+    if str_title: ax.set_title(str_title, fontsize=fontsize_title)
     if legend_on:
         ax.legend(loc='upper right', bbox_to_anchor=[1.03, 1.03], frameon=False,
                   fontsize=fontsize_legend, handlelength=1)
@@ -517,7 +528,7 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
                                       expt_key='mistuned_harm',
                                       pitch_shift_key='f0_pred_pct_median',
                                       pitch_shift_err_key=None,
-                                      title_str=None,
+                                      str_title=None,
                                       legend_on=True,
                                       include_yerr=False,
                                       f0_ref=200.0,
@@ -593,7 +604,7 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
     if legend_on:
         ax.legend(loc='upper right', bbox_to_anchor=[1.04, 1.04], frameon=False,
                   ncol=2, markerscale=1.5, fontsize=fontsize_legend, handlelength=0)
-    if title_str: ax.set_title(title_str, fontsize=fontsize_title)
+    if str_title: ax.set_title(str_title, fontsize=fontsize_title)
     ax.set_xlabel('Harmonic mistuning (%)', fontsize=fontsize_labels)
     ax.set_ylabel('Shift in pred F0\n(%F0)', fontsize=fontsize_labels)
     ax.set_xticks(np.arange(xlimits[0], xlimits[-1]+1, 1), minor=False)
@@ -613,7 +624,7 @@ def make_altphase_line_plot(ax, results_dict_input,
                             condition_plot_kwargs={},
                             restrict_conditions=[125.0, 3900.0],#[125.0, 1375.0, 3900.0],
                             plot_kwargs_update={},
-                            title_str=None,
+                            str_title=None,
                             legend_on=True,
                             include_yerr=False,
                             fontsize_title=12,
@@ -675,7 +686,7 @@ def make_altphase_line_plot(ax, results_dict_input,
     if legend_on:
         ax.legend(loc=0, frameon=False, fontsize=fontsize_legend,
                   handlelength=0, markerscale=1.25)
-    if title_str: ax.set_title(title_str, fontsize=fontsize_title)
+    if str_title: ax.set_title(str_title, fontsize=fontsize_title)
     ax.set_xlabel('F0 (Hz)', fontsize=fontsize_labels)
     ax.set_ylabel('2F0 preferences -\nF0 preferences',
                   fontsize=fontsize_labels)
@@ -793,7 +804,7 @@ def make_altphase_histogram_plot(ax, results_dict_input,
                                  condition_plot_kwargs_f0={},
                                  restrict_conditions_filter=[125.0, 3900.0],#[125.0, 1375.0, 3900.0],
                                  restrict_conditions_f0=[125.0],
-                                 title_str=None,
+                                 str_title=None,
                                  legend_on=True,
                                  fontsize_title=12,
                                  fontsize_labels=12,
@@ -858,8 +869,8 @@ def make_altphase_histogram_plot(ax, results_dict_input,
         leg = ax.legend(loc=9, frameon=False, markerscale=0, handlelength=0.4, fontsize=fontsize_legend)
         for legobj in leg.legendHandles:
             legobj.set_linewidth(8.0)
-    if title_str:
-        ax.set_title(title_str, fontsize=fontsize_title)
+    if str_title:
+        ax.set_title(str_title, fontsize=fontsize_title)
     ax.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
     ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
     ax.yaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter('%.1f'))

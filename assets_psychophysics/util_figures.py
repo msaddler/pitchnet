@@ -27,19 +27,24 @@ def format_axes(ax,
                 fontsize_labels=12,
                 fontsize_ticks=12,
                 fontweight_labels=None,
+                xscale='linear',
+                yscale='linear',
                 xlimits=None,
                 ylimits=None,
                 xticks=None,
-                xticklabels=None,
                 yticks=None,
+                xticklabels=None,
                 yticklabels=None,
                 spines_to_hide=[],
-                tick_params_kwargs_update={}):
+                major_tick_params_kwargs_update={},
+                minor_tick_params_kwargs_update={}):
     '''
     Helper function for setting axes-related formatting parameters.
     '''
     ax.set_xlabel(str_xlabel, fontsize=fontsize_labels, fontweight=fontweight_labels)
     ax.set_ylabel(str_ylabel, fontsize=fontsize_labels, fontweight=fontweight_labels)
+    ax.set_xscale(xscale)
+    ax.set_yscale(yscale)
     ax.set_xlim(xlimits)
     ax.set_ylim(ylimits)
     
@@ -56,15 +61,25 @@ def format_axes(ax,
         ax.set_yticklabels([], minor=True)
         ax.set_yticklabels(yticklabels, minor=False)
     
-    tick_params_kwargs = {
+    major_tick_params_kwargs = {
         'axis': 'both',
-        'which': 'both',
+        'which': 'major',
         'labelsize': fontsize_ticks,
         'length': fontsize_ticks/2,
         'direction': 'out',
     }
-    tick_params_kwargs.update(tick_params_kwargs_update)
-    ax.tick_params(**tick_params_kwargs)
+    major_tick_params_kwargs.update(major_tick_params_kwargs_update)
+    ax.tick_params(**major_tick_params_kwargs)
+    
+    minor_tick_params_kwargs = {
+        'axis': 'both',
+        'which': 'minor',
+        'labelsize': fontsize_ticks,
+        'length': fontsize_ticks/4,
+        'direction': 'out',
+    }
+    minor_tick_params_kwargs.update(minor_tick_params_kwargs_update)
+    ax.tick_params(**minor_tick_params_kwargs)
     
     for spine_key in spines_to_hide:
         ax.spines[spine_key].set_visible(False)
