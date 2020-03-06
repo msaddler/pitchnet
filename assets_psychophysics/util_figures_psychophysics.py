@@ -528,25 +528,38 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
     
     base_xvals = np.arange(bars_per_group)
     f0_ref_values = bg_results_dict[group_key]['f0_ref']
-    
+    xlimits_adjusted = [
+        barwidth*group_xoffsets[0]-xlimits[0]*barwidth,
+        np.max(base_xvals) + barwidth*group_xoffsets[-1] + xlimits[1]*barwidth
+    ]
+    ax = util_figures.format_axes(ax,
+                                  str_xlabel='Component shift (%F0)',
+                                  str_ylabel='Shift in predicted\nF0 (%F0)',
+                                  fontsize_labels=fontsize_labels,
+                                  fontsize_ticks=fontsize_ticks,
+                                  fontweight_labels=None,
+                                  xscale='linear',
+                                  yscale='linear',
+                                  xlimits=xlimits_adjusted,
+                                  ylimits=ylimits,
+                                  xticks=base_xvals[:-1]+0.5,
+                                  yticks=np.arange(0, ylimits[-1], 0.2),
+                                  xticks_minor=base_xvals,
+                                  yticks_minor=np.arange(0, ylimits[-1], 0.1),
+                                  xticklabels=[],
+                                  yticklabels=None,
+                                  spines_to_hide=[],
+                                  major_tick_params_kwargs_update={},
+                                  minor_tick_params_kwargs_update={})
+    ax.tick_params(axis='x', which='major', length=fontsize_ticks, direction='inout')
+    ax.tick_params(axis='x', which='minor', length=0, direction='inout')
+    ax.set_xticklabels([int(x) for x in f0_ref_values], minor=True, fontsize=fontsize_ticks)
     ax.axhline(y=0, xmin=0, xmax=1, color='k', lw=1)
+    
     if str_title: ax.set_title(str_title, fontsize=fontsize_title)
     if legend_on:
         ax.legend(loc='upper right', bbox_to_anchor=[1.03, 1.03], frameon=False,
                   fontsize=fontsize_legend, handlelength=1)
-    ax.set_xlim([barwidth*group_xoffsets[0]-xlimits[0]*barwidth,
-                 np.max(base_xvals) + barwidth*group_xoffsets[-1] + xlimits[1]*barwidth])
-    ax.set_xlabel('F0 (Hz)', fontsize=fontsize_labels)
-    ax.set_xticks(base_xvals, minor=True)
-    ax.set_xticklabels([int(x) for x in f0_ref_values], minor=True, fontsize=fontsize_ticks)
-    ax.tick_params(which='minor', length=0)
-    ax.set_xticks(base_xvals[:-1]+0.5, minor=False)
-    ax.set_xticklabels([], minor=False)
-    ax.tick_params(axis='x', which='major', length=12, direction='inout')
-    ax.set_ylim(ylimits)
-    ax.set_ylabel('Shift in predicted\nF0 (%F0)', fontsize=fontsize_labels)
-    ax.set_yticks(np.arange(0, ylimits[-1], 0.2), minor=False)
-    ax.tick_params(axis='both', labelsize=fontsize_ticks)
     return bg_results_dict
 
 
