@@ -533,7 +533,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
         np.max(base_xvals) + barwidth*group_xoffsets[-1] + xlimits[1]*barwidth
     ]
     ax = util_figures.format_axes(ax,
-                                  str_xlabel='Component shift (%F0)',
+                                  str_xlabel='F0 (Hz)',
                                   str_ylabel='Shift in predicted\nF0 (%F0)',
                                   fontsize_labels=fontsize_labels,
                                   fontsize_ticks=fontsize_ticks,
@@ -580,7 +580,6 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
                                       fontsize_ticks=12,
                                       xlimits=[0, 8],
                                       ylimits=[-0.3, 2.6],
-                                      yticks=0.5,
                                       cmap_name='tab10',
                                       kwargs_bootstrap={}):
     '''
@@ -641,20 +640,30 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
                             facecolor=plot_kwargs.get('color', color_list[cidx]))
         ax.plot(xval, yval, **plot_kwargs)
     
+    ax = util_figures.format_axes(ax,
+                                  str_xlabel='Harmonic mistuning (%)',
+                                  str_ylabel='Shift in predicted\nF0 (%F0)',
+                                  fontsize_labels=fontsize_labels,
+                                  fontsize_ticks=fontsize_ticks,
+                                  fontweight_labels=None,
+                                  xscale='linear',
+                                  yscale='linear',
+                                  xlimits=xlimits,
+                                  ylimits=ylimits,
+                                  xticks=np.arange(xlimits[0], xlimits[-1]+1, 1),
+                                  yticks=np.arange(0, ylimits[-1]+0.1, 0.5),
+                                  xticks_minor=None,
+                                  yticks_minor=np.arange(ylimits[0], ylimits[-1]+0.1, 0.1),
+                                  xticklabels=None,
+                                  yticklabels=None,
+                                  spines_to_hide=[],
+                                  major_tick_params_kwargs_update={},
+                                  minor_tick_params_kwargs_update={})
+    
+    if str_title: ax.set_title(str_title, fontsize=fontsize_title)    
     if legend_on:
         ax.legend(loc='upper right', bbox_to_anchor=[1.04, 1.04], frameon=False,
                   ncol=2, markerscale=1.5, fontsize=fontsize_legend, handlelength=0)
-    if str_title: ax.set_title(str_title, fontsize=fontsize_title)
-    ax.set_xlabel('Harmonic mistuning (%)', fontsize=fontsize_labels)
-    ax.set_ylabel('Shift in pred F0\n(%F0)', fontsize=fontsize_labels)
-    ax.set_xticks(np.arange(xlimits[0], xlimits[-1]+1, 1), minor=False)
-    ax.set_xticks([], minor=True)
-    ax.set_yticks(np.arange(0, ylimits[-1]+0.1, yticks), minor=False)
-    ax.set_yticks(np.arange(ylimits[0], ylimits[-1]+0.1, 0.1), minor=True)
-    ax.tick_params(axis='both', which='major', labelsize=fontsize_ticks, length=4)
-    ax.tick_params(axis='both', which='minor', length=2)
-    ax.set_xlim(xlimits)
-    ax.set_ylim(ylimits)
     return results_dict
 
 
@@ -723,15 +732,26 @@ def make_altphase_line_plot(ax, results_dict_input,
                             facecolor=plot_kwargs['color'])
         ax.plot(xval, yval, **plot_kwargs)
     
-    if legend_on:
-        ax.legend(loc=0, frameon=False, fontsize=fontsize_legend,
-                  handlelength=0, markerscale=1.25)
-    if str_title: ax.set_title(str_title, fontsize=fontsize_title)
-    ax.set_xlabel('F0 (Hz)', fontsize=fontsize_labels)
-    ax.set_ylabel('2F0 preferences -\nF0 preferences',
-                  fontsize=fontsize_labels)
-    ax.set_xlim(xlimits)
-    ax.set_xscale('log')
+    ax = util_figures.format_axes(ax,
+                                  str_xlabel='F0 (Hz)',
+                                  str_ylabel='2F0 preferences -\nF0 preferences',
+                                  fontsize_labels=fontsize_labels,
+                                  fontsize_ticks=fontsize_ticks,
+                                  fontweight_labels=None,
+                                  xscale='log',
+                                  yscale='linear',
+                                  xlimits=xlimits,
+                                  ylimits=ylimits,
+                                  xticks=None,
+                                  yticks=np.arange(-1, 1.1, 0.5),
+                                  xticks_minor=None,
+                                  yticks_minor=np.arange(-1, 1.1, 0.1),
+                                  xticklabels=None,
+                                  yticklabels=None,
+                                  spines_to_hide=[],
+                                  major_tick_params_kwargs_update={},
+                                  minor_tick_params_kwargs_update={})
+    
     xmin, xmax = (int(xlimits[0]), int(xlimits[1]))
     xticks_major = [t for t in np.arange(xmin, xmax + 1) if t%100==0]
     xtick_labels_major = [None] * len(xticks_major)
@@ -742,10 +762,11 @@ def make_altphase_line_plot(ax, results_dict_input,
     ax.xaxis.set_major_locator(x_locator)
     ax.set_xticks([t for t in np.arange(xmin, xmax + 1) if t%10==0], minor=True)
     ax.set_xticklabels([], minor=True)
-    ax.tick_params(axis='both', labelsize=fontsize_ticks)
-    ax.set_ylim(ylimits)
-    ax.set_yticks(np.arange(-1, 1.1, 0.5), minor=False)
-    ax.set_yticks(np.arange(-1, 1.1, 0.1), minor=True)
+    
+    if str_title: ax.set_title(str_title, fontsize=fontsize_title)    
+    if legend_on:
+        ax.legend(loc=0, frameon=False, fontsize=fontsize_legend,
+                  handlelength=0, markerscale=1.25)
     return results_dict
 
 
