@@ -302,8 +302,24 @@ def make_TT_threshold_plot(ax, results_dict_input,
                             facecolor=plot_kwargs.get('color', 'k'))
         ax.plot(xval, yval, **plot_kwargs)
     
-    ax.set_xlim(xlimits)
-    ax.set_xscale('log')
+    ax = util_figures.format_axes(ax,
+                                  str_xlabel='Frequency (Hz)',
+                                  str_ylabel='Discrimination\nthreshold (%)',
+                                  fontsize_labels=fontsize_labels,
+                                  fontsize_ticks=fontsize_ticks,
+                                  fontweight_labels=None,
+                                  xscale='log',
+                                  yscale='log',
+                                  xlimits=xlimits,
+                                  ylimits=ylimits,
+                                  xticks=None,
+                                  xticklabels=None,
+                                  yticks=None,
+                                  yticklabels=None,
+                                  spines_to_hide=[],
+                                  major_tick_params_kwargs_update={},
+                                  minor_tick_params_kwargs_update={})
+    
     xmin, xmax = (int(xlimits[0]), int(xlimits[1]))
     xticks_major = [t for t in np.arange(xmin, xmax + 1) if t%100==0]
     xtick_labels_major = [None] * len(xticks_major)
@@ -314,11 +330,7 @@ def make_TT_threshold_plot(ax, results_dict_input,
     ax.xaxis.set_major_locator(x_locator)
     ax.set_xticks([t for t in np.arange(xmin, xmax + 1) if t%10==0], minor=True)
     ax.set_xticklabels([], minor=True)
-    ax.set_ylim(ylimits)
-    ax.set_yscale('log')
-    ax.tick_params(axis='both', labelsize=fontsize_ticks)
-    ax.set_xlabel('Frequency (Hz)', fontsize=fontsize_labels)
-    ax.set_ylabel('Discrimination\nthreshold (%)', fontsize=fontsize_labels)
+    
     if str_title is not None: ax.set_title(str_title, fontsize=fontsize_title)
     if legend_on:
         ax.legend(loc='lower left', frameon=False,
