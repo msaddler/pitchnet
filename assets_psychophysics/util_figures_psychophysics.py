@@ -157,7 +157,7 @@ def make_bernox_threshold_plot(ax, results_dict_input,
             plot_kwargs.update(sine_plot_kwargs)
         else:
             plot_kwargs = {'label': 'rand', 'color': 'k',
-                           'ls':'--', 'lw':2, 'marker':''}
+                           'ls':'--', 'lw':2, 'marker':'', 'dashes': (2, 1)}
             if len(xval) <= 10:
                 plot_kwargs.update({'ms':10, 'marker':'.'})
             plot_kwargs.update(rand_plot_kwargs)
@@ -189,13 +189,15 @@ def make_bernox_threshold_plot(ax, results_dict_input,
                                   major_tick_params_kwargs_update={},
                                   minor_tick_params_kwargs_update={})
     
-    if str_title is not None: ax.set_title(str_title, fontsize=fontsize_title)
+    if str_title is not None:
+        ax.set_title(str_title, fontsize=fontsize_title)
     if legend_on:
         legend_plot_kwargs = {
             'loc': 'lower right',
             'frameon': False,
+            'handlelength': 1.5,
+            'markerscale': 0.0,
             'fontsize': fontsize_legend,
-            'markerscale': 0,
         }
         legend_plot_kwargs.update(legend_kwargs)
         ax.legend(**legend_plot_kwargs)
@@ -215,6 +217,7 @@ def make_TT_threshold_plot(ax, results_dict_input,
                            fontsize_ticks=12,
                            xlimits=[40, 360],
                            ylimits=[1e-1, 1e2],
+                           legend_kwargs={},
                            kwargs_bootstrap={},
                            collapse_transposed_tones=True):
     '''
@@ -335,10 +338,18 @@ def make_TT_threshold_plot(ax, results_dict_input,
     ax.set_xticks([t for t in np.arange(xmin, xmax + 1) if t%10==0], minor=True)
     ax.set_xticklabels([], minor=True)
     
-    if str_title is not None: ax.set_title(str_title, fontsize=fontsize_title)
+    if str_title is not None:
+        ax.set_title(str_title, fontsize=fontsize_title)
     if legend_on:
-        ax.legend(loc='lower left', frameon=False,
-                  fontsize=fontsize_legend, handlelength=0)
+        legend_plot_kwargs = {
+            'loc': 'lower left',
+            'frameon': False,
+            'handlelength': 0.0,
+            'markerscale': 1.0,
+            'fontsize': fontsize_legend,
+        }
+        legend_plot_kwargs.update(legend_kwargs)
+        ax.legend(**legend_plot_kwargs)
     return results_dict
 
 
@@ -359,6 +370,7 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
                                    fontsize_ticks=12,
                                    xlimits=[-1, 25],
                                    ylimits=[-4, 12],
+                                   legend_kwargs={},
                                    kwargs_bootstrap={}):
     '''
     Function for plotting frequency-shifted complexes experiment results:
@@ -395,9 +407,9 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
     
     if not condition_plot_kwargs:
         condition_plot_kwargs = {
-            '5': {'label': 'LOW', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2, 'color':'k'},
-            '11': {'label': 'MID', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2, 'color':'b'},
-            '16': {'label': 'HIGH', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2, 'color':'r'},
+            '5': {'label': 'LOW', 'marker': 'o', 'ms':6, 'ls':'-', 'lw': 2, 'color':'k'},
+            '11': {'label': 'MID', 'marker': 'o', 'ms':6, 'ls':'-', 'lw': 2, 'color':'b'},
+            '16': {'label': 'HIGH', 'marker': 'o', 'ms':6, 'ls':'-', 'lw': 2, 'color':'r'},
         }
     
     assert set(results_dict[expt_key].keys()) == set(condition_plot_kwargs.keys())
@@ -437,10 +449,18 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
                                   major_tick_params_kwargs_update={},
                                   minor_tick_params_kwargs_update={})
     
-    if str_title: ax.set_title(str_title, fontsize=fontsize_title)
+    if str_title is not None:
+        ax.set_title(str_title, fontsize=fontsize_title)
     if legend_on:
-        ax.legend(loc='upper left', frameon=False,
-                  fontsize=fontsize_legend, handlelength=1.5)
+        legend_plot_kwargs = {
+            'loc': 'upper left',
+            'frameon': False,
+            'handlelength': 0.0,
+            'markerscale': 8/6,
+            'fontsize': fontsize_legend,
+        }
+        legend_plot_kwargs.update(legend_kwargs)
+        ax.legend(**legend_plot_kwargs)
     return results_dict
 
 
@@ -461,6 +481,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
                                       xlimits=[2, 8],
                                       ylimits=[-0.1, 1.1],
                                       cmap_name='tab10',
+                                      legend_kwargs={},
                                       kwargs_bootstrap={}):
     '''
     Function for plotting mistuned harmonics experiment results:
@@ -556,10 +577,19 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
     ax.set_xticklabels([int(x) for x in f0_ref_values], minor=True, fontsize=fontsize_ticks)
     ax.axhline(y=0, xmin=0, xmax=1, color='k', lw=1)
     
-    if str_title: ax.set_title(str_title, fontsize=fontsize_title)
+    if str_title is not None:
+        ax.set_title(str_title, fontsize=fontsize_title)
     if legend_on:
-        ax.legend(loc='upper right', bbox_to_anchor=[1.03, 1.03], frameon=False,
-                  fontsize=fontsize_legend, handlelength=1)
+        legend_plot_kwargs = {
+            'loc': 'upper right',
+            'bbox_to_anchor': [1.03, 1.03],
+            'frameon': False,
+            'handlelength': 1.0,
+            'markerscale': 1.0,
+            'fontsize': fontsize_legend,
+        }
+        legend_plot_kwargs.update(legend_kwargs)
+        ax.legend(**legend_plot_kwargs)
     return bg_results_dict
 
 
@@ -581,6 +611,7 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
                                       xlimits=[0, 8],
                                       ylimits=[-0.3, 2.6],
                                       cmap_name='tab10',
+                                      legend_kwargs={},
                                       kwargs_bootstrap={}):
     '''
     Function for plotting mistuned harmonics experiment results:
@@ -660,10 +691,20 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
                                   major_tick_params_kwargs_update={},
                                   minor_tick_params_kwargs_update={})
     
-    if str_title: ax.set_title(str_title, fontsize=fontsize_title)    
+    if str_title is not None:
+        ax.set_title(str_title, fontsize=fontsize_title)    
     if legend_on:
-        ax.legend(loc='upper right', bbox_to_anchor=[1.04, 1.04], frameon=False,
-                  ncol=2, markerscale=1.5, fontsize=fontsize_legend, handlelength=0)
+        legend_plot_kwargs = {
+            'loc': 'upper right',
+            'bbox_to_anchor': [1.04, 1.04],
+            'ncol': 2,
+            'frameon': False,
+            'handlelength': 0.0,
+            'markerscale': 1.5,
+            'fontsize': fontsize_legend,
+        }
+        legend_plot_kwargs.update(legend_kwargs)
+        ax.legend(**legend_plot_kwargs)
     return results_dict
 
 
@@ -682,6 +723,7 @@ def make_altphase_line_plot(ax, results_dict_input,
                             fontsize_ticks=12,
                             xlimits=[62.5*0.9, 250*1.1],
                             ylimits=[-1.1, 1.1],
+                            kwargs_legend={},
                             kwargs_bootstrap={}):
     '''
     Function for plotting alternating phase experiment results:
@@ -763,10 +805,18 @@ def make_altphase_line_plot(ax, results_dict_input,
     ax.set_xticks([t for t in np.arange(xmin, xmax + 1) if t%10==0], minor=True)
     ax.set_xticklabels([], minor=True)
     
-    if str_title: ax.set_title(str_title, fontsize=fontsize_title)    
+    if str_title is not None:
+        ax.set_title(str_title, fontsize=fontsize_title)    
     if legend_on:
-        ax.legend(loc=0, frameon=False, fontsize=fontsize_legend,
-                  handlelength=0, markerscale=1.25)
+        legend_plot_kwargs = {
+            'loc': 'best',
+            'frameon': False,
+            'handlelength': 0.0,
+            'markerscale': 1.25,
+            'fontsize': fontsize_legend,
+        }
+        legend_plot_kwargs.update(legend_kwargs)
+        ax.legend(**legend_plot_kwargs)
     return results_dict
 
 
@@ -859,7 +909,6 @@ def make_altphase_histogram_plot(ax, results_dict_input,
                                  bin_step=0.0201,
                                  xticks=[1.0, 1.5, 2.0],
                                  xlimits=[0.9, 2.3],
-                                 yticks=5,
                                  ylimits=[0, 35],
                                  condition_plot_kwargs_filter={},
                                  condition_plot_kwargs_f0={},
@@ -872,6 +921,7 @@ def make_altphase_histogram_plot(ax, results_dict_input,
                                  fontsize_legend=12,
                                  fontsize_ticks=12,
                                  include_yerr=False,
+                                 legend_kwargs={},
                                  kwargs_bootstrap={}):
     '''
     Function for plotting alternating phase experiment results:
@@ -914,7 +964,6 @@ def make_altphase_histogram_plot(ax, results_dict_input,
             '3900.0': {'label': 'HIGH', 'color': 'r', 'alpha':0.3, 'lw':1.3},
         }
     
-    ax.set_xscale('log')
     for f0_val in restrict_conditions_f0:
         for filter_val in restrict_conditions_filter:
             idx = np.logical_and(f0_conditions==f0_val, filter_conditions==filter_val)
@@ -926,23 +975,43 @@ def make_altphase_histogram_plot(ax, results_dict_input,
             ax.fill_between(bin_xvals, bin_yvals, **plot_kwargs)
             plot_kwargs.pop('alpha')
             ax.plot(bin_xvals, bin_yvals, label=label, **plot_kwargs)
-    if legend_on:
-        leg = ax.legend(loc=9, frameon=False, markerscale=0, handlelength=0.4, fontsize=fontsize_legend)
-        for legobj in leg.legendHandles:
-            legobj.set_linewidth(8.0)
-    if str_title:
-        ax.set_title(str_title, fontsize=fontsize_title)
+    
+    ax = util_figures.format_axes(ax,
+                                  str_xlabel='Predicted F0 / target F0',
+                                  str_ylabel='% of F0 predictions',
+                                  fontsize_labels=fontsize_labels,
+                                  fontsize_ticks=fontsize_ticks,
+                                  fontweight_labels=None,
+                                  xscale='log',
+                                  yscale='linear',
+                                  xlimits=xlimits,
+                                  ylimits=ylimits,
+                                  xticks=xticks,
+                                  yticks=np.arange(ylimits[0], ylimits[1]+1, 10),
+                                  xticks_minor=np.arange(xlimits[0], xlimits[1], 0.1),
+                                  yticks_minor=np.arange(ylimits[0], ylimits[1]+1, 1),
+                                  xticklabels=xticks,
+                                  yticklabels=None,
+                                  spines_to_hide=[],
+                                  major_tick_params_kwargs_update={},
+                                  minor_tick_params_kwargs_update={})
+    
     ax.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
     ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
     ax.yaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter('%.1f'))
-    ax.set_xlim(xlimits)
-    ax.set_xticks(xticks)
-    ax.set_xticks(np.arange(xlimits[0], xlimits[1], 0.1), minor=True)
-    ax.set_ylim(ylimits)
-    ax.set_yticks(np.arange(ylimits[0], ylimits[1]+1, yticks))
-    ax.tick_params(axis='y', which='both', labelsize=fontsize_ticks, direction='out', right=False, left=True)
-    ax.tick_params(axis='x', which='major', labelsize=fontsize_ticks, direction='out', top=False, bottom=True)
-    ax.tick_params(axis='x', which='minor', direction='out', top=False, bottom=True)
-    ax.set_xlabel('Predicted F0 / target F0', fontsize=fontsize_labels)
-    ax.set_ylabel('% of F0 predictions'.format(bin_step*100.0), fontsize=fontsize_labels)
+    
+    if str_title is not None:
+        ax.set_title(str_title, fontsize=fontsize_title)
+    if legend_on:
+        legend_plot_kwargs = {
+            'loc': 'best',
+            'frameon': False,
+            'handlelength': 0.4,
+            'markerscale': 0.0,
+            'fontsize': fontsize_legend,
+        }
+        legend_plot_kwargs.update(legend_kwargs)
+        leg = ax.legend(**legend_plot_kwargs)
+        for legobj in leg.legendHandles:
+            legobj.set_linewidth(8.0)
     return hist_results_dict_list
