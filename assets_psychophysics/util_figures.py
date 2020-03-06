@@ -9,6 +9,18 @@ import matplotlib.cm
 import matplotlib.colors
 
 
+def get_color_list(num_colors, cmap_name='Accent'):
+    '''
+    Helper function returns list of colors for plotting.
+    '''
+    if isinstance(cmap_name, list): return cmap_name
+    cmap = plt.get_cmap(cmap_name)
+    norm = matplotlib.colors.Normalize(vmin=0, vmax=num_colors)
+    scalar_map = matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap)
+    color_list = [scalar_map.to_rgba(x) for x in range(num_colors)]
+    return color_list
+
+
 def format_axes(ax,
                 str_xlabel=None,
                 str_ylabel=None,

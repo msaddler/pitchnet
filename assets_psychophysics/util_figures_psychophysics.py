@@ -9,19 +9,8 @@ import matplotlib.ticker
 import matplotlib.cm
 import matplotlib.colors
 
+import util_figures
 import util_human_model_comparison
-
-
-def get_color_list(num_colors, cmap_name='Accent'):
-    '''
-    Helper function returns list of colors for plotting.
-    '''
-    if isinstance(cmap_name, list): return cmap_name
-    cmap = plt.get_cmap(cmap_name)
-    norm = matplotlib.colors.Normalize(vmin=0, vmax=num_colors)
-    scalar_map = matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap)
-    color_list = [scalar_map.to_rgba(x) for x in range(num_colors)]
-    return color_list
 
 
 def bootstrap(data,
@@ -478,7 +467,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
     
     if cmap_name == 'tab10': num_colors = max(10, len(harmonic_list))
     else: num_colors = len(harmonic_list)
-    color_list = get_color_list(num_colors, cmap_name=cmap_name)
+    color_list = util_figures.get_color_list(num_colors, cmap_name=cmap_name)
     num_groups = len(bg_results_dict.keys())
     group_xoffsets = np.arange(num_groups) - np.mean(np.arange(num_groups))
     for group_idx, group_key in enumerate(sorted(bg_results_dict.keys())):
@@ -585,7 +574,7 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
         condition_list = [str(c) for c in restrict_conditions]
     if cmap_name == 'tab10': num_colors = max(10, len(condition_list))
     else: num_colors = len(condition_list)
-    color_list = get_color_list(num_colors, cmap_name=cmap_name)
+    color_list = util_figures.get_color_list(num_colors, cmap_name=cmap_name)
     for cidx, condition in enumerate(condition_list):
         xval = np.array(results_dict[expt_key][condition]['mistuned_pct'])
         yval = np.array(results_dict[expt_key][condition][pitch_shift_key])
