@@ -180,8 +180,10 @@ def make_bernox_threshold_plot(ax, results_dict_input,
                                   xlimits=xlimits,
                                   ylimits=ylimits,
                                   xticks=np.arange(xlimits[0], xlimits[1], 5),
-                                  xticklabels=None,
                                   yticks=None,
+                                  xticks_minor=np.arange(xlimits[0], xlimits[1], 1),
+                                  yticks_minor=None,
+                                  xticklabels=None,
                                   yticklabels=None,
                                   spines_to_hide=[],
                                   major_tick_params_kwargs_update={},
@@ -313,8 +315,10 @@ def make_TT_threshold_plot(ax, results_dict_input,
                                   xlimits=xlimits,
                                   ylimits=ylimits,
                                   xticks=None,
-                                  xticklabels=None,
                                   yticks=None,
+                                  xticks_minor=None,
+                                  yticks_minor=None,
+                                  xticklabels=None,
                                   yticklabels=None,
                                   spines_to_hide=[],
                                   major_tick_params_kwargs_update={},
@@ -412,20 +416,31 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
                             facecolor=plot_kwargs['color'])
         ax.plot(xval, yval, **plot_kwargs)
     
+    xval = np.array(results_dict[expt_key]['5']['f0_shift'])
+    ax = util_figures.format_axes(ax,
+                                  str_xlabel='Component shift (%F0)',
+                                  str_ylabel='Shift in predicted\nF0 (%F0)',
+                                  fontsize_labels=fontsize_labels,
+                                  fontsize_ticks=fontsize_ticks,
+                                  fontweight_labels=None,
+                                  xscale='linear',
+                                  yscale='linear',
+                                  xlimits=xlimits,
+                                  ylimits=ylimits,
+                                  xticks=np.arange(xval[0], xval[-1]+1, 8),
+                                  yticks=np.arange(ylimits[0], ylimits[-1]+1, 4),
+                                  xticks_minor=np.arange(xval[0], xval[-1]+1, 1),
+                                  yticks_minor=np.arange(ylimits[0], ylimits[-1]+1, 1),
+                                  xticklabels=None,
+                                  yticklabels=None,
+                                  spines_to_hide=[],
+                                  major_tick_params_kwargs_update={},
+                                  minor_tick_params_kwargs_update={})
+    
+    if str_title: ax.set_title(str_title, fontsize=fontsize_title)
     if legend_on:
         ax.legend(loc='upper left', frameon=False,
                   fontsize=fontsize_legend, handlelength=1.5)
-    if str_title: ax.set_title(str_title, fontsize=fontsize_title)
-    ax.set_xlabel('Component shift (%F0)', fontsize=fontsize_labels)
-    ax.set_ylabel('Shift in predicted\nF0 (%F0)', fontsize=fontsize_labels)
-    ax.set_xlim(xlimits)
-    ax.set_ylim(ylimits)
-    xval = np.array(results_dict[expt_key]['5']['f0_shift'])
-    ax.set_xticks(np.arange(xval[0], xval[-1]+1, 8), minor=False)
-    ax.set_xticks(np.arange(xval[0], xval[-1]+1, 4), minor=True)
-    ax.set_yticks(np.arange(ylimits[0], ylimits[-1]+1, 4), minor=False)
-    ax.set_yticks(np.arange(ylimits[0], ylimits[-1]+1, 2), minor=True)
-    ax.tick_params(axis='both', labelsize=fontsize_ticks)
     return results_dict
 
 

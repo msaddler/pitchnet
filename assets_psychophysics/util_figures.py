@@ -33,6 +33,8 @@ def format_axes(ax,
                 ylimits=None,
                 xticks=None,
                 yticks=None,
+                xticks_minor=None,
+                yticks_minor=None,
                 xticklabels=None,
                 yticklabels=None,
                 spines_to_hide=[],
@@ -48,11 +50,13 @@ def format_axes(ax,
     ax.set_xlim(xlimits)
     ax.set_ylim(ylimits)
     
+    if xticks_minor is not None:
+        ax.set_xticks(xticks_minor, minor=True)
+    if yticks_minor is not None:
+        ax.set_yticks(yticks_minor, minor=True)
     if xticks is not None:
-        ax.set_xticks([], minor=True)
         ax.set_xticks(xticks, minor=False)
     if yticks is not None:
-        ax.set_yticks([], minor=True)
         ax.set_yticks(yticks, minor=False)
     if xticklabels is not None:
         ax.set_xticklabels([], minor=True)
