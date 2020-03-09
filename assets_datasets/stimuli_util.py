@@ -196,3 +196,19 @@ def modified_uniform_masking_noise(fs, dur, dBHzSPL=15., attenuation_start=600.,
     amplitudes = np.power(10, (dB_attenuation/20))
     fxx = fxx * amplitudes
     return np.real(np.fft.ifft(fxx))
+
+
+def freq2erb(freq):
+    '''
+    Helper function converts frequency from Hz to number of ERBs.
+    Glasberg & Moore (1990, Hearing Research) equation 4.
+    '''
+    return 21.4 * np.log10(0.00437 * freq + 1.0)
+
+
+def erb2freq(erb):
+    '''
+    Helper function converts frequency from number of ERBs to Hz.
+    Glasberg & Moore (1990, Hearing Research) equation 4.
+    '''
+    return (1.0/0.00437) * (np.power(10.0, (erb / 21.4)) - 1.0)
