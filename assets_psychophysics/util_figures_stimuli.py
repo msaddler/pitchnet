@@ -15,8 +15,11 @@ import util_figures
 def make_nervegram_plot(ax, nervegram,
                         sr=20000,
                         cfs=[],
+                        fontsize_title=12,
                         fontsize_labels=12,
+                        fontsize_legend=12,
                         fontsize_ticks=12,
+                        fontweight_labels=None,
                         nxticks=6,
                         nyticks=5,
                         tmin=None,
@@ -25,6 +28,7 @@ def make_nervegram_plot(ax, nervegram,
                         vmin=None,
                         vmax=None,
                         vticks=None,
+                        str_title=None,
                         str_xlabel='Time (s)',
                         str_ylabel='Characteristic Frequency (Hz)',
                         str_clabel=None):
@@ -73,7 +77,7 @@ def make_nervegram_plot(ax, nervegram,
                                   str_ylabel=str_ylabel,
                                   fontsize_labels=fontsize_labels,
                                   fontsize_ticks=fontsize_ticks,
-                                  fontweight_labels=None,
+                                  fontweight_labels=fontweight_labels,
                                   xlimits=None,
                                   ylimits=None,
                                   xticks=time_idx,
@@ -83,6 +87,8 @@ def make_nervegram_plot(ax, nervegram,
                                   spines_to_hide=[],
                                   major_tick_params_kwargs_update={},
                                   minor_tick_params_kwargs_update={})
+    if str_title is not None:
+        ax.set_title(str_title, fontsize=fontsize_title)
     return ax
 
 
@@ -107,7 +113,14 @@ def make_line_plot(ax, x, y,
                    spines_to_hide=['left', 'right', 'bottom', 'top']):
     '''
     '''
-    ax.plot(x, y, **plot_kwargs)
+    tmp_plot_kwargs = {
+        'marker': '',
+        'ls': '-',
+        'color': [0, 0, 0],
+        'lw': 1,
+    }
+    tmp_plot_kwargs.update(plot_kwargs)
+    ax.plot(x, y, **tmp_plot_kwargs)
     ax = util_figures.format_axes(ax,
                                   str_xlabel=str_xlabel,
                                   str_ylabel=str_ylabel,
