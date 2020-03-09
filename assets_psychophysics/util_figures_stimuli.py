@@ -86,6 +86,58 @@ def make_nervegram_plot(ax, nervegram,
     return ax
 
 
+def make_line_plot(ax, x, y,
+                   plot_kwargs={},
+                   fontsize_title=12,
+                   fontsize_labels=12,
+                   fontsize_legend=12,
+                   fontsize_ticks=12,
+                   fontweight_labels=None,
+                   str_title=None,
+                   str_xlabel=None,
+                   str_ylabel=None,
+                   xlimits=None,
+                   ylimits=None,
+                   xticks=[],
+                   xticklabels=[],
+                   yticks=[],
+                   yticklabels=[],
+                   legend_on=False,
+                   legend_kwargs={},
+                   spines_to_hide=['left', 'right', 'bottom', 'top']):
+    '''
+    '''
+    ax.plot(x, y, **plot_kwargs)
+    ax = util_figures.format_axes(ax,
+                                  str_xlabel=str_xlabel,
+                                  str_ylabel=str_ylabel,
+                                  fontsize_labels=fontsize_labels,
+                                  fontsize_ticks=fontsize_ticks,
+                                  fontweight_labels=fontweight_labels,
+                                  xlimits=xlimits,
+                                  ylimits=ylimits,
+                                  xticks=xticks,
+                                  xticklabels=xticklabels,
+                                  yticks=yticks,
+                                  yticklabels=yticklabels,
+                                  spines_to_hide=spines_to_hide,
+                                  major_tick_params_kwargs_update={},
+                                  minor_tick_params_kwargs_update={})
+    if str_title is not None:
+        ax.set_title(str_title, fontsize=fontsize_title)
+    if legend_on:
+        legend_plot_kwargs = {
+            'loc': 'lower right',
+            'frameon': False,
+            'handlelength': 1.0,
+            'markerscale': 1.0,
+            'fontsize': fontsize_legend,
+        }
+        legend_plot_kwargs.update(legend_kwargs)
+        ax.legend(**legend_plot_kwargs)
+    return ax
+
+
 def make_waveform_plot(ax,
                        waveform,
                        sr=32000,
