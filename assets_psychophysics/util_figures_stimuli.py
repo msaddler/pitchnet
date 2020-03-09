@@ -16,7 +16,7 @@ def make_nervegram_plot(ax, nervegram,
                         sr=20000,
                         cfs=[],
                         fontsize_labels=12,
-                        fontsize_ticks=10,
+                        fontsize_ticks=12,
                         nxticks=6,
                         nyticks=5,
                         tmin=None,
@@ -44,13 +44,14 @@ def make_nervegram_plot(ax, nervegram,
     
     time_idx = np.linspace(0, t.shape[0]-1, nxticks, dtype=int)
     time_labels = ['{:.3f}'.format(t[itr0]) for itr0 in time_idx]
-    if not len(cfs) == nervegram.shape[0]: cfs = np.arange(0, nervegram.shape[0])
+    if not len(cfs) == nervegram.shape[0]:
+        cfs = np.arange(0, nervegram.shape[0])
     freq_idx = np.linspace(0, cfs.shape[0]-1, nyticks, dtype=int)
     freq_labels = ['{:.0f}'.format(cfs[itr0]) for itr0 in freq_idx]
     
     cmap = ax.imshow(nervegram, origin='lower', aspect='auto',
                      extent=[0, nervegram.shape[1], 0, nervegram.shape[0]],
-                     cmap=cm.gray, vmin=vmin, vmax=vmax)
+                     cmap=matplotlib.cm.gray, vmin=vmin, vmax=vmax)
     
     if str_clabel is not None:
         cbar = plt.colorbar(cmap, ax=ax, pad=0.02)
@@ -67,18 +68,21 @@ def make_nervegram_plot(ax, nervegram,
         from matplotlib.ticker import FormatStrFormatter
         cbar.ax.yaxis.set_major_formatter(FormatStrFormatter('%03d'))
     
-    ax.set_yticks(freq_idx)
-    ax.set_yticklabels(freq_labels)
-    ax.set_xticks(time_idx)
-    ax.set_xticklabels(time_labels)
-    ax.set_xlabel(str_xlabel, fontsize=fontsize_labels)
-    ax.set_ylabel(str_ylabel, fontsize=fontsize_labels)
-    ax.tick_params(direction='out',
-                   axis='both',
-                   which='both',
-                   labelsize=fontsize_ticks,
-                   length=fontsize_ticks/2)
-    
+    ax = util_figures.format_axes(ax,
+                                  str_xlabel=str_xlabel,
+                                  str_ylabel=str_ylabel,
+                                  fontsize_labels=fontsize_labels,
+                                  fontsize_ticks=fontsize_ticks,
+                                  fontweight_labels=None,
+                                  xlimits=None,
+                                  ylimits=None,
+                                  xticks=time_idx,
+                                  xticklabels=time_labels,
+                                  yticks=freq_idx,
+                                  yticklabels=freq_labels,
+                                  spines_to_hide=[],
+                                  major_tick_params_kwargs_update={},
+                                  minor_tick_params_kwargs_update={})
     return ax
 
 
@@ -86,7 +90,7 @@ def make_waveform_plot(ax,
                        waveform,
                        sr=32000,
                        fontsize_labels=12,
-                       fontsize_ticks=10,
+                       fontsize_ticks=12,
                        lw=4.0,
                        tmin=None,
                        tmax=None,
@@ -119,5 +123,6 @@ def make_waveform_plot(ax,
                                   yticks=[],
                                   yticklabels=None,
                                   spines_to_hide=['left', 'right', 'bottom', 'top'],
-                                  tick_params_kwargs_update={})
+                                  major_tick_params_kwargs_update={},
+                                  minor_tick_params_kwargs_update={})
     return ax
