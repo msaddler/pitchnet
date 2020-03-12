@@ -11,6 +11,9 @@ import matplotlib.colors
 
 import util_figures
 
+sys.path.append('/om2/user/msaddler/pitchnet/assets_datasets')
+import stimuli_util
+
 
 def make_nervegram_plot(ax, nervegram,
                         sr=20000,
@@ -150,3 +153,166 @@ def make_line_plot(ax, x, y,
         ax.legend(**legend_plot_kwargs)
     return ax
 
+
+def figure_wrapper_nervegram_stimulus(ax_arr,
+                                      ax_idx_nervegram=None,
+                                      ax_idx_spectrum=None,
+                                      ax_idx_excitation=None,
+                                      ax_idx_waveform=None,
+                                      nervegram=None,
+                                      nervegram_sr=None,
+                                      waveform=None,
+                                      waveform_sr=None,
+                                      cfs=[],
+                                      tmin=None,
+                                      tmax=None,
+                                      treset=True,
+                                      fontsize_title=12,
+                                      fontsize_labels=12,
+                                      fontsize_legend=12,
+                                      fontsize_ticks=12,
+                                      fontweight_labels=None,
+                                      spines_to_hide_spectrum=['top', 'bottom', 'left', 'right'],
+                                      spines_to_hide_excitation=['top', 'bottom', 'left', 'right'],
+                                      spines_to_hide_waveform=['top', 'bottom', 'left', 'right'],
+                                      nxticks=6,
+                                      nyticks=6,
+                                      plot_kwargs={},
+                                      limits_buffer=0.1,
+                                      ax_arr_clear_leftover=True):
+    '''
+    '''
+    # KEEP TRACK OF AXES IN 1D ARRAY
+    ax_arr = np.array([ax_arr]).reshape([-1])
+    assert len(ax_arr.shape) == 1
+    ax_idx_list = []
+    # PLOT AUDITORY NERVEGRAM
+    if ax_idx_nervegram is not None:
+        ax_idx_list.append(ax_idx_nervegram)
+        if ax_idx_spectrum is not None:
+            nervegram_nxticks = nxticks
+            nervegram_nyticks = 0
+            nervegram_str_xlabel = 'Time (s)'
+            nervegram_str_ylabel = None
+        else:
+            nervegram_nxticks = nxticks
+            nervegram_nyticks = nyticks
+            nervegram_str_xlabel = 'Time (s)'
+            nervegram_str_ylabel = 'Characteristic frequency (Hz)'
+        make_nervegram_plot(ax_arr[ax_idx_nervegram],
+                            nervegram,
+                            sr=nervegram_sr,
+                            cfs=cfs,
+                            fontsize_title=fontsize_title,
+                            fontsize_labels=fontsize_labels,
+                            fontsize_legend=fontsize_legend,
+                            fontsize_ticks=fontsize_ticks,
+                            fontweight_labels=fontweight_labels,
+                            nxticks=nervegram_nxticks,
+                            nyticks=nervegram_nyticks,
+                            tmin=tmin,
+                            tmax=tmax,
+                            treset=treset,
+                            str_title=None,
+                            str_xlabel=nervegram_str_xlabel,
+                            str_ylabel=nervegram_str_ylabel,
+                            str_clabel=None)
+    # PLOT POWER SPECTRUM
+    if ax_idx_spectrum is not None:
+        ax_idx_list.append(ax_idx_spectrum)
+        fxx, pxx = stimuli_util.power_spectrum(waveform, waveform_sr)
+        IDX = np.logical_and(fxx >= np.min(cfs), fxx <= np.max(cfs))
+        x_pxx = pxx[IDX]
+        y_pxx = stimuli_util.freq2erb(fxx[IDX])
+        xlimits_buffer_pxx = limits_buffer * np.max(x_pxx)
+        ylimits_pxx = [np.min(y_pxx), np.max(y_pxx)]
+        xlimits_pxx = [np.max(x_pxx) + xlimits_buffer_pxx, np.min(x_pxx) - xlimits_buffer_pxx]
+        xlimits_pxx[-1] = 0
+        yticks = np.linspace(stimuli_util.freq2erb(cfs[0]), stimuli_util.freq2erb(cfs[-1]), nyticks)
+        yticklabels = ['{:.0f}'.format(yt) for yt in stimuli_util.erb2freq(yticks)]
+        make_line_plot(ax_arr[ax_idx_spectrum], x_pxx, y_pxx,
+                       plot_kwargs=plot_kwargs,
+                       fontsize_title=fontsize_title,
+                       fontsize_labels=fontsize_labels,
+                       fontsize_legend=fontsize_legend,
+                       fontsize_ticks=fontsize_ticks,
+                       fontweight_labels=None,
+                       str_title=None,
+                       str_xlabel=None,
+                       str_ylabel='Frequency (Hz)',
+                       xlimits=xlimits_pxx,
+                       ylimits=ylimits_pxx,
+                       xticks=[],
+                       xticklabels=[],
+                       yticks=yticks,
+                       yticklabels=yticklabels,
+                       legend_on=False,
+                       legend_kwargs={},
+                       spines_to_hide=spines_to_hide_spectrum)
+    # PLOT EXCITATION PATTERN
+    if ax_idx_excitation is not None:
+        ax_idx_list.append(ax_idx_excitation)
+        x_exc = np.mean(nervegram, axis=1)
+        y_exc = np.arange(0, nervegram.shape[0])
+        xlimits_exc_buffer = limits_buffer * np.max(x_exc)
+        xlimits_exc = [np.min(x_exc) - xlimits_exc_buffer, np.max(x_exc) + xlimits_exc_buffer]
+        ylimits_exc = [np.min(y_exc), np.max(y_exc)]
+        make_line_plot(ax_arr[ax_idx_excitation], x_exc, y_exc,
+                       plot_kwargs=plot_kwargs,
+                       fontsize_title=fontsize_title,
+                       fontsize_labels=fontsize_labels,
+                       fontsize_legend=fontsize_legend,
+                       fontsize_ticks=fontsize_ticks,
+                       fontweight_labels=fontweight_labels,
+                       str_title=None,
+                       str_xlabel=None,
+                       str_ylabel=None,
+                       xlimits=xlimits_exc,
+                       ylimits=ylimits_exc,
+                       xticks=[],
+                       xticklabels=[],
+                       yticks=[],
+                       yticklabels=[],
+                       legend_on=False,
+                       legend_kwargs={},
+                       spines_to_hide=spines_to_hide_excitation)
+    # PLOT WAVEFORM
+    if ax_idx_waveform is not None:
+        ax_idx_list.append(ax_idx_waveform)
+        y_wav = np.squeeze(waveform)
+        assert len(y_wav.shape) == 1, "waveform must be 1D array"
+        x_wav = np.arange(0, y_wav.shape[0]) / waveform_sr
+        if (tmin is not None) and (tmax is not None):
+            IDX = np.logical_and(x_wav >= tmin, x_wav < tmax)
+            x_wav = x_wav[IDX]
+            y_wav = y_wav[IDX]
+        if treset:
+            x_wav = x_wav - x_wav[0]
+        xlimits_wav = [x_wav[0], x_wav[-1]]
+        ylimits_wav = [np.max(np.abs(y_wav)), -np.max(np.abs(y_wav))]
+        ylimits_wav = np.array(ylimits_wav) * (1 + limits_buffer)
+        make_line_plot(ax_arr[ax_idx_waveform], x_wav, y_wav,
+                       plot_kwargs=plot_kwargs,
+                       fontsize_title=fontsize_title,
+                       fontsize_labels=fontsize_labels,
+                       fontsize_legend=fontsize_legend,
+                       fontsize_ticks=fontsize_ticks,
+                       fontweight_labels=fontweight_labels,
+                       str_title=None,
+                       str_xlabel=None,
+                       str_ylabel=None,
+                       xlimits=xlimits_wav,
+                       ylimits=ylimits_wav,
+                       xticks=[],
+                       xticklabels=[],
+                       yticks=[],
+                       yticklabels=[],
+                       legend_on=False,
+                       legend_kwargs={},
+                       spines_to_hide=spines_to_hide_waveform)
+    # CLEAR UNUSED AXES
+    if ax_arr_clear_leftover:
+        for ax_idx in range(ax_arr.shape[0]):
+            if ax_idx not in ax_idx_list:
+                ax_arr[ax_idx].axis('off')
+    return ax_arr
