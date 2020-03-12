@@ -8,7 +8,7 @@ import copy
 import argparse
 import pdb
 
-import stimuli_util
+import util_stimuli
 
 
 def compute_running_mean_power_spectrum(signal_list,
@@ -28,8 +28,8 @@ def compute_running_mean_power_spectrum(signal_list,
         if (nopad_start is not None) and (nopad_end is not None):
             x = x[nopad_start:nopad_end]
         if rescaled_dBSPL is not None:
-            x = stimuli_util.set_dBSPL(x, rescaled_dBSPL)
-        fxx, pxx = stimuli_util.power_spectrum(x, sr, **kwargs_power_spectrum)
+            x = util_stimuli.set_dBSPL(x, rescaled_dBSPL)
+        fxx, pxx = util_stimuli.power_spectrum(x, sr, **kwargs_power_spectrum)
         if running_freqs is None:
             running_freqs = fxx
             running_mean_spectrum = np.zeros_like(pxx)

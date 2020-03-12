@@ -6,7 +6,7 @@ import scipy.signal
 import itertools
 import pdb
 
-import stimuli_util
+import util_stimuli
 
 sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
 from dataset_util import initialize_hdf5_file, write_example_to_hdf5
@@ -99,11 +99,11 @@ def generate_AltPhase_dataset(hdf5_filename, fs=32000, dur=0.150, phase_modes=['
                 harmonic_numbers = harmonic_freqs / f0
                 harmonic_dBSPL = passband_component_dBSPL + frequency_response_in_dB(harmonic_freqs)
                 amplitudes = 20e-6 * np.power(10, (harmonic_dBSPL/20))
-                signal = stimuli_util.complex_tone(f0, fs, dur, harmonic_numbers=harmonic_numbers,
+                signal = util_stimuli.complex_tone(f0, fs, dur, harmonic_numbers=harmonic_numbers,
                                                    amplitudes=amplitudes,
                                                    phase_mode=phase_mode_decoding[phase])
                 # Construct modified uniform masking noise
-                noise = stimuli_util.modified_uniform_masking_noise(
+                noise = util_stimuli.modified_uniform_masking_noise(
                     fs, dur, dBHzSPL=noise_dBHzSPL,
                     attenuation_start=noise_attenuation_start,
                     attenuation_slope=noise_attenuation_slope)
@@ -143,11 +143,11 @@ def generate_AltPhase_dataset(hdf5_filename, fs=32000, dur=0.150, phase_modes=['
                 harmonic_numbers = harmonic_freqs / f0
                 harmonic_dBSPL = passband_component_dBSPL + frequency_response_in_dB(harmonic_freqs)
                 amplitudes = 20e-6 * np.power(10, (harmonic_dBSPL/20))
-                signal = stimuli_util.complex_tone(f0, fs, dur, harmonic_numbers=harmonic_numbers,
+                signal = util_stimuli.complex_tone(f0, fs, dur, harmonic_numbers=harmonic_numbers,
                                                    amplitudes=amplitudes,
                                                    phase_mode=phase_mode_decoding[phase])
                 # Construct modified uniform masking noise
-                noise = stimuli_util.modified_uniform_masking_noise(
+                noise = util_stimuli.modified_uniform_masking_noise(
                     fs, dur, dBHzSPL=noise_dBHzSPL,
                     attenuation_start=noise_attenuation_start,
                     attenuation_slope=noise_attenuation_slope)

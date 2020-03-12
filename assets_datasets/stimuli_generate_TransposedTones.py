@@ -4,7 +4,7 @@ import h5py
 import numpy as np
 import pdb
 import scipy.signal
-import stimuli_util
+import util_stimuli
 
 sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
 from dataset_util import initialize_hdf5_file, write_example_to_hdf5
@@ -53,7 +53,7 @@ def get_Oxenham2004_transposed_tone(f_carrier, f_envelope, fs=32000, dur=0.150, 
     start_index = int(buffer_dur/2 * fs)
     end_index = start_index + int(dur * fs)
     signal = signal[start_index:end_index]
-    signal = stimuli_util.set_dBSPL(signal, dBSPL)
+    signal = util_stimuli.set_dBSPL(signal, dBSPL)
     return signal
 
 

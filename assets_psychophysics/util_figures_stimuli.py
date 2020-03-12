@@ -12,7 +12,7 @@ import matplotlib.colors
 import util_figures
 
 sys.path.append('/om2/user/msaddler/pitchnet/assets_datasets')
-import stimuli_util
+import util_stimuli
 
 
 def make_nervegram_plot(ax, nervegram,
@@ -220,16 +220,16 @@ def figure_wrapper_nervegram_stimulus(ax_arr,
     # PLOT POWER SPECTRUM
     if ax_idx_spectrum is not None:
         ax_idx_list.append(ax_idx_spectrum)
-        fxx, pxx = stimuli_util.power_spectrum(waveform, waveform_sr)
+        fxx, pxx = util_stimuli.power_spectrum(waveform, waveform_sr)
         IDX = np.logical_and(fxx >= np.min(cfs), fxx <= np.max(cfs))
         x_pxx = pxx[IDX]
-        y_pxx = stimuli_util.freq2erb(fxx[IDX])
+        y_pxx = util_stimuli.freq2erb(fxx[IDX])
         xlimits_buffer_pxx = limits_buffer * np.max(x_pxx)
         ylimits_pxx = [np.min(y_pxx), np.max(y_pxx)]
         xlimits_pxx = [np.max(x_pxx) + xlimits_buffer_pxx, np.min(x_pxx) - xlimits_buffer_pxx]
         xlimits_pxx[-1] = 0
-        yticks = np.linspace(stimuli_util.freq2erb(cfs[0]), stimuli_util.freq2erb(cfs[-1]), nyticks)
-        yticklabels = ['{:.0f}'.format(yt) for yt in stimuli_util.erb2freq(yticks)]
+        yticks = np.linspace(util_stimuli.freq2erb(cfs[0]), util_stimuli.freq2erb(cfs[-1]), nyticks)
+        yticklabels = ['{:.0f}'.format(yt) for yt in util_stimuli.erb2freq(yticks)]
         make_line_plot(ax_arr[ax_idx_spectrum], x_pxx, y_pxx,
                        plot_kwargs=plot_kwargs,
                        fontsize_title=fontsize_title,

@@ -3,7 +3,7 @@ import sys
 import h5py
 import numpy as np
 import pdb
-import stimuli_util
+import util_stimuli
 
 sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
 from dataset_util import initialize_hdf5_file, write_example_to_hdf5
@@ -66,10 +66,10 @@ def get_MooreMoore2003_complex_tone(f0, f0_shift=0.0, spectral_envelope=None,
     frequencies = np.arange(f0, fs/2, f0, dtype=np.float32)
     frequencies = frequencies + f0*f0_shift
     amplitudes = spectral_envelope(frequencies)
-    y = stimuli_util.complex_tone(f0, fs, dur, harmonic_numbers=None,
+    y = util_stimuli.complex_tone(f0, fs, dur, harmonic_numbers=None,
                                   frequencies=frequencies, amplitudes=amplitudes,
                                   phase_mode=phase_mode, offset_start=True, strict_nyquist=False)
-    y = stimuli_util.set_dBSPL(y, dBSPL)
+    y = util_stimuli.set_dBSPL(y, dBSPL)
     return y
 
 
@@ -135,7 +135,7 @@ def generate_MooreMoore2003_dataset(hdf5_filename, fs=32000, dur=0.150, dBSPL=70
                 
                 # If noise_params is specified, add UMNm
                 if noise_params:
-                    noise = stimuli_util.modified_uniform_masking_noise(fs, dur, **noise_params)
+                    noise = util_stimuli.modified_uniform_masking_noise(fs, dur, **noise_params)
                     signal_in_noise = y + noise
                     data_dict['stimuli/signal_in_noise'] = signal_in_noise.astype(np.float32)
 

@@ -6,7 +6,7 @@ import scipy.signal
 import itertools
 import pdb
 
-import stimuli_util
+import util_stimuli
 
 sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
 from dataset_util import initialize_hdf5_file, write_example_to_hdf5
@@ -65,7 +65,7 @@ def generate_MistunedHarmonics_dataset(hdf5_filename, fs=32000, dur=0.150,
                 harmonic_freqs = f0 * harmonic_numbers
                 mistuned_index = harmonic_numbers == mistuned_harm
                 harmonic_freqs[mistuned_index] = (1.0 + mistuned_pct/100.0) * harmonic_freqs[mistuned_index]
-                signal = stimuli_util.complex_tone(f0, fs, dur, harmonic_numbers=None,
+                signal = util_stimuli.complex_tone(f0, fs, dur, harmonic_numbers=None,
                                                    frequencies=harmonic_freqs,
                                                    amplitudes=amplitudes,
                                                    phase_mode=phase_mode)

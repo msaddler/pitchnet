@@ -7,7 +7,7 @@ import itertools
 import argparse
 import pdb
 
-import stimuli_util
+import util_stimuli
 
 sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
 from dataset_util import initialize_hdf5_file, write_example_to_hdf5
@@ -24,7 +24,7 @@ def random_filtered_complex_tone(f0, fs, dur,
     amplitudes = np.random.uniform(low=1-amplitude_jitter,
                                    high=1+amplitude_jitter,
                                    size=frequencies.shape)
-    signal = stimuli_util.complex_tone(f0, fs, dur,
+    signal = util_stimuli.complex_tone(f0, fs, dur,
                                        harmonic_numbers=None,
                                        frequencies=frequencies,
                                        amplitudes=amplitudes,
@@ -98,8 +98,8 @@ def random_filtered_complex_tone_dataset(hdf5_filename, N,
                                                                     phase_mode=phase_mode,
                                                                     amplitude_jitter=amplitude_jitter,
                                                                     augmentation_filter_params=augmentation_filter_params)
-        noise = stimuli_util.modified_uniform_masking_noise(fs, dur, **kwargs_modified_uniform_masking_noise)
-        signal_and_noise = stimuli_util.combine_signal_and_noise(signal=signal,
+        noise = util_stimuli.modified_uniform_masking_noise(fs, dur, **kwargs_modified_uniform_masking_noise)
+        signal_and_noise = util_stimuli.combine_signal_and_noise(signal=signal,
                                                                  noise=noise,
                                                                  snr=snr,
                                                                  rms_out=20e-6*np.power(10, dbspl/20))
