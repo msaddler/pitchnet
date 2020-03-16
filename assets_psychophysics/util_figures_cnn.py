@@ -124,14 +124,14 @@ def draw_cnn_from_layer_list(ax, layer_list,
                              scaling_n='log2',
                              scaling_kernel=None,
                              input_image=None,
-                             input_scale_gap=1.0,
+                             gap_input_scale=2.0,
                              gap_interlayer=2.0,
                              gap_intralayer=0.2,
                              deg_scale_x=60,
-                             deg_skew_y=15,
+                             deg_skew_y=30,
                              deg_fc=0,
-                             range_w=[5e-1, 1e1],
-                             range_h=[5e-1, 1e1],
+                             range_w=None,
+                             range_h=None,
                              limits_buffer=1e-2,
                              arrow_width=0.25,
                              scale_kernel=1.0,
@@ -144,6 +144,7 @@ def draw_cnn_from_layer_list(ax, layer_list,
     '''
     Main function for drawing CNN architecture schematic.
     '''
+    # Define and update default keyword arguments for matplotlib drawing
     kwargs_imshow = {
         'cmap': matplotlib.cm.gray,
         'aspect': 'auto',
@@ -161,8 +162,8 @@ def draw_cnn_from_layer_list(ax, layer_list,
     kwargs_polygon.update(kwargs_polygon_update)
     kwargs_polygon_kernel = copy.deepcopy(kwargs_polygon)
     kwargs_polygon_kernel['alpha'] = 0.3
-    kwargs_polygon_kernel['ec'] = 'lime'
-    kwargs_polygon_kernel['fc'] = 'lime'
+    kwargs_polygon_kernel['ec'] = [0.0, 1.0, 0.0]
+    kwargs_polygon_kernel['fc'] = [0.0, 1.0, 0.0]
     kwargs_polygon_kernel['lw'] = 3.0
     kwargs_polygon_kernel['fill'] = True
     kwargs_polygon_kernel.update(kwargs_polygon_kernel_update)
@@ -181,6 +182,7 @@ def draw_cnn_from_layer_list(ax, layer_list,
     kwargs_arrow_gap['head_length'] = 0
     kwargs_transform = {'deg_scale_x': deg_scale_x, 'deg_skew_y':deg_skew_y}
     
+    # Define coordinate tracker variables
     (xl, yl, zl) = (0, 0, 0)
     
     # Display the input image
@@ -198,15 +200,15 @@ def draw_cnn_from_layer_list(ax, layer_list,
     transform = get_affine_transform(center=(xl, yl), **kwargs_transform)
     im.set_transform(transform + ax.transData)
     M = transform.transform(extent.reshape([2, 2]).T)
-    dx_arrow = np.min([M[-1, 0]-xl, gap_interlayer * input_scale_gap])
+    dx_arrow = np.min([M[-1, 0]-xl, gap_interlayer * gap_input_scale])
     ax.arrow(x=xl, y=yl, dx=dx_arrow, dy=0, zorder=zl, **kwargs_arrow_gap)
     zl += 1
-    xl += gap_interlayer * input_scale_gap
+    xl += gap_interlayer * gap_input_scale
     # Quick hack to ensure that ax.dataLim.bounds accounts for input image
     [xb, yb, dxb, dyb] = ax.dataLim.bounds
     xb_error = np.min(M[:, 0]) - xb
     ax.dataLim.bounds = [xb+xb_error, yb, 0, dyb]
-
+    
     # Display the network architecture
     for itr_layer, layer in enumerate(layer_list):
         # Draw convolutional layer
@@ -224,10 +226,13 @@ def draw_cnn_from_layer_list(ax, layer_list,
                 transform = get_affine_transform(center=(k_xl, k_yl), **kwargs_transform)
                 patch.set_transform(transform + ax.transData)
                 ax.add_patch(patch)
+                next_yl = k_yl
+                if itr_layer == 0:
+                    next_xl = k_xl + gap_interlayer * gap_input_scale
+                else:
+                    next_xl = k_xl + gap_interlayer
                 for point in transform.transform(xy):
-                    xvals = [point[0], k_xl + gap_interlayer]
-                    yvals = [point[1], k_yl]
-                    ax.plot(xvals, yvals,
+                    ax.plot([point[0], next_xl], [point[1], next_yl],
                             color=kwargs_polygon_kernel['ec'],
                             lw=kwargs_polygon_kernel['lw'],
                             alpha=kwargs_polygon_kernel['alpha'],
