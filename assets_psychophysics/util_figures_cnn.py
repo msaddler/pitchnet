@@ -320,7 +320,7 @@ def draw_cnn_from_layer_list(ax, layer_list,
                                 zorder=args_kernel['zorder'])
                     kernel_to_connect = False
                 if itr_sublayer == n-1:
-                    dx_arrow = np.min([transform.transform(xy)[-1, 0]-xl, gap_interlayer])
+                    dx_arrow = transform.transform(xy)[-1, 0]-xl
                     ax.arrow(x=xl,
                              y=yl,
                              dx=dx_arrow,
