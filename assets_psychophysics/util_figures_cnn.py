@@ -123,8 +123,8 @@ def draw_conv_kernel_on_image(ax,
                               args_kernel={},
                               kwargs_polygon_kernel={},
                               kwargs_transform={},
-                              kernel_x_shift=-0.5,
-                              kernel_y_shift=0.5):
+                              kernel_x_shift=-0.75,
+                              kernel_y_shift=0.75):
     '''
     '''
     
@@ -206,10 +206,10 @@ def draw_cnn_from_layer_list(ax, layer_list,
     }
     kwargs_polygon.update(kwargs_polygon_update)
     kwargs_polygon_kernel = copy.deepcopy(kwargs_polygon)
-    kwargs_polygon_kernel['alpha'] = 1.0
+    kwargs_polygon_kernel['alpha'] = 0.5
     kwargs_polygon_kernel['ec'] = [0.0, 1.0, 0.0]
     kwargs_polygon_kernel['fc'] = [0.0, 1.0, 0.0]
-    kwargs_polygon_kernel['lw'] = 2.0
+    kwargs_polygon_kernel['lw'] = 1.0
     kwargs_polygon_kernel['fill'] = True
     kwargs_polygon_kernel.update(kwargs_polygon_kernel_update)
     kwargs_arrow = {
@@ -297,23 +297,18 @@ def draw_cnn_from_layer_list(ax, layer_list,
                     'zorder': zl,
                     'shape': layer['shape_activations'][0:-1],
                 }
-#                 if kernel_to_connect:
-#                     vertices_input = args_kernel['vertices']
-#                     vertex_output_x = args_image['x'] * args_kernel['x_shift'] + args_image['x']
-#                     vertex_output_y = args_image['y'] * args_kernel['y_shift'] + args_image['y']
-#                     vertex_output = transform.transform(np.array([vertex_output_x, vertex_output_y]))
-                    
-#                     for v in vertices_input:
-#                         ax.plot([v[0], vertex_output[0]],
-#                                 [v[1], vertex_output[1]],
-#                                 color=kwargs_polygon_kernel['ec'],
-#                                 lw=kwargs_polygon_kernel['lw'],
-#                                 alpha=kwargs_polygon_kernel['alpha'],
-#                                 zorder=args_kernel['zorder'])
-#                     kernel_to_connect = False
-                
-                
-                zl += 1
+                if kernel_to_connect:
+                    vertex_output_x = args_image['x'] + args_kernel['x_shift'] * (args_image['w'] / 2)
+                    vertex_output_y = args_image['y'] + args_kernel['y_shift'] * (args_image['h'] / 2)
+                    vertex_output = transform.transform(np.array([vertex_output_x, vertex_output_y]))
+                    for vertex_input in args_kernel['vertices']:
+                        ax.plot([vertex_input[0], vertex_output[0]],
+                                [vertex_input[1], vertex_output[1]],
+                                color=kwargs_polygon_kernel['ec'],
+                                lw=kwargs_polygon_kernel['lw'],
+                                alpha=kwargs_polygon_kernel['alpha'],
+                                zorder=args_kernel['zorder'])
+                    kernel_to_connect = False
                 if itr_sublayer == n-1:
                     dx_arrow = np.min([transform.transform(xy)[-1, 0]-xl, gap_interlayer])
                     ax.arrow(x=xl,
@@ -323,6 +318,7 @@ def draw_cnn_from_layer_list(ax, layer_list,
                              zorder=zl,
                              **kwargs_arrow_gap)
                     zl += 1
+                zl += 1
                 xl += gap_intralayer
             xl += gap_interlayer
         # Draw fully-connected layer
