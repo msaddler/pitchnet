@@ -122,18 +122,18 @@ def draw_conv_kernel_on_image(ax,
                               args_image={},
                               args_kernel={},
                               kwargs_polygon_kernel={},
+                              kwargs_polygon_kernel_line={},
                               kwargs_transform={},
                               kernel_x_shift=-0.75,
                               kernel_y_shift=0.75):
     '''
+    Helper function draws convolutional kernels superimposed on inputs.
     '''
-    
     # Get image and kernel shape from args_image and args_kernel
     ishape = np.array(args_image['shape'])
     assert len(ishape) == 2, "image shape must be 2D"
     kshape = np.array(args_kernel['shape'])
     assert len(kshape) == 2, "kernel shape must be 2D"
-    
     # Define kernel plot dimensions using image plot dimensions
     for key in ['x', 'y', 'w', 'h', 'zorder']:
         assert key in args_image.keys(), "missing args_image key: {}".format(key)
@@ -142,32 +142,33 @@ def draw_conv_kernel_on_image(ax,
     args_kernel['x'] = args_image['x'] + kernel_x_shift * (args_image['w'] - args_kernel['w']) / 2
     args_kernel['y'] = args_image['y'] + kernel_y_shift * (args_image['h'] - args_kernel['h']) / 2
     args_kernel['zorder'] = args_image['zorder'] + 0.5
-    
+    # Define transform around the image center
     center_kernel = (args_kernel['x'], args_kernel['y'])
     center_image = (args_image['x'], args_image['y'])
     xy = get_xy_from_center(center=center_kernel,
                             w=args_kernel['w'],
                             h=args_kernel['h'])
-    patch = matplotlib.patches.Polygon(xy,
-                                       **kwargs_polygon_kernel,
-                                       zorder=args_kernel['zorder'])
     transform = get_affine_transform(center=center_image, **kwargs_transform)
+    # Add a filled polygon patch for the kernel
+    patch = matplotlib.patches.Polygon(xy, **kwargs_polygon_kernel, zorder=args_kernel['zorder'])
     patch.set_transform(transform + ax.transData)
     ax.add_patch(patch)
-    
+    # Add an unfilled polygon patch for the kernel boundary
+    patch = matplotlib.patches.Polygon(xy, **kwargs_polygon_kernel_line, fill=False, zorder=args_kernel['zorder'])
+    patch.set_transform(transform + ax.transData)
+    ax.add_patch(patch)
+    # Store kernel vertices and shift proportions in args_kernel for connecting lines
     args_kernel['vertices'] = transform.transform(xy)
     args_kernel['x_shift'] = (args_kernel['x'] - args_image['x']) / (args_image['w'] / 2)
     args_kernel['y_shift'] = (args_kernel['y'] - args_image['y']) / (args_image['h'] / 2)
-    
     return ax, args_image, args_kernel
-
 
 
 def draw_cnn_from_layer_list(ax, layer_list,
                              scaling_w='log2',
                              scaling_h='log2',
                              scaling_n='log2',
-                             scaling_kernel=None,
+                             include_kernels=True,
                              input_image=None,
                              gap_input_scale=2.0,
                              gap_interlayer=2.0,
@@ -177,14 +178,16 @@ def draw_cnn_from_layer_list(ax, layer_list,
                              deg_fc=0,
                              range_w=None,
                              range_h=None,
+                             kernel_x_shift=-0.75,
+                             kernel_y_shift=0.75,
                              limits_buffer=1e-2,
                              arrow_width=0.25,
-                             scale_kernel=1.0,
                              scale_fc=1.0,
                              spines_to_hide=['top', 'bottom', 'left', 'right'],
                              kwargs_imshow_update={},
                              kwargs_polygon_update={},
                              kwargs_polygon_kernel_update={},
+                             kwargs_polygon_kernel_line_update={},
                              kwargs_arrow_update={}):
     '''
     Main function for drawing CNN architecture schematic.
@@ -207,11 +210,16 @@ def draw_cnn_from_layer_list(ax, layer_list,
     kwargs_polygon.update(kwargs_polygon_update)
     kwargs_polygon_kernel = copy.deepcopy(kwargs_polygon)
     kwargs_polygon_kernel['alpha'] = 0.5
-    kwargs_polygon_kernel['ec'] = [0.0, 1.0, 0.0]
     kwargs_polygon_kernel['fc'] = [0.0, 1.0, 0.0]
-    kwargs_polygon_kernel['lw'] = 1.0
+    kwargs_polygon_kernel['lw'] = 0.0
     kwargs_polygon_kernel['fill'] = True
     kwargs_polygon_kernel.update(kwargs_polygon_kernel_update)
+    kwargs_polygon_kernel_line = {
+        'alpha': 1.0,
+        'color': kwargs_polygon_kernel['fc'],
+        'lw': 1.0,
+    }
+    kwargs_polygon_kernel_line.update(kwargs_polygon_kernel_line_update)
     kwargs_arrow = {
         'width': arrow_width,
         'length_includes_head': True,
@@ -267,7 +275,7 @@ def draw_cnn_from_layer_list(ax, layer_list,
         # Draw convolutional layer
         if 'conv' in layer['layer_type']:
             # Draw convolutional kernel superimposed on previous layer
-            if scale_kernel > 0:
+            if include_kernels:
                 args_kernel = {
                     'shape': layer['shape_kernel'],
                 }
@@ -275,7 +283,10 @@ def draw_cnn_from_layer_list(ax, layer_list,
                                                                         args_image=args_image,
                                                                         args_kernel=args_kernel,
                                                                         kwargs_polygon_kernel=kwargs_polygon_kernel,
-                                                                        kwargs_transform=kwargs_transform)
+                                                                        kwargs_polygon_kernel_line=kwargs_polygon_kernel_line,
+                                                                        kwargs_transform=kwargs_transform,
+                                                                        kernel_x_shift=kernel_x_shift,
+                                                                        kernel_y_shift=kernel_y_shift)
                 kernel_to_connect = True
             
             # Draw convolutional layer activations as stacked rectangles
@@ -298,15 +309,14 @@ def draw_cnn_from_layer_list(ax, layer_list,
                     'shape': layer['shape_activations'][0:-1],
                 }
                 if kernel_to_connect:
+                    # If a convolutional kernel was drawn, add connecting lines to the following layer
                     vertex_output_x = args_image['x'] + args_kernel['x_shift'] * (args_image['w'] / 2)
                     vertex_output_y = args_image['y'] + args_kernel['y_shift'] * (args_image['h'] / 2)
                     vertex_output = transform.transform(np.array([vertex_output_x, vertex_output_y]))
                     for vertex_input in args_kernel['vertices']:
                         ax.plot([vertex_input[0], vertex_output[0]],
                                 [vertex_input[1], vertex_output[1]],
-                                color=kwargs_polygon_kernel['ec'],
-                                lw=kwargs_polygon_kernel['lw'],
-                                alpha=kwargs_polygon_kernel['alpha'],
+                                **kwargs_polygon_kernel_line,
                                 zorder=args_kernel['zorder'])
                     kernel_to_connect = False
                 if itr_sublayer == n-1:
