@@ -118,6 +118,51 @@ def get_affine_transform(center=(0, 0), deg_scale_x=0, deg_skew_y=0):
     return transform
 
 
+def draw_conv_kernel_on_image(ax,
+                              args_image={},
+                              args_kernel={},
+                              kwargs_polygon_kernel={},
+                              kwargs_transform={},
+                              kernel_x_shift=-0.5,
+                              kernel_y_shift=0.5):
+    '''
+    '''
+    
+    # Get image and kernel shape from args_image and args_kernel
+    ishape = np.array(args_image['shape'])
+    assert len(ishape) == 2, "image shape must be 2D"
+    kshape = np.array(args_kernel['shape'])
+    assert len(kshape) == 2, "kernel shape must be 2D"
+    
+    # Define kernel plot dimensions using image plot dimensions
+    for key in ['x', 'y', 'w', 'h', 'zorder']:
+        assert key in args_image.keys(), "missing args_image key: {}".format(key)
+    args_kernel['w'] = (kshape[1] / ishape[1]) * args_image['w']
+    args_kernel['h'] = (kshape[0] / ishape[0]) * args_image['h']
+    args_kernel['x'] = args_image['x'] + kernel_x_shift * (args_image['w'] - args_kernel['w']) / 2
+    args_kernel['y'] = args_image['y'] + kernel_y_shift * (args_image['h'] - args_kernel['h']) / 2
+    args_kernel['zorder'] = args_image['zorder'] + 0.5
+    
+    center_kernel = (args_kernel['x'], args_kernel['y'])
+    center_image = (args_image['x'], args_image['y'])
+    xy = get_xy_from_center(center=center_kernel,
+                            w=args_kernel['w'],
+                            h=args_kernel['h'])
+    patch = matplotlib.patches.Polygon(xy,
+                                       **kwargs_polygon_kernel,
+                                       zorder=args_kernel['zorder'])
+    transform = get_affine_transform(center=center_image, **kwargs_transform)
+    patch.set_transform(transform + ax.transData)
+    ax.add_patch(patch)
+    
+    args_kernel['vertices'] = transform.transform(xy)
+    args_kernel['x_shift'] = (args_kernel['x'] - args_image['x']) / (args_image['w'] / 2)
+    args_kernel['y_shift'] = (args_kernel['y'] - args_image['y']) / (args_image['h'] / 2)
+    
+    return ax, args_image, args_kernel
+
+
+
 def draw_cnn_from_layer_list(ax, layer_list,
                              scaling_w='log2',
                              scaling_h='log2',
@@ -161,10 +206,10 @@ def draw_cnn_from_layer_list(ax, layer_list,
     }
     kwargs_polygon.update(kwargs_polygon_update)
     kwargs_polygon_kernel = copy.deepcopy(kwargs_polygon)
-    kwargs_polygon_kernel['alpha'] = 0.3
+    kwargs_polygon_kernel['alpha'] = 1.0
     kwargs_polygon_kernel['ec'] = [0.0, 1.0, 0.0]
     kwargs_polygon_kernel['fc'] = [0.0, 1.0, 0.0]
-    kwargs_polygon_kernel['lw'] = 3.0
+    kwargs_polygon_kernel['lw'] = 2.0
     kwargs_polygon_kernel['fill'] = True
     kwargs_polygon_kernel.update(kwargs_polygon_kernel_update)
     kwargs_arrow = {
@@ -194,8 +239,15 @@ def draw_cnn_from_layer_list(ax, layer_list,
                    extent=extent,
                    zorder=zl,
                    **kwargs_imshow)
-    (k_xl, k_yl, k_zl) = (xl, yl, zl+0.5)
-    (k_input_hw, k_input_shape) = (np.array([h, w]), input_image.shape)
+    args_image = {
+        'x': xl,
+        'y': yl,
+        'w': w,
+        'h': h,
+        'zorder': zl,
+        'shape': input_image.shape,
+    }
+    
     zl += 1
     transform = get_affine_transform(center=(xl, yl), **kwargs_transform)
     im.set_transform(transform + ax.transData)
@@ -210,33 +262,22 @@ def draw_cnn_from_layer_list(ax, layer_list,
     ax.dataLim.bounds = [xb+xb_error, yb, 0, dyb]
     
     # Display the network architecture
+    kernel_to_connect = False
     for itr_layer, layer in enumerate(layer_list):
         # Draw convolutional layer
         if 'conv' in layer['layer_type']:
             # Draw convolutional kernel superimposed on previous layer
             if scale_kernel > 0:
-                if scaling_kernel == 'linear':
-                    [h, w] = k_input_hw * scale_kernel * np.array(layer['shape_kernel']) / k_input_shape
-                else:
-                    h, w = scale_kernel * np.array(layer['shape_kernel'])
-                    w = get_dim_from_raw_value(w, range_dim=range_w, scaling=scaling_w)
-                    h = get_dim_from_raw_value(h, range_dim=range_h, scaling=scaling_h)
-                xy = get_xy_from_center(center=(k_xl, k_yl), w=w, h=h)
-                patch = matplotlib.patches.Polygon(xy, **kwargs_polygon_kernel, zorder=k_zl)
-                transform = get_affine_transform(center=(k_xl, k_yl), **kwargs_transform)
-                patch.set_transform(transform + ax.transData)
-                ax.add_patch(patch)
-                next_yl = k_yl
-                if itr_layer == 0:
-                    next_xl = k_xl + gap_interlayer * gap_input_scale
-                else:
-                    next_xl = k_xl + gap_interlayer
-                for point in transform.transform(xy):
-                    ax.plot([point[0], next_xl], [point[1], next_yl],
-                            color=kwargs_polygon_kernel['ec'],
-                            lw=kwargs_polygon_kernel['lw'],
-                            alpha=kwargs_polygon_kernel['alpha'],
-                            zorder=k_zl)
+                args_kernel = {
+                    'shape': layer['shape_kernel'],
+                }
+                ax, args_image, args_kernel = draw_conv_kernel_on_image(ax,
+                                                                        args_image=args_image,
+                                                                        args_kernel=args_kernel,
+                                                                        kwargs_polygon_kernel=kwargs_polygon_kernel,
+                                                                        kwargs_transform=kwargs_transform)
+                kernel_to_connect = True
+            
             # Draw convolutional layer activations as stacked rectangles
             [h, w, n] = layer['shape_activations']
             n = int(get_dim_from_raw_value(n, range_dim=None, scaling=scaling_n))
@@ -248,8 +289,30 @@ def draw_cnn_from_layer_list(ax, layer_list,
                 transform = get_affine_transform(center=(xl, yl), **kwargs_transform)
                 patch.set_transform(transform + ax.transData)
                 ax.add_patch(patch)
-                (k_xl, k_yl, k_zl) = (xl, yl, zl+0.5)
-                (k_input_hw, k_input_shape) = (np.array([h, w]), np.array(layer['shape_activations'][0:-1]))
+                args_image = {
+                    'x': xl,
+                    'y': yl,
+                    'w': w,
+                    'h': h,
+                    'zorder': zl,
+                    'shape': layer['shape_activations'][0:-1],
+                }
+#                 if kernel_to_connect:
+#                     vertices_input = args_kernel['vertices']
+#                     vertex_output_x = args_image['x'] * args_kernel['x_shift'] + args_image['x']
+#                     vertex_output_y = args_image['y'] * args_kernel['y_shift'] + args_image['y']
+#                     vertex_output = transform.transform(np.array([vertex_output_x, vertex_output_y]))
+                    
+#                     for v in vertices_input:
+#                         ax.plot([v[0], vertex_output[0]],
+#                                 [v[1], vertex_output[1]],
+#                                 color=kwargs_polygon_kernel['ec'],
+#                                 lw=kwargs_polygon_kernel['lw'],
+#                                 alpha=kwargs_polygon_kernel['alpha'],
+#                                 zorder=args_kernel['zorder'])
+#                     kernel_to_connect = False
+                
+                
                 zl += 1
                 if itr_sublayer == n-1:
                     dx_arrow = np.min([transform.transform(xy)[-1, 0]-xl, gap_interlayer])
