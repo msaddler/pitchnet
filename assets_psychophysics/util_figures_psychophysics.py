@@ -103,7 +103,7 @@ def make_bernox_threshold_plot(ax, results_dict_input,
                                restrict_conditions=None,
                                sine_plot_kwargs={},
                                rand_plot_kwargs={},
-                               threshold_cap=None,
+                               threshold_cap=100.0,
                                fontsize_title=12,
                                fontsize_labels=12,
                                fontsize_legend=12,
@@ -150,14 +150,14 @@ def make_bernox_threshold_plot(ax, results_dict_input,
         yval = f0dl_list[phase_mode_list == phase_mode]
         yerr = f0dl_err_list[phase_mode_list == phase_mode]
         if phase_mode == 0:
-            plot_kwargs = {'label': 'sine', 'color': 'k',
+            plot_kwargs = {'label': 'SINE', 'color': 'k',
                            'ls':'-', 'lw':2, 'marker':''}
             if len(xval) <= 10:
                 plot_kwargs.update({'ms':10, 'marker':'.'})
             plot_kwargs.update(sine_plot_kwargs)
         else:
-            plot_kwargs = {'label': 'rand', 'color': 'k',
-                           'ls':'--', 'lw':2, 'marker':'', 'dashes': (2, 1)}
+            plot_kwargs = {'label': 'RAND', 'color': 'k',
+                           'ls':'--', 'lw':2, 'marker':'', 'dashes': (1,1)}
             if len(xval) <= 10:
                 plot_kwargs.update({'ms':10, 'marker':'.'})
             plot_kwargs.update(rand_plot_kwargs)
@@ -455,12 +455,14 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
         legend_plot_kwargs = {
             'loc': 'upper left',
             'frameon': False,
-            'handlelength': 0.0,
-            'markerscale': 8/6,
+            'handlelength': 0.4,
+            'markerscale': 0.0,
             'fontsize': fontsize_legend,
         }
         legend_plot_kwargs.update(legend_kwargs)
-        ax.legend(**legend_plot_kwargs)
+        leg = ax.legend(**legend_plot_kwargs)
+        for legobj in leg.legendHandles:
+            legobj.set_linewidth(8.0)
     return results_dict
 
 
@@ -480,7 +482,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
                                       fontsize_ticks=12,
                                       xlimits=[2, 8],
                                       ylimits=[-0.1, 1.1],
-                                      cmap_name='tab10',
+                                      cmap_name='RdGy',
                                       legend_kwargs={},
                                       kwargs_bootstrap={}):
     '''
@@ -526,7 +528,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
     
     if cmap_name == 'tab10': num_colors = max(10, len(harmonic_list))
     else: num_colors = len(harmonic_list)
-    color_list = util_figures.get_color_list(num_colors, cmap_name=cmap_name)
+    color_list = util_figures.get_color_list(num_colors, cmap_name=cmap_name)[::-1]
     num_groups = len(bg_results_dict.keys())
     group_xoffsets = np.arange(num_groups) - np.mean(np.arange(num_groups))
     for group_idx, group_key in enumerate(sorted(bg_results_dict.keys())):
@@ -610,7 +612,7 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
                                       fontsize_ticks=12,
                                       xlimits=[0, 8],
                                       ylimits=[-0.3, 2.6],
-                                      cmap_name='tab10',
+                                      cmap_name='RdGy',
                                       legend_kwargs={},
                                       kwargs_bootstrap={}):
     '''
