@@ -30,12 +30,15 @@ def compute_running_mean_power_spectrum(signal_list,
         if rescaled_dBSPL is not None:
             x = util_stimuli.set_dBSPL(x, rescaled_dBSPL)
         fxx, pxx = util_stimuli.power_spectrum(x, sr, **kwargs_power_spectrum)
-        if running_freqs is None:
-            running_freqs = fxx
-            running_mean_spectrum = np.zeros_like(pxx)
-            running_n = 0
-        running_mean_spectrum = (pxx + (running_n * running_mean_spectrum)) / (running_n + 1)
-        running_n = running_n + 1
+        if (np.isfinite(pxx).all()) and (not np.isnan(pxx).any()):
+            if running_freqs is None:
+                running_freqs = fxx
+                running_mean_spectrum = np.zeros_like(pxx)
+                running_n = 0
+            running_mean_spectrum = (pxx + (running_n * running_mean_spectrum)) / (running_n + 1)
+            running_n = running_n + 1
+        else:
+            print('Excluding spectrum with nan/inf value(s): {}'.format(signal_idx))
     return running_freqs, running_mean_spectrum, running_n
 
 
