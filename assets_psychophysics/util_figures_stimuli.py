@@ -32,7 +32,7 @@ def make_nervegram_plot(ax, nervegram,
                         vmax=None,
                         vticks=None,
                         str_title=None,
-                        str_xlabel='Time (s)',
+                        str_xlabel='Time (ms)',
                         str_ylabel='Characteristic Frequency (Hz)',
                         str_clabel=None):
     '''
@@ -50,7 +50,7 @@ def make_nervegram_plot(ax, nervegram,
         t = t - t[0]
     
     time_idx = np.linspace(0, t.shape[0]-1, nxticks, dtype=int)
-    time_labels = ['{:.3f}'.format(t[itr0]) for itr0 in time_idx]
+    time_labels = ['{:.0f}'.format(1e3 * t[itr0]) for itr0 in time_idx]
     if not len(cfs) == nervegram.shape[0]:
         cfs = np.arange(0, nervegram.shape[0])
     freq_idx = np.linspace(0, cfs.shape[0]-1, nyticks, dtype=int)
@@ -192,12 +192,12 @@ def figure_wrapper_nervegram_stimulus(ax_arr,
         if ax_idx_spectrum is not None:
             nervegram_nxticks = nxticks
             nervegram_nyticks = 0
-            nervegram_str_xlabel = 'Time (s)'
+            nervegram_str_xlabel = 'Time (ms)'
             nervegram_str_ylabel = None
         else:
             nervegram_nxticks = nxticks
             nervegram_nyticks = nyticks
-            nervegram_str_xlabel = 'Time (s)'
+            nervegram_str_xlabel = 'Time (ms)'
             nervegram_str_ylabel = 'Characteristic frequency (Hz)'
         make_nervegram_plot(ax_arr[ax_idx_nervegram],
                             nervegram,
