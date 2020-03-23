@@ -11,7 +11,7 @@
 #SBATCH --partition=mcdermott
 
 source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/*.hdf5'
-# source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_synthetic/noise_UMNm_snr_neg10pos10_phase0_filter_signalLPv00/*.hdf5'
+# source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_synthetic/noise_UMNm_snr_neg10pos10_phase01_filter_signalLPv00/*.hdf5'
 
 export HDF5_USE_FILE_LOCKING=FALSE
 source activate mdlab
