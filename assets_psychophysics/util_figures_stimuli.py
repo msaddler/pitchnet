@@ -17,7 +17,7 @@ import util_stimuli
 
 def make_nervegram_plot(ax, nervegram,
                         sr=20000,
-                        cfs=[],
+                        cfs=None,
                         fontsize_title=12,
                         fontsize_labels=12,
                         fontsize_legend=12,
@@ -39,20 +39,20 @@ def make_nervegram_plot(ax, nervegram,
     '''
     nervegram = np.squeeze(nervegram)
     assert len(nervegram.shape) == 2, "nervegram must be 2D array"
-    cfs = np.array(cfs)
     t = np.arange(0, nervegram.shape[1]) / sr
-    
     if (tmin is not None) and (tmax is not None):
         t_IDX = np.logical_and(t >= tmin, t < tmax)
         t = t[t_IDX]
         nervegram = nervegram[:, t_IDX]
     if treset:
         t = t - t[0]
-    
     time_idx = np.linspace(0, t.shape[0]-1, nxticks, dtype=int)
     time_labels = ['{:.0f}'.format(1e3 * t[itr0]) for itr0 in time_idx]
-    if not len(cfs) == nervegram.shape[0]:
+    if cfs is None:
         cfs = np.arange(0, nervegram.shape[0])
+    else:
+        cfs = np.array(cfs)
+        assert cfs.shape[0] == nervegram.shape[0], "cfs.shape[0] must match nervegram.shape[0]"
     freq_idx = np.linspace(0, cfs.shape[0]-1, nyticks, dtype=int)
     freq_labels = ['{:.0f}'.format(cfs[itr0]) for itr0 in freq_idx]
     
@@ -107,13 +107,13 @@ def make_line_plot(ax, x, y,
                    str_ylabel=None,
                    xlimits=None,
                    ylimits=None,
-                   xticks=[],
-                   xticklabels=[],
-                   yticks=[],
-                   yticklabels=[],
+                   xticks=None,
+                   xticklabels=None,
+                   yticks=None,
+                   yticklabels=None,
                    legend_on=False,
                    legend_kwargs={},
-                   spines_to_hide=['left', 'right', 'bottom', 'top']):
+                   spines_to_hide=[]):
     '''
     '''
     tmp_plot_kwargs = {
@@ -163,18 +163,20 @@ def figure_wrapper_nervegram_stimulus(ax_arr,
                                       nervegram_sr=None,
                                       waveform=None,
                                       waveform_sr=None,
-                                      cfs=[],
+                                      cfs=None,
                                       tmin=None,
                                       tmax=None,
                                       treset=True,
+                                      vmin=None,
+                                      vmax=None,
                                       fontsize_title=12,
                                       fontsize_labels=12,
                                       fontsize_legend=12,
                                       fontsize_ticks=12,
                                       fontweight_labels=None,
-                                      spines_to_hide_spectrum=['top', 'bottom', 'left', 'right'],
-                                      spines_to_hide_excitation=['top', 'bottom', 'left', 'right'],
-                                      spines_to_hide_waveform=['top', 'bottom', 'left', 'right'],
+                                      spines_to_hide_spectrum=[],
+                                      spines_to_hide_excitation=[],
+                                      spines_to_hide_waveform=[],
                                       nxticks=6,
                                       nyticks=6,
                                       plot_kwargs={},
@@ -213,6 +215,8 @@ def figure_wrapper_nervegram_stimulus(ax_arr,
                             tmin=tmin,
                             tmax=tmax,
                             treset=treset,
+                            vmin=vmin,
+                            vmax=vmax,
                             str_title=None,
                             str_xlabel=nervegram_str_xlabel,
                             str_ylabel=nervegram_str_ylabel,
@@ -221,16 +225,18 @@ def figure_wrapper_nervegram_stimulus(ax_arr,
     if ax_idx_spectrum is not None:
         ax_idx_list.append(ax_idx_spectrum)
         fxx, pxx = util_stimuli.power_spectrum(waveform, waveform_sr)
-        IDX = np.logical_and(fxx >= np.min(cfs), fxx <= np.max(cfs))
-        x_pxx = pxx[IDX]
-        y_pxx = util_stimuli.freq2erb(fxx[IDX])
-        xlimits_buffer_pxx = limits_buffer * np.max(x_pxx)
-        ylimits_pxx = [np.min(y_pxx), np.max(y_pxx)]
-        xlimits_pxx = [np.max(x_pxx) + xlimits_buffer_pxx, np.min(x_pxx) - xlimits_buffer_pxx]
+        if cfs is not None:
+            IDX = np.logical_and(fxx >= np.min(cfs), fxx <= np.max(cfs))
+            pxx = pxx[IDX]
+            fxx = fxx[IDX]
+        fxx = util_stimuli.freq2erb(fxx)
+        xlimits_buffer_pxx = limits_buffer * np.max(pxx)
+        ylimits_fxx = [np.min(fxx), np.max(fxx)]
+        xlimits_pxx = [np.max(pxx) + xlimits_buffer_pxx, np.min(pxx) - xlimits_buffer_pxx]
         xlimits_pxx[-1] = 0
-        yticks = np.linspace(util_stimuli.freq2erb(cfs[0]), util_stimuli.freq2erb(cfs[-1]), nyticks)
+        yticks = np.linspace(ylimits_fxx[0], ylimits_fxx[-1], nyticks)
         yticklabels = ['{:.0f}'.format(yt) for yt in util_stimuli.erb2freq(yticks)]
-        make_line_plot(ax_arr[ax_idx_spectrum], x_pxx, y_pxx,
+        make_line_plot(ax_arr[ax_idx_spectrum], pxx, fxx,
                        plot_kwargs=plot_kwargs,
                        fontsize_title=fontsize_title,
                        fontsize_labels=fontsize_labels,
@@ -241,7 +247,7 @@ def figure_wrapper_nervegram_stimulus(ax_arr,
                        str_xlabel=None,
                        str_ylabel='Frequency (Hz)',
                        xlimits=xlimits_pxx,
-                       ylimits=ylimits_pxx,
+                       ylimits=ylimits_fxx,
                        xticks=[],
                        xticklabels=[],
                        yticks=yticks,
