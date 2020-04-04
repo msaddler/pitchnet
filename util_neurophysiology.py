@@ -2,12 +2,14 @@ import os
 import sys
 import json
 import numpy as np
+sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
+import dataset_util
 
 
 def compute_tuning_tensor(output_dict,
                           key_act='relu_0',
                           key_x='low_harm',
-                          key_y='f0_label_coarse',
+                          key_y='f0_label',
                           normalize_act=True):
     '''
     '''
@@ -15,7 +17,7 @@ def compute_tuning_tensor(output_dict,
     y_unique = np.unique(output_dict[key_y])
     shape = [x_unique.shape[0], y_unique.shape[0], output_dict[key_act].shape[1]]
     tuning_tensor = np.zeros(shape, dtype=output_dict[key_act].dtype)
-    tuning_tensor_counts = np.zeros(shape[:-1] + [1], dtype=int)
+    tuning_tensor_counts = np.zeros(shape[:-1], dtype=int)
     activations = output_dict[key_act]
     if normalize_act:
         activations -= np.amin(activations, axis=0)
@@ -27,7 +29,11 @@ def compute_tuning_tensor(output_dict,
         y_idx = y_value_indexes[idx]
         tuning_tensor[x_idx, y_idx, :] += activations[idx]
         tuning_tensor_counts[x_idx, y_idx] += 1
-    tuning_tensor = tuning_tensor / tuning_tensor_counts
+    for idx in range(tuning_tensor.shape[-1]):
+        NZIDX = tuning_tensor_counts > 0
+        tuning_tensor_unit = tuning_tensor[:, :, idx]
+        tuning_tensor_unit[NZIDX] = tuning_tensor_unit[NZIDX] / tuning_tensor_counts[NZIDX]
+        tuning_tensor[:, :, idx] = tuning_tensor_unit
     return tuning_tensor
 
 
@@ -48,13 +54,12 @@ def compute_octave_tuning_array(output_dict,
     '''
     '''
     ### Compute generic tuning tensor (low_harm and f0 tuning)
-    coarse_f0_bins = dataset_util.get_f0_bins(**kwargs_f0_bins)
-    output_dict['f0_label_coarse'] = dataset_util.f0_to_label(output_dict['f0'],
-                                                              coarse_f0_bins)
+    f0_bins = dataset_util.get_f0_bins(**kwargs_f0_bins)
+    output_dict['f0_label'] = dataset_util.f0_to_label(output_dict['f0'], f0_bins)
     tuning_tensor = compute_tuning_tensor(output_dict,
                                           key_act=key_act,
                                           key_x='low_harm',
-                                          key_y='f0_label_coarse')
+                                          key_y='f0_label')
     
     ### If specified, subsample the tuning tensor
     if n_subsample is not None:
@@ -64,9 +69,7 @@ def compute_octave_tuning_array(output_dict,
     
     ### Collapse tuning tensor along low_harm axis to get f0 tuning
     f0_tuning_array = np.mean(tuning_tensor, axis=0)
-    print(tuning_tensor.shape, f0_tuning_array.shape)
-    f0_bin_values = np.array([coarse_f0_bins[idx]
-                              for idx in np.unique(output_dict['f0_label_coarse'])])
+    f0_bin_values = np.array([f0_bins[idx] for idx in np.unique(output_dict['f0_label'])])
     
     ### If specified, shuffle the f0 axis to get null distribution
     if shuffle:
@@ -103,8 +106,9 @@ def average_tuning_array(bins, tuning_array, normalize=True):
     if normalize:
         for itr1 in range(tuning_array.shape[1]):
             valid_indexes = tuning_array[:, itr1] >= 0
-            tuning_array[valid_indexes, itr1] -= np.min(tuning_array[valid_indexes, itr1])
-            tuning_array[valid_indexes, itr1] /= np.max(tuning_array[valid_indexes, itr1])
+            if valid_indexes.sum() > 0:
+                tuning_array[valid_indexes, itr1] -= np.min(tuning_array[valid_indexes, itr1])
+                tuning_array[valid_indexes, itr1] /= np.max(tuning_array[valid_indexes, itr1])
     
     tuning_array_mean = -1 * np.ones_like(bins)
     tuning_array_err = -1 * np.ones_like(bins)
@@ -112,7 +116,7 @@ def average_tuning_array(bins, tuning_array, normalize=True):
         valid_indexes = tuning_array[itr0, :] >= 0
         if any(valid_indexes):
             tuning_array_mean[itr0] = np.mean(tuning_array[itr0, valid_indexes])
-            tuning_array_err[itr0] = np.std(tuning_array[itr0, valid_indexes])# / np.sqrt(np.sum(valid_indexes))
+            tuning_array_err[itr0] = np.std(tuning_array[itr0, valid_indexes])
     
     valid_indexes = tuning_array_mean >= 0
     tuning_array_mean = tuning_array_mean[valid_indexes]
