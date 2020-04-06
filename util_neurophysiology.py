@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import copy
 import numpy as np
 sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
 import dataset_util
@@ -18,10 +19,13 @@ def compute_tuning_tensor(output_dict,
     shape = [x_unique.shape[0], y_unique.shape[0], output_dict[key_act].shape[1]]
     tuning_tensor = np.zeros(shape, dtype=output_dict[key_act].dtype)
     tuning_tensor_counts = np.zeros(shape[:-1], dtype=int)
-    activations = output_dict[key_act]
+    activations = copy.deepcopy(output_dict[key_act])
     if normalize_act:
         activations -= np.amin(activations, axis=0)
-        activations /= np.amax(activations, axis=0)
+        max_activations = np.amax(activations, axis=0)
+        for idx, max_activation in enumerate(max_activations):
+            if max_activation > 0:
+                activations[:, idx] /= max_activation
     x_value_indexes = np.digitize(output_dict[key_x], x_unique, right=True)
     y_value_indexes = np.digitize(output_dict[key_y], y_unique, right=True)
     for idx in range(output_dict[key_act].shape[0]):
@@ -105,7 +109,7 @@ def average_tuning_array(bins, tuning_array, normalize=True):
     assert bins.shape[0] == tuning_array.shape[0]
     if normalize:
         for itr1 in range(tuning_array.shape[1]):
-            valid_indexes = tuning_array[:, itr1] >= 0
+            valid_indexes = tuning_array[:, itr1] > 0
             if valid_indexes.sum() > 0:
                 tuning_array[valid_indexes, itr1] -= np.min(tuning_array[valid_indexes, itr1])
                 tuning_array[valid_indexes, itr1] /= np.max(tuning_array[valid_indexes, itr1])
