@@ -95,8 +95,8 @@ def compute_octave_tuning_array(output_dict,
         octave_indexes = np.digitize(octaves_re_best_f0, octave_bins)
         values = np.zeros_like(octave_bins)
         counts = np.zeros_like(octave_bins)
-        for itr_f0, octave_index in enumerate(octave_indexes):
-            values[octave_index] += f0_tuning_array[itr_unit, itr_f0]
+        for itr_bin, octave_index in enumerate(octave_indexes):
+            values[octave_index] += f0_tuning_array[itr_unit, itr_bin]
             counts[octave_index] += 1
         valid_indexes = counts > 0
         octave_tuning_array[itr_unit, valid_indexes] = values[valid_indexes] / counts[valid_indexes]
