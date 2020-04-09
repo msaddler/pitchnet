@@ -16,9 +16,9 @@ def compute_tuning_tensor(output_dict,
     '''
     x_unique = np.unique(output_dict[key_x])
     y_unique = np.unique(output_dict[key_y])
-    shape = [x_unique.shape[0], y_unique.shape[0], output_dict[key_act].shape[1]]
+    shape = [output_dict[key_act].shape[1], x_unique.shape[0], y_unique.shape[0]]
     tuning_tensor = np.zeros(shape, dtype=output_dict[key_act].dtype)
-    tuning_tensor_counts = np.zeros(shape[:-1], dtype=int)
+    tuning_tensor_counts = np.zeros(shape[1:], dtype=int)
     activations = copy.deepcopy(output_dict[key_act])
     if normalize_act:
         activations -= np.amin(activations, axis=0)
@@ -31,13 +31,13 @@ def compute_tuning_tensor(output_dict,
     for idx in range(output_dict[key_act].shape[0]):
         x_idx = x_value_indexes[idx]
         y_idx = y_value_indexes[idx]
-        tuning_tensor[x_idx, y_idx, :] += activations[idx]
+        tuning_tensor[:, x_idx, y_idx] += activations[idx]
         tuning_tensor_counts[x_idx, y_idx] += 1
-    for idx in range(tuning_tensor.shape[-1]):
-        NZIDX = tuning_tensor_counts > 0
-        tuning_tensor_unit = tuning_tensor[:, :, idx]
-        tuning_tensor_unit[NZIDX] = tuning_tensor_unit[NZIDX] / tuning_tensor_counts[NZIDX]
-        tuning_tensor[:, :, idx] = tuning_tensor_unit
+    valid_indexes = tuning_tensor_counts > 0
+    for unit_idx in range(tuning_tensor.shape[0]):
+        tuning_tensor_unit = tuning_tensor[unit_idx, :, :]
+        tuning_tensor_unit[valid_indexes] /= tuning_tensor_counts[valid_indexes]
+        tuning_tensor[unit_idx, :, :] = tuning_tensor_unit
     return tuning_tensor
 
 
@@ -63,66 +63,67 @@ def compute_octave_tuning_array(output_dict,
     tuning_tensor = compute_tuning_tensor(output_dict,
                                           key_act=key_act,
                                           key_x='low_harm',
-                                          key_y='f0_label')
+                                          key_y='f0_label',
+                                          normalize_act=True)
     
     ### If specified, subsample the tuning tensor
     if n_subsample is not None:
-        IDX = np.arange(0, tuning_tensor.shape[-1], 1, dtype=int)
+        IDX = np.arange(0, tuning_tensor.shape[0], 1, dtype=int)
         np.random.shuffle(IDX)
-        tuning_tensor = tuning_tensor[:, :, IDX[:n_subsample]]
+        tuning_tensor = tuning_tensor[IDX[:n_subsample], :, :]
     
     ### Collapse tuning tensor along low_harm axis to get f0 tuning
-    f0_tuning_array = np.mean(tuning_tensor, axis=0)
+    f0_tuning_array = np.mean(tuning_tensor, axis=1) # Units by F0-bins array
     f0_bin_values = np.array([f0_bins[idx] for idx in np.unique(output_dict['f0_label'])])
     
     ### If specified, shuffle the f0 axis to get null distribution
     if shuffle:
-        indexes = np.arange(0, f0_tuning_array.shape[0])
+        indexes = np.arange(0, f0_tuning_array.shape[1])
         np.random.shuffle(indexes)
-        f0_tuning_array = f0_tuning_array[indexes]
+        f0_tuning_array = f0_tuning_array[:, indexes]
     
     ### Compute best f0s and setup octave tuning array
-    best_f0s = f0_bin_values[np.argmax(f0_tuning_array, axis=0)]
+    best_f0s = f0_bin_values[np.argmax(f0_tuning_array, axis=1)]
     octave_bins = get_octave_bins(**kwargs_octave_bins)
-    octave_tuning_array = -1 * np.ones([octave_bins.shape[0], f0_tuning_array.shape[1]])
+    octave_tuning_array = np.empty([f0_tuning_array.shape[0], octave_bins.shape[0]]) # Units by octave bins array
     
     ### Populate octave tuning array
-    for itr1 in range(f0_tuning_array.shape[1]):
-        best_f0 = best_f0s[itr1]
-        f0_tuning = f0_tuning_array[:, itr1]
+    for itr_unit in range(octave_tuning_array.shape[0]):
+        best_f0 = best_f0s[itr_unit]
+        f0_tuning = f0_tuning_array[itr_unit, :]
         octaves_re_best_f0 = np.log2(f0_bin_values / best_f0)
         octave_indexes = np.digitize(octaves_re_best_f0, octave_bins)
         values = np.zeros_like(octave_bins)
         counts = np.zeros_like(octave_bins)
-        for itr0, oct_idx in enumerate(octave_indexes):
-            values[oct_idx] += f0_tuning_array[itr0, itr1]
-            counts[oct_idx] += 1
+        for itr_f0, octave_index in enumerate(octave_indexes):
+            values[octave_index] += f0_tuning_array[itr_unit, itr_f0]
+            counts[octave_index] += 1
         valid_indexes = counts > 0
-        octave_tuning_array[valid_indexes, itr1] = values[valid_indexes] / counts[valid_indexes]
-
+        octave_tuning_array[itr_unit, valid_indexes] = values[valid_indexes] / counts[valid_indexes]
+    
     return octave_bins, octave_tuning_array
 
 
 def average_tuning_array(bins, tuning_array, normalize=True):
     '''
     '''
-    assert bins.shape[0] == tuning_array.shape[0]
+    assert bins.shape[0] == tuning_array.shape[1]
     if normalize:
-        for itr1 in range(tuning_array.shape[1]):
-            valid_indexes = tuning_array[:, itr1] > 0
+        for itr_unit in range(tuning_array.shape[0]):
+            valid_indexes = ~np.isnan(tuning_array[itr_unit, :])
             if valid_indexes.sum() > 0:
-                tuning_array[valid_indexes, itr1] -= np.min(tuning_array[valid_indexes, itr1])
-                tuning_array[valid_indexes, itr1] /= np.max(tuning_array[valid_indexes, itr1])
+                tuning_array[itr_unit, valid_indexes] -= np.min(tuning_array[itr_unit, valid_indexes])
+                tuning_array[itr_unit, valid_indexes] /= np.max(tuning_array[itr_unit, valid_indexes])
     
-    tuning_array_mean = -1 * np.ones_like(bins)
-    tuning_array_err = -1 * np.ones_like(bins)
-    for itr0 in range(bins.shape[0]):
-        valid_indexes = tuning_array[itr0, :] >= 0
-        if any(valid_indexes):
-            tuning_array_mean[itr0] = np.mean(tuning_array[itr0, valid_indexes])
-            tuning_array_err[itr0] = np.std(tuning_array[itr0, valid_indexes])
+    tuning_array_mean = np.empty_like(bins)
+    tuning_array_err = np.empty_like(bins)
+    for itr_bin in range(bins.shape[0]):
+        valid_indexes = ~np.isnan(tuning_array[:, itr_bin])
+        if valid_indexes.sum() > 0:
+            tuning_array_mean[itr_bin] = np.mean(tuning_array[valid_indexes, itr_bin])
+            tuning_array_err[itr_bin] = np.std(tuning_array[valid_indexes, itr_bin])
     
-    valid_indexes = tuning_array_mean >= 0
+    valid_indexes = ~np.isnan(tuning_array_mean)
     tuning_array_mean = tuning_array_mean[valid_indexes]
     tuning_array_err = tuning_array_err[valid_indexes]
     tuning_array_mean_bins = bins[valid_indexes]
