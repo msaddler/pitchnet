@@ -12,12 +12,18 @@ sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDat
 from dataset_util import initialize_hdf5_file, write_example_to_hdf5
 
 
-def generate_MistunedHarmonics_dataset(hdf5_filename, fs=32000, dur=0.150,
-                                       f0_ref_list=[100.0, 200.0, 400.0], f0_ref_width=0.04,
-                                       step_size_in_octaves=1/(192*8), phase_mode='sine', 
-                                       low_harm=1, upp_harm=12, harmonic_dBSPL=60.0,
-                                       mistuned_harm_min=1, mistuned_harm_max=6, mistuned_harm_step=1,
-                                       mistuned_pct_min=-8.0, mistuned_pct_max=8.0, mistuned_pct_step=1.0,
+def generate_MistunedHarmonics_dataset(hdf5_filename,
+                                       fs=32000,
+                                       dur=0.150,
+                                       f0_ref_list=[100.0, 200.0, 400.0],
+                                       f0_ref_width=0.04,
+                                       step_size_in_octaves=1/(192*8),
+                                       phase_mode='sine', 
+                                       low_harm=1,
+                                       upp_harm=12,
+                                       harmonic_dBSPL=60.0,
+                                       list_mistuned_pct=[-8, -6, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6, 8],
+                                       list_mistuned_harm=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
                                        disp_step=100):
     '''
     Main routine for generating Moore et al. (1985, JASA) mistuned harmonics dataset.
@@ -35,8 +41,8 @@ def generate_MistunedHarmonics_dataset(hdf5_filename, fs=32000, dur=0.150,
         f0_min = f0_ref * (1-f0_ref_width)
         f0_max = f0_ref * (1+f0_ref_width)
         list_f0.extend(list(f0_min * (np.power(2, np.arange(0, np.log2(f0_max / f0_min), step_size_in_octaves)))))
-    list_mistuned_pct = list(np.arange(mistuned_pct_min, mistuned_pct_max+mistuned_pct_step, mistuned_pct_step))
-    list_mistuned_harm = list(range(mistuned_harm_min, mistuned_harm_max+1, mistuned_harm_step))
+    list_mistuned_pct = np.array(list_mistuned_pct).astype(float)
+    list_mistuned_harm = np.array(list_mistuned_harm).astype(int)
     N = len(list_f0) * len(list_mistuned_pct) * len(list_mistuned_harm)
     
     # Define stimulus-shared parameters
@@ -101,4 +107,3 @@ if __name__ == "__main__":
     hdf5_filename = str(sys.argv[1])
     
     generate_MistunedHarmonics_dataset(hdf5_filename)
-    
