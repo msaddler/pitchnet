@@ -3,18 +3,16 @@
 #SBATCH --job-name=bez2018model
 #SBATCH --out="trash/slurm-%A_%a.out"
 #SBATCH --cpus-per-task=2
-#SBATCH --mem-per-cpu=4000
+#SBATCH --mem=4000
 #SBATCH --nodes=1
 #SBATCH --time=0-24:00:00
 ##SBATCH --time-min=0-24:00:00
-#SBATCH --exclude=node[001-030,073,064]
+#SBATCH --exclude=node[001-030,080]
 #SBATCH --array=0-19
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --requeue
 ##SBATCH --dependency=afterok:15515107
-
-echo $(hostname)
 
 ## Define source_regex and dest_filename here (use single quotes to prevent regex from expanding)
 
@@ -31,7 +29,7 @@ echo $(hostname)
 # jobs_per_source_file=20
 
 source_regex='/om/user/msaddler/data_pitchnet/moore1985/Moore1985_MistunedHarmonics_v01/*.hdf5'
-dest_filename='/om/user/msaddler/data_pitchnet/moore1985/Moore1985_MistunedHarmonics_v01/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
+dest_filename='/om/user/msaddler/data_pitchnet/moore1985/Moore1985_MistunedHarmonics_v01/sr20000_cf100_species002_spont1eN1_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
 jobs_per_source_file=20
 
 offset=0
@@ -39,6 +37,7 @@ job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
 
 export HDF5_USE_FILE_LOCKING=FALSE
 source activate mdlab # Activate conda environment with "cython_bez2018" module installed
+echo $(hostname)
 
 # python -u nervegram_run_parallel.py \
 # -s "${source_regex}" \
@@ -77,4 +76,4 @@ python -u nervegram_run_parallel.py \
 -sks 'stimuli/signal' \
 -sksr 'config_tone/fs' \
 -mrsr '20000.0' \
--spont 'H'
+-spont 'L'
