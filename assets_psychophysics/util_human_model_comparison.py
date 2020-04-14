@@ -619,7 +619,7 @@ def extract_data_from_alt_phase_histogram_ps_file(fn='alt_hist.ps'):
 def get_mistuned_harmonics_bar_graph_results_dict(results_dict,
                                                   mistuned_pct=3.0,
                                                   pitch_shift_key='f0_pred_pct_median',
-                                                  harmonic_list=[1,2,3,4,5,6],
+                                                  harmonic_list=None,
                                                   use_relative_shift=False):
     '''
     This helper function parses a results_dict from the Moore et al. (1985, JASA)
@@ -629,6 +629,9 @@ def get_mistuned_harmonics_bar_graph_results_dict(results_dict,
     '''
     f0_ref_list = results_dict['f0_ref_list']
     bar_graph_results_dict = {}
+    if harmonic_list is None:
+        harm_key_list = results_dict['f0_ref'][str(f0_ref_list[0])]['mistuned_harm'].keys()
+        harmonic_list = sorted([int(harm_key) for harm_key in harm_key_list])
     for harm in harmonic_list:
         harm_key = str(harm)
         bar_graph_results_dict[harm_key] = {
@@ -875,22 +878,20 @@ def compare_mistunedharmonics(human_results_dict,
     model_bar_graph_results_dict = get_mistuned_harmonics_bar_graph_results_dict(
         model_results_dict, **kwargs_bar_graph)
     pitch_shift_key=kwargs_bar_graph.get('pitch_shift_key', 'f0_pred_pct_median')
-    
     human_conditions = human_bar_graph_results_dict.keys()
     model_conditions = model_bar_graph_results_dict.keys()
-    assert np.array_equal(human_conditions, model_conditions)
     
     results_vector_human = []
     results_vector_model = []
-    for condition_key in human_conditions:
-        human_xvals = human_bar_graph_results_dict[condition_key]['f0_ref']
-        human_yvals = human_bar_graph_results_dict[condition_key][pitch_shift_key]
-        model_xvals = model_bar_graph_results_dict[condition_key]['f0_ref']
-        model_yvals = model_bar_graph_results_dict[condition_key][pitch_shift_key]
-        
-        assert np.array_equal(human_xvals, model_xvals)
-        results_vector_human.extend(list(human_yvals))
-        results_vector_model.extend(list(model_yvals))
+    for condition_key in model_conditions:
+        if condition_key in human_conditions:
+            human_xvals = human_bar_graph_results_dict[condition_key]['f0_ref']
+            human_yvals = human_bar_graph_results_dict[condition_key][pitch_shift_key]
+            model_xvals = model_bar_graph_results_dict[condition_key]['f0_ref']
+            model_yvals = model_bar_graph_results_dict[condition_key][pitch_shift_key]
+            assert np.array_equal(human_xvals, model_xvals)
+            results_vector_human.extend(list(human_yvals))
+            results_vector_model.extend(list(model_yvals))
     
     results_vector_human = np.array(results_vector_human)
     results_vector_model = np.array(results_vector_model)
