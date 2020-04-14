@@ -379,6 +379,17 @@ def get_human_results_dict_mistunedharmonics():
         'f0_ref_list': [100.0, 200.0, 400.0],
         'f0_ref_width': 0.0,
     }
+    # "We were not able to measure significant shifts in residue pitch
+    # when harmonics above the sixth were shifted" (Moore et al., 1985)
+    for key_f0_ref in results_dict['f0_ref'].keys():
+        for h in [7, 8, 9, 10, 11, 12]:
+            results_dict['f0_ref'][key_f0_ref]['mistuned_harm'][str(h)] = {
+                'mistuned_harm': h,
+                'mistuned_pct': [3.0],
+                'f0_pred_pct_mean': [0.0],
+                'f0_pred_pct_median': [0.0],
+                'f0_pred_pct_stddev': [None],
+            }
     return results_dict
 
 
