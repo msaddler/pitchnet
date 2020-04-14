@@ -605,7 +605,8 @@ def extract_data_from_alt_phase_histogram_ps_file(fn='alt_hist.ps'):
     return human_hist_results_dict
 
 
-def get_mistuned_harmonics_bar_graph_results_dict(results_dict, mistuned_pct=3.0,
+def get_mistuned_harmonics_bar_graph_results_dict(results_dict,
+                                                  mistuned_pct=3.0,
                                                   pitch_shift_key='f0_pred_pct_median',
                                                   harmonic_list=[1,2,3,4,5,6],
                                                   use_relative_shift=False):
@@ -691,8 +692,12 @@ def get_altphase_histogram_results_dict(results_dict,
     return histogram_results_dict
 
 
-def interpolate_data(xvals, yvals, interp_xvals, kind='linear',
-                     bounds_error=True, fill_value=np.nan):
+def interpolate_data(xvals,
+                     yvals,
+                     interp_xvals,
+                     kind='linear',
+                     bounds_error=True,
+                     fill_value=np.nan):
     '''
     '''
     interp_fcn = scipy.interpolate.interp1d(xvals, yvals,
@@ -705,8 +710,10 @@ def interpolate_data(xvals, yvals, interp_xvals, kind='linear',
     return interp_xvals, interp_fcn(interp_xvals)
 
 
-def compare_human_model_data(results_vector_human, results_vector_model,
-                             metric='spearmanr', log_scale=False):
+def compare_human_model_data(results_vector_human,
+                             results_vector_model,
+                             metric='spearmanr',
+                             log_scale=False):
     '''
     '''
     metric_functions = {
@@ -721,9 +728,11 @@ def compare_human_model_data(results_vector_human, results_vector_model,
     return metric_functions[metric](results_vector_human, results_vector_model)
 
 
-def compare_bernox2005(human_results_dict, model_results_dict,
+def compare_bernox2005(human_results_dict,
+                       model_results_dict,
                        extrapolate_lowest_harm=True,
-                       kwargs_interp={}, kwargs_compare={'log_scale':True}):
+                       kwargs_interp={},
+                       kwargs_compare={'log_scale':True}):
     '''
     '''
     human_phase_mode_list = np.array(human_results_dict['phase_mode'])
@@ -763,8 +772,10 @@ def compare_bernox2005(human_results_dict, model_results_dict,
                                     **kwargs_compare)
 
 
-def compare_transposedtones(human_results_dict, model_results_dict,
-                            kwargs_interp={}, kwargs_compare={'log_scale':True}):
+def compare_transposedtones(human_results_dict,
+                            model_results_dict,
+                            kwargs_interp={},
+                            kwargs_compare={'log_scale':True}):
     '''
     '''
     human_f_carrier_list = np.array(human_results_dict['f_carrier'])
@@ -800,10 +811,12 @@ def compare_transposedtones(human_results_dict, model_results_dict,
                                     **kwargs_compare)
 
 
-def compare_freqshiftedcomplexes(human_results_dict, model_results_dict,
+def compare_freqshiftedcomplexes(human_results_dict,
+                                 model_results_dict,
                                  pitch_shift_key='f0_pred_shift_median',
-                                 restrict_conditions=['5', '11', '16'],#['5', '11', '16'],
-                                 kwargs_interp={}, kwargs_compare={'log_scale':False}):
+                                 restrict_conditions=['5', '11', '16'],
+                                 kwargs_interp={},
+                                 kwargs_compare={'log_scale':False}):
     '''
     '''
     human_conditions = human_results_dict['spectral_envelope_centered_harmonic'].keys()
@@ -840,8 +853,10 @@ def compare_freqshiftedcomplexes(human_results_dict, model_results_dict,
                                     **kwargs_compare)
 
 
-def compare_mistunedharmonics(human_results_dict, model_results_dict,
-                              kwargs_bar_graph={}, kwargs_compare={'log_scale':False}):
+def compare_mistunedharmonics(human_results_dict,
+                              model_results_dict,
+                              kwargs_bar_graph={},
+                              kwargs_compare={'log_scale':False}):
     '''
     '''
     human_bar_graph_results_dict = get_mistuned_harmonics_bar_graph_results_dict(
@@ -872,8 +887,10 @@ def compare_mistunedharmonics(human_results_dict, model_results_dict,
                                     **kwargs_compare)
 
 
-def compare_altphasecomplexes_line(human_results_dict, model_results_dict,
-                                   kwargs_interp={}, kwargs_compare={'log_scale':False}):
+def compare_altphasecomplexes_line(human_results_dict,
+                                   model_results_dict,
+                                   kwargs_interp={},
+                                   kwargs_compare={'log_scale':False}):
     '''
     '''
     human_conditions = human_results_dict['filter_fl_bin_means'].keys()
@@ -908,7 +925,8 @@ def compare_altphasecomplexes_line(human_results_dict, model_results_dict,
                                     **kwargs_compare)
 
 
-def compare_altphasecomplexes_hist(human_results_dict, model_results_dict,
+def compare_altphasecomplexes_hist(human_results_dict,
+                                   model_results_dict,
                                    restrict_conditions_filter=[125.0, 1375.0, 3900.0],
                                    restrict_conditions_f0=[125.0, 250.0],
                                    kwargs_histogram={},
@@ -951,7 +969,7 @@ def compare_altphasecomplexes_hist(human_results_dict, model_results_dict,
             results_vector_human.extend(list(human_dist))
             results_vector_model.extend(list(model_dist))
 #             distance_metrics.append(-np.log(np.sum(np.sqrt(human_dist * model_dist)))) # Bhattacharyya distance
-            distance_metrics.append(np.sum(np.sqrt(human_dist * model_dist))) # Bhattacharyya coefficient
+#             distance_metrics.append(np.sum(np.sqrt(human_dist * model_dist))) # Bhattacharyya coefficient
     
     results_vector_human = np.array(results_vector_human)
     results_vector_model = np.array(results_vector_model)

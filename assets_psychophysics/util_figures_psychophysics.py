@@ -604,7 +604,7 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
                                       legend_on=True,
                                       include_yerr=False,
                                       f0_ref=200.0,
-                                      restrict_conditions=[1,2,3,4,5,6,7,8,9,10,11,12],
+                                      restrict_conditions=None,
                                       plot_kwargs_update={},
                                       fontsize_title=12,
                                       fontsize_labels=12,
@@ -652,7 +652,8 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
     else:
         raise ValueError("INVALID results_dict_input")
     
-    condition_list = sorted(results_dict[expt_key].keys())
+    condition_list = sorted([int(c) for c in results_dict[expt_key].keys()])
+    condition_list = [str(c) for c in condition_list]
     if restrict_conditions is not None:
         condition_list = [str(c) for c in restrict_conditions]
     if cmap_name == 'tab10': num_colors = max(10, len(condition_list))
