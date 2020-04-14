@@ -595,6 +595,124 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
     return bg_results_dict
 
 
+def make_mistuned_harmonics_line_graph(ax, results_dict_input,
+                                       mistuned_pct=3.0,
+                                       use_relative_shift=True,
+                                       pitch_shift_key='f0_pred_pct_median',
+                                       pitch_shift_err_key=None,
+                                       harmonic_list=None,
+                                       str_title=None,
+                                       legend_on=True,
+                                       include_yerr=False,
+                                       fontsize_title=12,
+                                       fontsize_labels=12,
+                                       fontsize_legend=12,
+                                       fontsize_ticks=12,
+                                       xlimits=[100/1.5, 400*2.5],
+                                       ylimits=[-0.1, 1.0],
+                                       cmap_name='RdGy_r',
+                                       legend_kwargs={},
+                                       kwargs_bootstrap={}):
+    '''
+    '''
+    if pitch_shift_err_key is None: pitch_shift_err_key = pitch_shift_key + '_err'
+    if isinstance(results_dict_input, dict):
+        results_dict = copy.deepcopy(results_dict_input)
+        bg_results_dict = util_human_model_comparison.get_mistuned_harmonics_bar_graph_results_dict(
+            results_dict,
+            mistuned_pct=mistuned_pct,
+            pitch_shift_key=pitch_shift_key,
+            harmonic_list=harmonic_list,
+            use_relative_shift=use_relative_shift)
+        for group_key in bg_results_dict.keys():
+            if pitch_shift_err_key not in bg_results_dict[group_key].keys():
+                dummy_vals = [0] * len(bg_results_dict[group_key][pitch_shift_key])
+                bg_results_dict[group_key][pitch_shift_err_key] = dummy_vals
+    elif isinstance(results_dict_input, list):
+        bg_results_dict_list = []
+        for results_dict in results_dict_input:
+            bg_results_dict_list.append(
+                util_human_model_comparison.get_mistuned_harmonics_bar_graph_results_dict(
+                    results_dict,
+                    mistuned_pct=mistuned_pct,
+                    pitch_shift_key=pitch_shift_key,
+                    harmonic_list=harmonic_list,
+                    use_relative_shift=use_relative_shift)
+            )
+        bg_results_dict = {}
+        for group_key in bg_results_dict_list[0].keys():
+            plot_vals = np.array([bgrd[group_key][pitch_shift_key]
+                                  for bgrd in bg_results_dict_list])
+            yval, yerr = combine_subjects(plot_vals, kwargs_bootstrap=kwargs_bootstrap)
+            bg_results_dict[group_key] = {
+                'f0_ref': bg_results_dict_list[0][group_key]['f0_ref'],
+                pitch_shift_key: yval,
+                pitch_shift_err_key: yerr,
+            }
+    else:
+        raise ValueError("INVALID results_dict_input")
+    
+    condition_list = sorted([int(h) for h in bg_results_dict.keys()])
+    if cmap_name == 'tab10': num_colors = max(10, len(condition_list))
+    else: num_colors = len(condition_list)
+    color_list = util_figures.get_color_list(num_colors, cmap_name=cmap_name)
+    num_groups = len(bg_results_dict.keys())
+    
+    for cidx, condition in enumerate(condition_list):
+        condition_key = str(condition)
+        xval = bg_results_dict[condition_key]['f0_ref']
+        yval = bg_results_dict[condition_key][pitch_shift_key]
+        yerr = bg_results_dict[condition_key][pitch_shift_err_key]
+        plot_kwargs = {
+            'label': condition_key,
+            'marker': '.',
+            'ms':10,
+            'ls':'-',
+            'lw': 2,
+            'color': color_list[cidx],
+        }
+        if include_yerr:
+            ax.fill_between(xval, yval-yerr, yval+yerr, alpha=0.15,
+                            facecolor=plot_kwargs['color'])
+        ax.plot(xval, yval, **plot_kwargs)
+    
+    ax = util_figures.format_axes(ax,
+                                  str_xlabel='F0 (Hz)',
+                                  str_ylabel='Shift in predicted\nF0 (%F0)',
+                                  fontsize_labels=fontsize_labels,
+                                  fontsize_ticks=fontsize_ticks,
+                                  fontweight_labels=None,
+                                  xscale='log',
+                                  yscale='linear',
+                                  xlimits=xlimits,
+                                  ylimits=ylimits,
+                                  xticks=xval,
+                                  yticks=np.arange(0, ylimits[-1]+.01, 0.2),
+                                  xticks_minor=[],
+                                  yticks_minor=np.arange(0, ylimits[-1]+.01, 0.1),
+                                  xticklabels=xval,
+                                  yticklabels=None,
+                                  spines_to_hide=[],
+                                  major_tick_params_kwargs_update={},
+                                  minor_tick_params_kwargs_update={})
+    
+    if str_title is not None:
+        ax.set_title(str_title, fontsize=fontsize_title)
+    if legend_on:
+        legend_plot_kwargs = {
+            'loc': 'upper right',
+            'borderaxespad': 0,
+            'handletextpad': 0.8,
+            'frameon': False,
+            'handlelength': 0.0,
+            'markerscale': 2.0,
+            'fontsize': fontsize_legend,
+        }
+        legend_plot_kwargs.update(legend_kwargs)
+        ax.legend(**legend_plot_kwargs)
+    return bg_results_dict
+
+
 def make_mistuned_harmonics_line_plot(ax, results_dict_input,
                                       use_relative_shift=True,
                                       expt_key='mistuned_harm',
@@ -612,7 +730,7 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
                                       fontsize_ticks=12,
                                       xlimits=[0, 8],
                                       ylimits=[-0.1, 1.1],
-                                      cmap_name='RdGy',
+                                      cmap_name='RdGy_r',
                                       legend_kwargs={},
                                       kwargs_bootstrap={}):
     '''
