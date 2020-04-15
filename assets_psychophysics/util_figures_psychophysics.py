@@ -620,7 +620,7 @@ def make_mistuned_harmonics_line_graph(ax, results_dict_input,
                                        fontsize_legend=12,
                                        fontsize_ticks=12,
                                        xlimits=[100/1.5, 400*2.5],
-                                       ylimits=[-0.1, 1.0],
+                                       ylimits=None,
                                        cmap_name='RdGy_r',
                                        kwargs_legend={},
                                        kwargs_bootstrap={}):
@@ -682,13 +682,16 @@ def make_mistuned_harmonics_line_graph(ax, results_dict_input,
             'lw': 2,
             'markeredgecolor': 'k',
             'markerfacecolor': color_list[cidx],
-            'color': 'k',
+            'color': color_list[cidx],
         }
         if include_yerr:
             ax.fill_between(xval, yval-yerr, yval+yerr, alpha=0.15,
                             facecolor=color_list[cidx])
         ax.plot(xval, yval, **plot_kwargs)
-    
+    if ylimits is None:
+        buffer_ylim = 0.1
+        [xb, yb, dxb, dyb] = ax.dataLim.bounds
+        ylimits = [yb - buffer_ylim * dyb, yb + dyb + buffer_ylim * dyb]
     ax = util_figures.format_axes(ax,
                                   str_xlabel='F0 (Hz)',
                                   str_ylabel='Shift in predicted\nF0 (%F0)',
