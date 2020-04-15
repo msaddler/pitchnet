@@ -308,6 +308,14 @@ def make_TT_threshold_plot(ax, results_dict_input,
             yerr_max = yval * (1+yerr/yval)
             ax.fill_between(xval, yerr_min, yerr_max, alpha=0.15,
                             facecolor=plot_kwargs.get('color', 'k'))
+#             errorbar_kwargs = {
+#                 'yerr': np.stack([yval - yval / (1+yerr/yval), yval * (1+yerr/yval)-yval], axis=0),
+#                 'fmt': 'none',
+#                 'ecolor': 'k',
+#                 'elinewidth': 1,
+#                 'capsize': 3,
+#             }
+#             ax.errorbar(xval, yval, **errorbar_kwargs)
         ax.plot(xval, yval, **plot_kwargs)
     
     ax = util_figures.format_axes(ax,
@@ -685,8 +693,16 @@ def make_mistuned_harmonics_line_graph(ax, results_dict_input,
             'color': color_list[cidx],
         }
         if include_yerr:
-            ax.fill_between(xval, yval-yerr, yval+yerr, alpha=0.15,
-                            facecolor=color_list[cidx])
+            errorbar_kwargs = {
+                'yerr': yerr,
+                'fmt': 'none',
+                'ecolor': 'k',
+                'elinewidth': 1,
+                'capsize': 3,
+            }
+            ax.errorbar(xval, yval, **errorbar_kwargs)
+#             ax.fill_between(xval, yval-yerr, yval+yerr, alpha=0.15,
+#                             facecolor=color_list[cidx])
         ax.plot(xval, yval, **plot_kwargs)
     if ylimits is None:
         buffer_ylim = 0.1
