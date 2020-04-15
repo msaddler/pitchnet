@@ -110,7 +110,7 @@ def make_bernox_threshold_plot(ax, results_dict_input,
                                fontsize_ticks=12,
                                xlimits=[0, 33],
                                ylimits=[1e-1, 1e2],
-                               legend_kwargs={},
+                               kwargs_legend={},
                                kwargs_bootstrap={}):
     '''
     Function for plotting Bernstein & Oxenham (2005) experiment results:
@@ -194,12 +194,15 @@ def make_bernox_threshold_plot(ax, results_dict_input,
     if legend_on:
         legend_plot_kwargs = {
             'loc': 'lower right',
+            'borderpad': 0.4,
+            'borderaxespad': 0.5,
+            'handletextpad': 0.8,
             'frameon': False,
             'handlelength': 1.5,
             'markerscale': 0.0,
             'fontsize': fontsize_legend,
         }
-        legend_plot_kwargs.update(legend_kwargs)
+        legend_plot_kwargs.update(kwargs_legend)
         ax.legend(**legend_plot_kwargs)
     return results_dict
 
@@ -217,7 +220,7 @@ def make_TT_threshold_plot(ax, results_dict_input,
                            fontsize_ticks=12,
                            xlimits=[40, 360],
                            ylimits=[1e-1, 1e2],
-                           legend_kwargs={},
+                           kwargs_legend={},
                            kwargs_bootstrap={},
                            collapse_transposed_tones=True):
     '''
@@ -343,12 +346,15 @@ def make_TT_threshold_plot(ax, results_dict_input,
     if legend_on:
         legend_plot_kwargs = {
             'loc': 'lower left',
+            'borderpad': 0.4,
+            'borderaxespad': 0.5,
+            'handletextpad': 0.8,
             'frameon': False,
             'handlelength': 0.0,
             'markerscale': 1.0,
             'fontsize': fontsize_legend,
         }
-        legend_plot_kwargs.update(legend_kwargs)
+        legend_plot_kwargs.update(kwargs_legend)
         ax.legend(**legend_plot_kwargs)
     return results_dict
 
@@ -370,7 +376,7 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
                                    fontsize_ticks=12,
                                    xlimits=[-1, 25],
                                    ylimits=[-4, 12],
-                                   legend_kwargs={},
+                                   kwargs_legend={},
                                    kwargs_bootstrap={}):
     '''
     Function for plotting frequency-shifted complexes experiment results:
@@ -407,9 +413,9 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
     
     if not condition_plot_kwargs:
         condition_plot_kwargs = {
-            '5': {'label': 'LOW', 'marker': 'o', 'ms':6, 'ls':'-', 'lw': 2, 'color':'k'},
-            '11': {'label': 'MID', 'marker': 'o', 'ms':6, 'ls':'-', 'lw': 2, 'color':'b'},
-            '16': {'label': 'HIGH', 'marker': 'o', 'ms':6, 'ls':'-', 'lw': 2, 'color':'r'},
+            '5': {'label': 'LOW', 'marker': '.', 'ms':12, 'ls':'-', 'lw': 2, 'color':'k'},
+            '11': {'label': 'MID', 'marker': '.', 'ms':12, 'ls':'-', 'lw': 2, 'color':'b'},
+            '16': {'label': 'HIGH', 'marker': '.', 'ms':12, 'ls':'-', 'lw': 2, 'color':'r'},
         }
     
     assert set(results_dict[expt_key].keys()) == set(condition_plot_kwargs.keys())
@@ -454,12 +460,15 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
     if legend_on:
         legend_plot_kwargs = {
             'loc': 'upper left',
+            'borderpad': 0.4,
+            'borderaxespad': 0.5,
+            'handletextpad': 0.8,
             'frameon': False,
             'handlelength': 0.4,
             'markerscale': 0.0,
             'fontsize': fontsize_legend,
         }
-        legend_plot_kwargs.update(legend_kwargs)
+        legend_plot_kwargs.update(kwargs_legend)
         leg = ax.legend(**legend_plot_kwargs)
         for legobj in leg.legendHandles:
             legobj.set_linewidth(8.0)
@@ -482,8 +491,8 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
                                       fontsize_ticks=12,
                                       xlimits=[2, 8],
                                       ylimits=[-0.1, 1.1],
-                                      cmap_name='RdGy',
-                                      legend_kwargs={},
+                                      cmap_name='RdGy_r',
+                                      kwargs_legend={},
                                       kwargs_bootstrap={}):
     '''
     Function for plotting mistuned harmonics experiment results:
@@ -528,7 +537,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
     
     if cmap_name == 'tab10': num_colors = max(10, len(harmonic_list))
     else: num_colors = len(harmonic_list)
-    color_list = util_figures.get_color_list(num_colors, cmap_name=cmap_name)[::-1]
+    color_list = util_figures.get_color_list(num_colors, cmap_name=cmap_name)
     num_groups = len(bg_results_dict.keys())
     group_xoffsets = np.arange(num_groups) - np.mean(np.arange(num_groups))
     for group_idx, group_key in enumerate(sorted(bg_results_dict.keys())):
@@ -584,13 +593,15 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
     if legend_on:
         legend_plot_kwargs = {
             'loc': 'upper right',
-            'bbox_to_anchor': [1.03, 1.03],
+            'borderpad': 0.4,
+            'borderaxespad': 0.1,
+            'handletextpad': 0.8,
             'frameon': False,
             'handlelength': 1.0,
             'markerscale': 1.0,
             'fontsize': fontsize_legend,
         }
-        legend_plot_kwargs.update(legend_kwargs)
+        legend_plot_kwargs.update(kwargs_legend)
         ax.legend(**legend_plot_kwargs)
     return bg_results_dict
 
@@ -600,7 +611,7 @@ def make_mistuned_harmonics_line_graph(ax, results_dict_input,
                                        use_relative_shift=True,
                                        pitch_shift_key='f0_pred_pct_median',
                                        pitch_shift_err_key=None,
-                                       harmonic_list=None,
+                                       harmonic_list=[1,2,3,4,5,6,9],
                                        str_title=None,
                                        legend_on=True,
                                        include_yerr=False,
@@ -611,7 +622,7 @@ def make_mistuned_harmonics_line_graph(ax, results_dict_input,
                                        xlimits=[100/1.5, 400*2.5],
                                        ylimits=[-0.1, 1.0],
                                        cmap_name='RdGy_r',
-                                       legend_kwargs={},
+                                       kwargs_legend={},
                                        kwargs_bootstrap={}):
     '''
     '''
@@ -660,20 +671,22 @@ def make_mistuned_harmonics_line_graph(ax, results_dict_input,
     
     for cidx, condition in enumerate(condition_list):
         condition_key = str(condition)
-        xval = bg_results_dict[condition_key]['f0_ref']
-        yval = bg_results_dict[condition_key][pitch_shift_key]
-        yerr = bg_results_dict[condition_key][pitch_shift_err_key]
+        xval = np.array(bg_results_dict[condition_key]['f0_ref'])
+        yval = np.array(bg_results_dict[condition_key][pitch_shift_key])
+        yerr = np.array(bg_results_dict[condition_key][pitch_shift_err_key])
         plot_kwargs = {
             'label': condition_key,
-            'marker': '.',
-            'ms':10,
-            'ls':'-',
+            'marker': 'o',
+            'ms': 8,
+            'ls': '-',
             'lw': 2,
-            'color': color_list[cidx],
+            'markeredgecolor': 'k',
+            'markerfacecolor': color_list[cidx],
+            'color': 'k',
         }
         if include_yerr:
             ax.fill_between(xval, yval-yerr, yval+yerr, alpha=0.15,
-                            facecolor=plot_kwargs['color'])
+                            facecolor=color_list[cidx])
         ax.plot(xval, yval, **plot_kwargs)
     
     ax = util_figures.format_axes(ax,
@@ -700,15 +713,16 @@ def make_mistuned_harmonics_line_graph(ax, results_dict_input,
         ax.set_title(str_title, fontsize=fontsize_title)
     if legend_on:
         legend_plot_kwargs = {
-            'loc': 'upper right',
-            'borderaxespad': 0,
+            'loc': 'center right',
+            'borderpad': 0.2,
+            'borderaxespad': 0.1,
             'handletextpad': 0.8,
             'frameon': False,
             'handlelength': 0.0,
-            'markerscale': 2.0,
+            'markerscale': 1.0,
             'fontsize': fontsize_legend,
         }
-        legend_plot_kwargs.update(legend_kwargs)
+        legend_plot_kwargs.update(kwargs_legend)
         ax.legend(**legend_plot_kwargs)
     return bg_results_dict
 
@@ -731,7 +745,7 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
                                       xlimits=[0, 8],
                                       ylimits=[-0.1, 1.1],
                                       cmap_name='RdGy_r',
-                                      legend_kwargs={},
+                                      kwargs_legend={},
                                       kwargs_bootstrap={}):
     '''
     Function for plotting mistuned harmonics experiment results:
@@ -817,14 +831,16 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
     if legend_on:
         legend_plot_kwargs = {
             'loc': 'upper right',
-            'bbox_to_anchor': [1.04, 1.04],
             'ncol': 3,
+            'borderpad': 0.4,
+            'borderaxespad': 0.5,
+            'handletextpad': 0.8,
             'frameon': False,
             'handlelength': 0.0,
             'markerscale': 1.5,
             'fontsize': fontsize_legend,
         }
-        legend_plot_kwargs.update(legend_kwargs)
+        legend_plot_kwargs.update(kwargs_legend)
         ax.legend(**legend_plot_kwargs)
     return results_dict
 
@@ -931,12 +947,15 @@ def make_altphase_line_plot(ax, results_dict_input,
     if legend_on:
         legend_plot_kwargs = {
             'loc': 'best',
+            'borderpad': 0.4,
+            'borderaxespad': 0.5,
+            'handletextpad': 0.8,
             'frameon': False,
             'handlelength': 0.0,
             'markerscale': 1.25,
             'fontsize': fontsize_legend,
         }
-        legend_plot_kwargs.update(legend_kwargs)
+        legend_plot_kwargs.update(kwargs_legend)
         ax.legend(**legend_plot_kwargs)
     return results_dict
 
@@ -1042,7 +1061,7 @@ def make_altphase_histogram_plot(ax, results_dict_input,
                                  fontsize_legend=12,
                                  fontsize_ticks=12,
                                  include_yerr=False,
-                                 legend_kwargs={},
+                                 kwargs_legend={},
                                  kwargs_bootstrap={}):
     '''
     Function for plotting alternating phase experiment results:
@@ -1126,12 +1145,15 @@ def make_altphase_histogram_plot(ax, results_dict_input,
     if legend_on:
         legend_plot_kwargs = {
             'loc': 'best',
+            'borderpad': 0.4,
+            'borderaxespad': 0.5,
+            'handletextpad': 0.8,
             'frameon': False,
             'handlelength': 0.4,
             'markerscale': 0.0,
             'fontsize': fontsize_legend,
         }
-        legend_plot_kwargs.update(legend_kwargs)
+        legend_plot_kwargs.update(kwargs_legend)
         leg = ax.legend(**legend_plot_kwargs)
         for legobj in leg.legendHandles:
             legobj.set_linewidth(8.0)
