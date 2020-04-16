@@ -619,7 +619,7 @@ def make_mistuned_harmonics_line_graph(ax, results_dict_input,
                                        use_relative_shift=True,
                                        pitch_shift_key='f0_pred_pct_median',
                                        pitch_shift_err_key=None,
-                                       harmonic_list=[1,2,3,4,5,6,9],
+                                       harmonic_list=None,
                                        str_title=None,
                                        legend_on=True,
                                        include_yerr=False,
@@ -627,8 +627,8 @@ def make_mistuned_harmonics_line_graph(ax, results_dict_input,
                                        fontsize_labels=12,
                                        fontsize_legend=12,
                                        fontsize_ticks=12,
-                                       xlimits=[100/1.5, 400*2.5],
-                                       ylimits=None,
+                                       xlimits=None,
+                                       ylimits=[-0.05, 1.05],
                                        cmap_name='RdGy_r',
                                        kwargs_legend={},
                                        kwargs_bootstrap={}):
@@ -641,7 +641,7 @@ def make_mistuned_harmonics_line_graph(ax, results_dict_input,
             results_dict,
             mistuned_pct=mistuned_pct,
             pitch_shift_key=pitch_shift_key,
-            harmonic_list=harmonic_list,
+            harmonic_list=None,
             use_relative_shift=use_relative_shift)
         for group_key in bg_results_dict.keys():
             if pitch_shift_err_key not in bg_results_dict[group_key].keys():
@@ -671,26 +671,41 @@ def make_mistuned_harmonics_line_graph(ax, results_dict_input,
     else:
         raise ValueError("INVALID results_dict_input")
     
-    condition_list = sorted([int(h) for h in bg_results_dict.keys()])
-    if cmap_name == 'tab10': num_colors = max(10, len(condition_list))
-    else: num_colors = len(condition_list)
-    color_list = util_figures.get_color_list(num_colors, cmap_name=cmap_name)
-    num_groups = len(bg_results_dict.keys())
+    list_harmonic_numbers = []
+    list_f0 = None
+    array_pitch_shift = []
+    array_pitch_shift_err = []
+    for harm_key in bg_results_dict.keys():
+        list_harmonic_numbers.append(int(harm_key))
+        if list_f0 is None:
+            list_f0 = bg_results_dict[harm_key]['f0_ref']
+        else:
+            assert list_f0 == bg_results_dict[harm_key]['f0_ref']
+        array_pitch_shift.append(bg_results_dict[harm_key][pitch_shift_key])
+        array_pitch_shift_err.append(bg_results_dict[harm_key][pitch_shift_err_key])
+    sort_idx = np.argsort(list_harmonic_numbers)
+    list_harmonic_numbers = np.array(list_harmonic_numbers)[sort_idx]
+    list_f0 = np.array(list_f0)
+    array_pitch_shift = np.array(array_pitch_shift)[sort_idx]
+    array_pitch_shift_err = np.array(array_pitch_shift_err)[sort_idx]
     
-    for cidx, condition in enumerate(condition_list):
-        condition_key = str(condition)
-        xval = np.array(bg_results_dict[condition_key]['f0_ref'])
-        yval = np.array(bg_results_dict[condition_key][pitch_shift_key])
-        yerr = np.array(bg_results_dict[condition_key][pitch_shift_err_key])
+    if cmap_name == 'tab10': num_colors = max(10, len(list_f0))
+    else: num_colors = len(list_f0)
+    color_list = util_figures.get_color_list(num_colors, cmap_name=cmap_name)
+    
+    for f0_idx, f0 in enumerate(list_f0):
+        xval = list_harmonic_numbers
+        yval = array_pitch_shift[:, f0_idx]
+        yerr = array_pitch_shift_err[:, f0_idx]
         plot_kwargs = {
-            'label': condition_key,
+            'label': '{:.0f}Hz'.format(f0),
             'marker': 'o',
             'ms': 8,
             'ls': '-',
             'lw': 2,
             'markeredgecolor': 'k',
-            'markerfacecolor': color_list[cidx],
-            'color': color_list[cidx],
+            'markerfacecolor': color_list[f0_idx],
+            'color': color_list[f0_idx],
         }
         if include_yerr:
             errorbar_kwargs = {
@@ -708,21 +723,23 @@ def make_mistuned_harmonics_line_graph(ax, results_dict_input,
         buffer_ylim = 0.1
         [xb, yb, dxb, dyb] = ax.dataLim.bounds
         ylimits = [yb - buffer_ylim * dyb, yb + dyb + buffer_ylim * dyb]
+    if xlimits is None:
+        xlimits = [list_harmonic_numbers[0]-0.5, list_harmonic_numbers[-1]+0.5]
     ax = util_figures.format_axes(ax,
-                                  str_xlabel='F0 (Hz)',
+                                  str_xlabel='Mistuned harmonic ({:+.0f}%)'.format(mistuned_pct),
                                   str_ylabel='Shift in predicted\nF0 (%F0)',
                                   fontsize_labels=fontsize_labels,
                                   fontsize_ticks=fontsize_ticks,
                                   fontweight_labels=None,
-                                  xscale='log',
+                                  xscale='linear',
                                   yscale='linear',
                                   xlimits=xlimits,
                                   ylimits=ylimits,
-                                  xticks=xval,
+                                  xticks=list_harmonic_numbers,
                                   yticks=np.arange(0, ylimits[-1]+.01, 0.2),
                                   xticks_minor=[],
                                   yticks_minor=np.arange(0, ylimits[-1]+.01, 0.1),
-                                  xticklabels=xval,
+                                  xticklabels=list_harmonic_numbers,
                                   yticklabels=None,
                                   spines_to_hide=[],
                                   major_tick_params_kwargs_update={},
@@ -732,9 +749,9 @@ def make_mistuned_harmonics_line_graph(ax, results_dict_input,
         ax.set_title(str_title, fontsize=fontsize_title)
     if legend_on:
         legend_plot_kwargs = {
-            'loc': 'center right',
-            'borderpad': 0.2,
-            'borderaxespad': 0.1,
+            'loc': 'upper right',
+            'borderpad': 0.4,
+            'borderaxespad': 0.5,
             'handletextpad': 0.8,
             'frameon': False,
             'handlelength': 0.0,
