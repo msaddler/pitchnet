@@ -3,6 +3,8 @@ import sys
 import h5py
 import numpy as np
 import pdb
+
+sys.path.append('/om2/user/msaddler/python-packages/msutil')
 import util_stimuli
 
 sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')

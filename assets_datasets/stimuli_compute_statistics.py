@@ -8,6 +8,7 @@ import copy
 import argparse
 import pdb
 
+sys.path.append('/om2/user/msaddler/python-packages/msutil')
 import util_stimuli
 
 

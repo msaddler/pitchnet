@@ -7,6 +7,7 @@ import itertools
 import argparse
 import pdb
 
+sys.path.append('/om2/user/msaddler/python-packages/msutil')
 import util_stimuli
 
 sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
@@ -99,10 +100,9 @@ def random_filtered_complex_tone_dataset(hdf5_filename, N,
                                                                     amplitude_jitter=amplitude_jitter,
                                                                     augmentation_filter_params=augmentation_filter_params)
         noise = util_stimuli.modified_uniform_masking_noise(fs, dur, **kwargs_modified_uniform_masking_noise)
-        signal_and_noise = util_stimuli.combine_signal_and_noise(signal=signal,
-                                                                 noise=noise,
-                                                                 snr=snr,
-                                                                 rms_out=20e-6*np.power(10, dbspl/20))
+        signal_and_noise = util_stimuli.combine_signal_and_noise(signal, noise, snr)
+        signal_and_noise = util_stimuli.set_dBSPL(signal_and_noise, dbspl)
+        
         # Prepare data_dict for hdf5 filewriting
         data_dict['f0'] = f0
         data_dict['phase_mode'] = int(phase_mode_encoding[phase_mode])
