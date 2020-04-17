@@ -39,6 +39,8 @@ def get_source_keys_to_copy():
         'filter_fh',
         'mistuned_harm',
         'mistuned_pct',
+        'snr_per_component',
+        'dbspl',
     ]
     return source_keys_to_copy
 
