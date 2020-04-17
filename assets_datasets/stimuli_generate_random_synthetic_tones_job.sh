@@ -20,7 +20,7 @@ job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
 export HDF5_USE_FILE_LOCKING=FALSE
 source activate mdlab
 
-python -u stimuli_generate_synthetic_tones.py \
+python -u stimuli_generate_random_synthetic_tones.py \
 -d "${dest_filename}" \
 -j ${job_idx} \
 -npj ${num_parallel_jobs} \
