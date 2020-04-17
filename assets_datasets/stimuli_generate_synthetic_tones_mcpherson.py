@@ -123,6 +123,7 @@ def generate_mcpherson_noisy_tone_dataset(hdf5_filename,
             for dbspl in unique_dbspl_list:
                 for f0 in unique_f0_list:
                     # Construct signal with specified phase_mode, snr, dbspl, f0
+                    kwargs_complex_tone.update({'phase_mode': phase_mode_decoding[ph]})
                     tone_in_noise, tone_in_noise_params = mcpherson_noisy_tone(
                         f0,
                         fs,
