@@ -165,4 +165,6 @@ if __name__ == "__main__":
     assert len(sys.argv) == 2, "scipt usage: python <script_name> <hdf5_filename>"
     hdf5_filename = str(sys.argv[1])
     
-    generate_mcpherson_noisy_tone_dataset(hdf5_filename)
+    generate_mcpherson_noisy_tone_dataset(hdf5_filename,
+                                          list_dbsnr_component=[0.0],
+                                          list_dbspl_overall=np.arange(0.0, 121.0, 10.0))
