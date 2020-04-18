@@ -460,6 +460,7 @@ def extract_data_from_alt_phase_histogram_ps_file(fn='alt_hist.ps'):
 def get_mistuned_harmonics_bar_graph_results_dict(results_dict,
                                                   mistuned_pct=3.0,
                                                   pitch_shift_key='f0_pred_pct_median',
+                                                  pitch_shift_err_key=None,
                                                   harmonic_list=None,
                                                   use_relative_shift=False):
     '''
@@ -468,6 +469,7 @@ def get_mistuned_harmonics_bar_graph_results_dict(results_dict,
     allows for easier plotting of the Meddis and O'Mard (1997, JASA) summary bar
     graph (Fig 8B)
     '''
+    if pitch_shift_err_key is None: pitch_shift_err_key = pitch_shift_key + '_err'
     f0_ref_list = results_dict['f0_ref_list']
     bar_graph_results_dict = {}
     if harmonic_list is None:
@@ -478,18 +480,24 @@ def get_mistuned_harmonics_bar_graph_results_dict(results_dict,
         bar_graph_results_dict[harm_key] = {
             'f0_ref': [],
             pitch_shift_key: [],
+            pitch_shift_err_key: [],
         }
         for f0_ref in f0_ref_list:
             f0_ref_key = str(f0_ref)
             sub_results_dict = results_dict['f0_ref'][f0_ref_key]['mistuned_harm'][harm_key]
             mp_idx = sub_results_dict['mistuned_pct'].index(mistuned_pct)
             pitch_shift = sub_results_dict[pitch_shift_key][mp_idx]
+            if pitch_shift_err_key in sub_results_dict.keys():
+                pitch_shift_err = sub_results_dict[pitch_shift_err_key][mp_idx]
+            else:
+                pitch_shift_err = np.zeros_like(pitch_shift).tolist()
             if use_relative_shift:
                 if 0.0 in sub_results_dict['mistuned_pct']:
                     unshifted_idx = sub_results_dict['mistuned_pct'].index(0.0)
                     pitch_shift = pitch_shift - sub_results_dict[pitch_shift_key][unshifted_idx]
             bar_graph_results_dict[harm_key]['f0_ref'].append(f0_ref)
             bar_graph_results_dict[harm_key][pitch_shift_key].append(pitch_shift)
+            bar_graph_results_dict[harm_key][pitch_shift_err_key].append(pitch_shift_err)
     return bar_graph_results_dict
 
 
