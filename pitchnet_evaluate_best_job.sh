@@ -16,10 +16,10 @@
 # OUTDIR='/saved_models/arch_search_v01/arch_'$ZERO_PADDED_JOBID
 # SAVED_MODELS_PATH="$SCRATCH_PATH/pitchnet/saved_models"
 
-OUTDIR='/saved_models/models_sr20000/arch_0302/PND_v08_TLAS_snr_neg10pos10_AN_BW10eN1_IHC3000Hz_classification'$SLURM_ARRAY_TASK_ID
+OUTDIR='/saved_models/models_sr20000/arch_0302/PND_v08_TLAS_snr_neg10pos10_AN_BW05eN1_IHC3000Hz_classification'$SLURM_ARRAY_TASK_ID
 SAVED_MODELS_PATH="/om2/user/msaddler/pitchnet/saved_models"
 
-TFRECORDS_REGEX='sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/*.tfrecords'
+TFRECORDS_REGEX='sr20000_cf100_species002_spont070_BW05eN1_IHC3000Hz_IHC7order/*.tfrecords'
 EFN_PREFIX='EVAL_SOFTMAX_'
 WRITE_PROBS_OUT=1
 
@@ -111,8 +111,8 @@ singularity exec --nv \
 -B /om2/user/msaddler/pitchnet/ibmHearingAid:/code_location \
 /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
 python pitchnet_evaluate_best.py \
--de "/om/user/msaddler/data_pitchnet/mcpherson2020/testSNR_v00_f0min080_f0max320_dBSPLmin060_dBSPLmax060/$TFRECORDS_REGEX" \
--efn "${EFN_PREFIX}mcpherson2020_testSNR_v00_bestckpt.json" \
+-de "/om/user/msaddler/data_pitchnet/mcpherson2020/testSNR_v01_f0min080_f0max320_dBSPLmin060_dBSPLmax060/$TFRECORDS_REGEX" \
+-efn "${EFN_PREFIX}mcpherson2020_testSNR_v01_bestckpt.json" \
 -o "$OUTDIR" \
 -wpo $WRITE_PROBS_OUT
 
