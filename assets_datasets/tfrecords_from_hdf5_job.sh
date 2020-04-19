@@ -6,7 +6,7 @@
 #SBATCH --mem=2500
 #SBATCH --nodes=1
 #SBATCH --time=0-1:40:00
-#SBATCH --array=0-79
+#SBATCH --array=0-99
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 ##SBATCH --dependency=afterok:14990544
@@ -16,7 +16,7 @@
 # source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10_filter_signalBPv02/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates*.hdf5'
 # source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_synthetic/noise_UMNm_snr_neg10pos10_phase01_filter_signalBPv00/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates*.hdf5'
 # source_regex='/om/user/msaddler/data_pitchnet/bernox2005/FixedFilter_f0min100_f0max300/sr20000_cf100_species002_spont070_BW30eN1_IHC3000Hz_IHC7order/bez2018meanrates*.hdf5'
-source_regex='/om/user/msaddler/data_pitchnet/mcpherson2020/testSNR_v00_f0min080_f0max320_dBSPLmin060_dBSPLmax060/sr20000_cf100_species002_spont070_BW*eN1_IHC3000Hz_IHC7order/bez2018meanrates*.hdf5'
+source_regex='/om/user/msaddler/data_pitchnet/mcpherson2020/test*v01*/sr20000_cf100_species002_spont070*/bez2018meanrates*.hdf5'
 
 jobs_per_source_file=1
 offset=0
