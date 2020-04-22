@@ -721,17 +721,14 @@ def compare_mistunedharmonics(human_results_dict,
                               pitch_shift_key='f0_pred_pct_median',
                               restrict_conditions_f0=None,
                               restrict_conditions_harm=None,
-                              kwargs_bar_graph={},
                               kwargs_compare={'log_scale':False}):
     '''
     '''
     conditions_f0_human = set(human_results_dict['f0_ref_list'])
     conditions_f0_model = set(model_results_dict['f0_ref_list'])
     conditions_f0 = conditions_f0_human.intersection(conditions_f0_model)
-    
     results_vector_human = []
     results_vector_model = []
-    
     for f0 in conditions_f0:
         include_f0 = True
         if restrict_conditions_f0 is not None:
@@ -749,6 +746,7 @@ def compare_mistunedharmonics(human_results_dict,
                     model_mistuned_pct = model_sub_dict[harm]['mistuned_pct']
                     for model_mpidx, mp in enumerate(model_mistuned_pct):
                         if mp in human_mistuned_pct:
+#                             print(f0, harm, mp)
                             human_mpidx = human_mistuned_pct.index(mp)
                             results_vector_human.append(human_sub_dict[harm][pitch_shift_key][human_mpidx])
                             results_vector_model.append(model_sub_dict[harm][pitch_shift_key][model_mpidx])
