@@ -734,23 +734,21 @@ def compare_mistunedharmonics(human_results_dict,
         if restrict_conditions_f0 is not None:
             include_f0 = f0 in restrict_conditions_f0
         if include_f0:
-            human_sub_dict = human_results_dict['f0_ref'][str(f0)]['mistuned_harm']
-            model_sub_dict = model_results_dict['f0_ref'][str(f0)]['mistuned_harm']
-            conditions_harm = set(human_sub_dict.keys()).intersection(set(model_sub_dict.keys()))
+            hsb = human_results_dict['f0_ref'][str(f0)]['mistuned_harm']
+            msb = model_results_dict['f0_ref'][str(f0)]['mistuned_harm']
+            conditions_harm = set(hsb.keys()).intersection(set(msb.keys()))
             for harm in conditions_harm:
                 include_harm = True
                 if restrict_conditions_harm is not None:
                     include_harm = float(harm) in restrict_conditions_harm
                 if include_harm:
-                    human_mistuned_pct = human_sub_dict[harm]['mistuned_pct']
-                    model_mistuned_pct = model_sub_dict[harm]['mistuned_pct']
-                    for model_mpidx, mp in enumerate(model_mistuned_pct):
+                    human_mistuned_pct = hsb[harm]['mistuned_pct']
+                    model_mistuned_pct = msb[harm]['mistuned_pct']
+                    for mmpidx, mp in enumerate(model_mistuned_pct):
                         if mp in human_mistuned_pct:
-#                             print(f0, harm, mp)
-                            human_mpidx = human_mistuned_pct.index(mp)
-                            results_vector_human.append(human_sub_dict[harm][pitch_shift_key][human_mpidx])
-                            results_vector_model.append(model_sub_dict[harm][pitch_shift_key][model_mpidx])
-    
+                            hmpidx = human_mistuned_pct.index(mp)
+                            results_vector_human.append(hsb[harm][pitch_shift_key][hmpidx])
+                            results_vector_model.append(msb[harm][pitch_shift_key][mmpidx])
     results_vector_human = np.array(results_vector_human)
     results_vector_model = np.array(results_vector_model)
     return compare_human_model_data(results_vector_human, results_vector_model,
