@@ -718,29 +718,40 @@ def compare_freqshiftedcomplexes(human_results_dict,
 
 def compare_mistunedharmonics(human_results_dict,
                               model_results_dict,
+                              pitch_shift_key='f0_pred_pct_median',
+                              restrict_conditions_f0=None,
+                              restrict_conditions_harm=None,
                               kwargs_bar_graph={},
                               kwargs_compare={'log_scale':False}):
     '''
     '''
-    human_bar_graph_results_dict = get_mistuned_harmonics_bar_graph_results_dict(
-        human_results_dict, **kwargs_bar_graph)
-    model_bar_graph_results_dict = get_mistuned_harmonics_bar_graph_results_dict(
-        model_results_dict, **kwargs_bar_graph)
-    pitch_shift_key=kwargs_bar_graph.get('pitch_shift_key', 'f0_pred_pct_median')
-    human_conditions = human_bar_graph_results_dict.keys()
-    model_conditions = model_bar_graph_results_dict.keys()
+    conditions_f0_human = set(human_results_dict['f0_ref_list'])
+    conditions_f0_model = set(model_results_dict['f0_ref_list'])
+    conditions_f0 = conditions_f0_human.intersection(conditions_f0_model)
     
     results_vector_human = []
     results_vector_model = []
-    for condition_key in model_conditions:
-        if condition_key in human_conditions:
-            human_xvals = human_bar_graph_results_dict[condition_key]['f0_ref']
-            human_yvals = human_bar_graph_results_dict[condition_key][pitch_shift_key]
-            model_xvals = model_bar_graph_results_dict[condition_key]['f0_ref']
-            model_yvals = model_bar_graph_results_dict[condition_key][pitch_shift_key]
-            assert np.array_equal(human_xvals, model_xvals)
-            results_vector_human.extend(list(human_yvals))
-            results_vector_model.extend(list(model_yvals))
+    
+    for f0 in conditions_f0:
+        include_f0 = True
+        if restrict_conditions_f0 is not None:
+            include_f0 = f0 in restrict_conditions_f0
+        if include_f0:
+            human_sub_dict = human_results_dict['f0_ref'][str(f0)]['mistuned_harm']
+            model_sub_dict = model_results_dict['f0_ref'][str(f0)]['mistuned_harm']
+            conditions_harm = set(human_sub_dict.keys()).intersection(set(model_sub_dict.keys()))
+            for harm in conditions_harm:
+                include_harm = True
+                if restrict_conditions_harm is not None:
+                    include_harm = float(harm) in restrict_conditions_harm
+                if include_harm:
+                    human_mistuned_pct = human_sub_dict[harm]['mistuned_pct']
+                    model_mistuned_pct = model_sub_dict[harm]['mistuned_pct']
+                    for model_mpidx, mp in enumerate(model_mistuned_pct):
+                        if mp in human_mistuned_pct:
+                            human_mpidx = human_mistuned_pct.index(mp)
+                            results_vector_human.append(human_sub_dict[harm][pitch_shift_key][human_mpidx])
+                            results_vector_model.append(model_sub_dict[harm][pitch_shift_key][model_mpidx])
     
     results_vector_human = np.array(results_vector_human)
     results_vector_model = np.array(results_vector_model)
