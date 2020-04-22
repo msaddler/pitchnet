@@ -779,7 +779,7 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
                                       fontsize_legend=12,
                                       fontsize_ticks=12,
                                       xlimits=[0, 8],
-                                      ylimits=[-0.1, 1.1],
+                                      ylimits=None,
                                       cmap_name='RdGy_r',
                                       kwargs_legend={},
                                       kwargs_bootstrap={}):
@@ -829,8 +829,10 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
     color_list = util_figures.get_color_list(num_colors, cmap_name=cmap_name)
     for cidx, condition in enumerate(condition_list):
         xval = np.array(results_dict[expt_key][condition]['mistuned_pct'])
-        yval = np.array(results_dict[expt_key][condition][pitch_shift_key])
-        yerr = np.array(results_dict[expt_key][condition][pitch_shift_err_key])
+        xval_idx = np.logical_and(xval >= xlimits[0], xval <= xlimits[1])
+        xval = xval[xval_idx]
+        yval = np.array(results_dict[expt_key][condition][pitch_shift_key])[xval_idx]
+        yerr = np.array(results_dict[expt_key][condition][pitch_shift_err_key])[xval_idx]
         plot_kwargs = {
             'label': condition, 'color': color_list[cidx],
             'marker': '.', 'ms':10, 'ls':'-', 'lw': 2,
@@ -842,6 +844,14 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
                             facecolor=plot_kwargs.get('color', color_list[cidx]))
         ax.plot(xval, yval, **plot_kwargs)
     
+    if ylimits is None:
+        buffer_ylim = 0.1
+        [xb, yb, dxb, dyb] = ax.dataLim.bounds
+        ylimits = [yb - buffer_ylim * dyb, yb + dyb + buffer_ylim * dyb]
+    yticks = np.arange(-100, 100, 0.2)
+    yticks = yticks[np.logical_and(yticks>=ylimits[0], yticks<=ylimits[1])]
+    yticks_minor = np.arange(-100, 100, 0.1)
+    yticks_minor = yticks_minor[np.logical_and(yticks_minor>=ylimits[0], yticks_minor<=ylimits[1])]
     ax = util_figures.format_axes(ax,
                                   str_xlabel='Harmonic mistuning (%)',
                                   str_ylabel='Shift in predicted\nF0 (%F0)',
@@ -853,9 +863,9 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
                                   xlimits=xlimits,
                                   ylimits=ylimits,
                                   xticks=np.arange(xlimits[0], xlimits[-1]+1, 1),
-                                  yticks=np.arange(0, ylimits[-1]+0.1, 0.5),
+                                  yticks=yticks,
                                   xticks_minor=None,
-                                  yticks_minor=np.arange(ylimits[0], ylimits[-1]+0.1, 0.1),
+                                  yticks_minor=yticks_minor,
                                   xticklabels=None,
                                   yticklabels=None,
                                   spines_to_hide=[],
@@ -867,7 +877,7 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
     if legend_on:
         legend_plot_kwargs = {
             'loc': 'upper right',
-            'ncol': 3,
+            'ncol': 2,
             'borderpad': 0.4,
             'borderaxespad': 0.5,
             'handletextpad': 0.8,
