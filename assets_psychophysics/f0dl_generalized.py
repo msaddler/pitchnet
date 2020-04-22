@@ -145,7 +145,7 @@ if __name__ == "__main__":
     assert parsed_args_dict['key_condition'] is not None, "key_condition is a required argument"
     list_json_eval_fn = sorted(glob.glob(parsed_args_dict['regex_json_eval_fn']))
     json_eval_fn = list_json_eval_fn[parsed_args_dict['job_idx']]
-    key_condition = parsed_args_dict['parsed_args_dict']
+    key_condition = parsed_args_dict['key_condition']
     print('Processing file {} of {}'.format(parsed_args_dict['job_idx'], len(list_json_eval_fn)))
     print('Processing file: {}'.format(json_eval_fn))
     

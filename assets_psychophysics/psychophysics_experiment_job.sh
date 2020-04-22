@@ -3,10 +3,10 @@
 #SBATCH --job-name=psychophysics
 #SBATCH --out="slurm-%A_%a.out"
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=12
-#SBATCH --mem=8000
+##SBATCH --cpus-per-task=12
+##SBATCH --mem=8000
 #SBATCH --time=0-02:00:00
-#SBATCH --array=0-53
+#SBATCH --array=0-8
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --exclude=node[001-030]
@@ -74,6 +74,19 @@ PRIOR_RANGE='0.5'
 # -j ${job_idx}
 
 
+# singularity exec --nv \
+# -B /home \
+# -B /om \
+# -B /nobackup \
+# -B /om2 \
+# -B /om4 \
+# /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
+# python /om2/user/msaddler/pitchnet/assets_psychophysics/f0experiment_mistuned_harmonics.py \
+# -r "${OUTDIR_REGEX}/${EFN_PREFIX}MistunedHarm_v01_bestckpt.json" \
+# -p ${PRIOR_RANGE} \
+# -j ${job_idx}
+
+
 singularity exec --nv \
 -B /home \
 -B /om \
@@ -81,7 +94,8 @@ singularity exec --nv \
 -B /om2 \
 -B /om4 \
 /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
-python /om2/user/msaddler/pitchnet/assets_psychophysics/f0experiment_mistuned_harmonics.py \
--r "${OUTDIR_REGEX}/${EFN_PREFIX}MistunedHarm_v01_bestckpt.json" \
+python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_generalized.py \
+-r "${OUTDIR_REGEX}/${EFN_PREFIX}mcpherson2020_testSNR_v01_bestckpt.json" \
+-k 'snr_per_component' \
 -p ${PRIOR_RANGE} \
 -j ${job_idx}
