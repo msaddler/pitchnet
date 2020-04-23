@@ -84,6 +84,7 @@ def main(hdf5_filename,
             for delta_f0 in delta_f0_list:
                 for ph in unique_ph_list:
                     # Construct tone in noise with specified parameters
+                    f0 = base_f0 * delta_f0
                     harmonic_numbers = np.arange(lh, lh + num_harm)
                     harmonic_dBSPL = threshold_dBSPL + component_dBSL
                     amplitudes = 20e-6 * np.power(10, (harmonic_dBSPL/20)) * np.ones_like(harmonic_numbers)
@@ -93,7 +94,7 @@ def main(hdf5_filename,
                         'amplitudes': amplitudes,
                     }
                     kwargs_TENoise = {
-                        'dBSPL_per_ERB': TENoise_dBSPL_per_ERB
+                        'dBSPL_per_ERB': TENoise_dBSPL_per_ERB,
                     }
                     tone_in_noise = complex_tone_in_TENoise(f0,
                                                             fs,
