@@ -148,7 +148,7 @@ if __name__ == "__main__":
          delta_f0_min=0.94,
          delta_f0_max=1.06,
          delta_f0_n=121,
-         TENoise_dBSPL_per_ERB=40.0,#10.0,
-         threshold_dBSPL=38.5,#10.7,
+         TENoise_dBSPL_per_ERB=65.0,#40.0,#10.0,
+         threshold_dBSPL=64.5,#38.5,#10.7,
          component_dBSL=12.5,
          disp_step=100)
