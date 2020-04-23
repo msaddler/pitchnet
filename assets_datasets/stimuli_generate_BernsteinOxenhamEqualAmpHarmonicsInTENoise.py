@@ -132,8 +132,9 @@ def main(hdf5_filename,
 
 if __name__ == "__main__":
     ''' TEMPORARY COMMAND-LINE USAGE '''
-    assert len(sys.argv) == 2, "scipt usage: python <script_name> <hdf5_filename>"
+    assert len(sys.argv) == 3, "scipt usage: python <script_name> <hdf5_filename> <noise_level>"
     hdf5_filename = str(sys.argv[1])
+    TENoise_dBSPL_per_ERB = int(sys.argv[2])
     
     main(hdf5_filename,
          fs=32e3,
@@ -148,7 +149,7 @@ if __name__ == "__main__":
          delta_f0_min=0.94,
          delta_f0_max=1.06,
          delta_f0_n=121,
-         TENoise_dBSPL_per_ERB=65.0,#40.0,#10.0,
-         threshold_dBSPL=64.5,#38.5,#10.7,
-         component_dBSL=12.5,
+         TENoise_dBSPL_per_ERB=TENoise_dBSPL_per_ERB,
+         threshold_dBSPL=TENoise_dBSPL_per_ERB,
+         component_dBSL=10.0,
          disp_step=100)
