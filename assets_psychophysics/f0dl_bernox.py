@@ -542,8 +542,7 @@ def main(json_eval_fn,
     '''
     '''
     # Run the Bernstein and Oxenham (2005) F0DL experiment; results stored in results_dict
-    metadata_key_list=['low_harm', 'phase_mode', 'f0']
-    if 'FixedFilter' in json_eval_fn: metadata_key_list = metadata_key_list + ['base_f0']
+    metadata_key_list=['low_harm', 'phase_mode', 'f0', 'base_f0']
     results_dict = run_f0dl_experiment(json_eval_fn,
                                        max_pct_diff=max_pct_diff,
                                        bin_width=bin_width,
