@@ -3,8 +3,8 @@
 #SBATCH --job-name=psychophysics
 #SBATCH --out="slurm-%A_%a.out"
 #SBATCH --nodes=1
-##SBATCH --cpus-per-task=12
-##SBATCH --mem=8000
+#SBATCH --cpus-per-task=12
+#SBATCH --mem=8000
 #SBATCH --time=0-02:00:00
 #SBATCH --array=0-2
 ##SBATCH --partition=mcdermott
@@ -114,17 +114,17 @@ PRIOR_RANGE='0.5'
 # -p ${PRIOR_RANGE} \
 # -j ${job_idx}
 
-singularity exec --nv \
--B /home \
--B /om \
--B /nobackup \
--B /om2 \
--B /om4 \
-/om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
-python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_bernox.py \
--r "${OUTDIR_REGEX}/${EFN_PREFIX}bernox2006_TENlevel10dB_harmlevel20dBSPL_bestckpt.json" \
--p ${PRIOR_RANGE} \
--j ${job_idx}
+# singularity exec --nv \
+# -B /home \
+# -B /om \
+# -B /nobackup \
+# -B /om2 \
+# -B /om4 \
+# /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
+# python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_bernox.py \
+# -r "${OUTDIR_REGEX}/${EFN_PREFIX}bernox2006_TENlevel10dB_harmlevel20dBSPL_bestckpt.json" \
+# -p ${PRIOR_RANGE} \
+# -j ${job_idx}
 
 singularity exec --nv \
 -B /home \
@@ -138,14 +138,14 @@ python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_bernox.py \
 -p ${PRIOR_RANGE} \
 -j ${job_idx}
 
-singularity exec --nv \
--B /home \
--B /om \
--B /nobackup \
--B /om2 \
--B /om4 \
-/om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
-python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_bernox.py \
--r "${OUTDIR_REGEX}/${EFN_PREFIX}bernox2006_TENlevel65dB_harmlevel75dBSPL_bestckpt.json" \
--p ${PRIOR_RANGE} \
--j ${job_idx}
+# singularity exec --nv \
+# -B /home \
+# -B /om \
+# -B /nobackup \
+# -B /om2 \
+# -B /om4 \
+# /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
+# python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_bernox.py \
+# -r "${OUTDIR_REGEX}/${EFN_PREFIX}bernox2006_TENlevel65dB_harmlevel75dBSPL_bestckpt.json" \
+# -p ${PRIOR_RANGE} \
+# -j ${job_idx}
