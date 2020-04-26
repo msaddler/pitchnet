@@ -4,10 +4,11 @@
 #SBATCH --out="slurm-%A_%a.out"
 #SBATCH --cpus-per-task=6
 #SBATCH --mem=18000
-#SBATCH --gres=gpu:GEFORCEGTX1080TI:1
+#SBATCH --gres=gpu:QUADRORTX6000:1
+##SBATCH --gres=gpu:GEFORCEGTX1080TI:1
 #SBATCH --time=0-48:00:00
 ##SBATCH --time-min=0-24:00:00
-#SBATCH --array=20-29
+#SBATCH --array=87,97,208,245,270,285,287,302,325,373
 ##SBATCH --exclude=node063
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
@@ -16,8 +17,8 @@
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
 SOURCE_CONFIG_FN='config_arch_search_v01.json'
-OUTPUT_DIR_PATTERN="/saved_models/arch_search_v01_arch_0302_manipulations_v03/arch_0302_{:04d}"
-OUTPUT_LOG_FN=$(printf "$SCRATCH_PATH/pitchnet/saved_models/arch_search_v01_arch_0302_manipulations_v03/logs_train/arch_0302_%04d.log" ${job_idx})
+OUTPUT_DIR_PATTERN="/saved_models/arch_search_v01_spont070_BW10eN1_IHC3000Hz_IHC7order/arch_0302_{:04d}"
+OUTPUT_LOG_FN=$(printf "$SCRATCH_PATH/pitchnet/saved_models/arch_search_v01_spont070_BW10eN1_IHC3000Hz_IHC7order/logs_train/arch_0302_%04d.log" ${job_idx})
 
 echo $OUTPUT_LOG_FN
 echo $(hostname)
