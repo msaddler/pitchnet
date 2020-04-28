@@ -9,8 +9,10 @@ import matplotlib.ticker
 import matplotlib.cm
 import matplotlib.colors
 
-import util_figures
 import util_human_model_comparison
+
+sys.path.append('/om2/user/msaddler/python-packages/msutil')
+import util_figures
 
 
 def bootstrap(data,
@@ -420,10 +422,11 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
         raise ValueError("INVALID results_dict_input")
     
     if not condition_plot_kwargs:
+        color_list = util_figures.get_color_list(3, cmap_name='coolwarm')
         condition_plot_kwargs = {
-            '5': {'label': 'LOW', 'marker': '.', 'ms':12, 'ls':'-', 'lw': 2, 'color':'k'},
-            '11': {'label': 'MID', 'marker': '.', 'ms':12, 'ls':'-', 'lw': 2, 'color':'b'},
-            '16': {'label': 'HIGH', 'marker': '.', 'ms':12, 'ls':'-', 'lw': 2, 'color':'r'},
+            '5': {'label': 'LOW', 'marker': '.', 'ms':12, 'ls':'-', 'lw': 2, 'color':color_list[0]},
+            '11': {'label': 'MID', 'marker': '.', 'ms':12, 'ls':'-', 'lw': 2, 'color':color_list[1]},
+            '16': {'label': 'HIGH', 'marker': '.', 'ms':12, 'ls':'-', 'lw': 2, 'color':color_list[2]},
         }
     
     assert set(results_dict[expt_key].keys()) == set(condition_plot_kwargs.keys())
@@ -499,7 +502,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
                                       fontsize_ticks=12,
                                       xlimits=[2, 8],
                                       ylimits=[-0.1, 1.1],
-                                      cmap_name='RdGy_r',
+                                      cmap_name='coolwarm',
                                       kwargs_legend={},
                                       kwargs_bootstrap={}):
     '''
@@ -629,7 +632,7 @@ def make_mistuned_harmonics_line_graph(ax, results_dict_input,
                                        fontsize_ticks=12,
                                        xlimits=None,
                                        ylimits=[-0.05, 1.05],
-                                       cmap_name='RdGy_r',
+                                       cmap_name='coolwarm',
                                        kwargs_legend={},
                                        kwargs_bootstrap={}):
     '''
@@ -772,7 +775,7 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
                                       legend_on=True,
                                       include_yerr=False,
                                       f0_ref=200.0,
-                                      restrict_conditions=None,
+                                      restrict_conditions=[1,2,3,4,5,6,12],
                                       plot_kwargs_update={},
                                       fontsize_title=12,
                                       fontsize_labels=12,
@@ -780,7 +783,7 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
                                       fontsize_ticks=12,
                                       xlimits=[0, 8],
                                       ylimits=None,
-                                      cmap_name='RdGy_r',
+                                      cmap_name='coolwarm',
                                       kwargs_legend={},
                                       kwargs_bootstrap={}):
     '''
@@ -845,12 +848,13 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
         ax.plot(xval, yval, **plot_kwargs)
     
     if ylimits is None:
-        buffer_ylim = 0.1
+        buffer_ylim = 0.3
         [xb, yb, dxb, dyb] = ax.dataLim.bounds
-        ylimits = [yb - buffer_ylim * dyb, yb + dyb + buffer_ylim * dyb]
-    yticks = np.arange(-100, 100, 0.2)
+        ylimits = [-0.1, yb + dyb * (1 + buffer_ylim)]
+        if ylimits[1] < 0.4: ylimits[1] = 0.4
+    yticks = np.arange(0, 10, 0.3)
     yticks = yticks[np.logical_and(yticks>=ylimits[0], yticks<=ylimits[1])]
-    yticks_minor = np.arange(-100, 100, 0.1)
+    yticks_minor = np.arange(-0.1, 10, 0.1)
     yticks_minor = yticks_minor[np.logical_and(yticks_minor>=ylimits[0], yticks_minor<=ylimits[1])]
     ax = util_figures.format_axes(ax,
                                   str_xlabel='Harmonic mistuning (%)',
@@ -879,7 +883,7 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
             'loc': 'upper right',
             'ncol': 2,
             'borderpad': 0.4,
-            'borderaxespad': 0.5,
+            'borderaxespad': 0.1,
             'handletextpad': 0.8,
             'frameon': False,
             'handlelength': 0.0,
@@ -887,7 +891,13 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
             'fontsize': fontsize_legend,
         }
         legend_plot_kwargs.update(kwargs_legend)
-        ax.legend(**legend_plot_kwargs)
+        lines, labels = ax.get_legend_handles_labels()
+        if len(lines) % 2 > 0:
+            # Insert invisible legend entry to right-justify columns
+            SKIP_IDX = len(lines) // 2
+            lines.insert(SKIP_IDX, plt.Line2D([],[], alpha=0))
+            labels.insert(SKIP_IDX, '')
+        ax.legend(lines, labels, **legend_plot_kwargs)
     return results_dict
 
 
@@ -935,10 +945,11 @@ def make_altphase_line_plot(ax, results_dict_input,
         raise ValueError("INVALID results_dict_input")
     
     if not condition_plot_kwargs:
+        color_list = util_figures.get_color_list(3, cmap_name='coolwarm')
         condition_plot_kwargs = {
-            '125.0': {'label': 'LOW', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2, 'color': 'r'},
-            '1375.0': {'label': 'MID', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2, 'color': 'b'},
-            '3900.0': {'label': 'HIGH', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2, 'color': 'k'},
+            '125.0': {'label': 'LOW', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2, 'color': color_list[0]},
+            '1375.0': {'label': 'MID', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2, 'color': color_list[1]},
+            '3900.0': {'label': 'HIGH', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2, 'color': color_list[2]},
         }
     
     condition_list = sorted(results_dict[expt_key].keys())
@@ -1144,10 +1155,11 @@ def make_altphase_histogram_plot(ax, results_dict_input,
     
     # Plot pitch match histograms for specified conditions
     if not condition_plot_kwargs_filter:
+        color_list = util_figures.get_color_list(3, cmap_name='coolwarm')
         condition_plot_kwargs_filter = {
-            '125.0': {'label': 'LOW', 'color': 'k', 'alpha':0.3, 'lw':1.3},
-            '1375.0': {'label': 'MID', 'color': 'b', 'alpha':0.3, 'lw':1.3}, 
-            '3900.0': {'label': 'HIGH', 'color': 'r', 'alpha':0.3, 'lw':1.3},
+            '125.0': {'label': 'LOW', 'color': color_list[0], 'alpha':0.3, 'lw':1.3},
+            '1375.0': {'label': 'MID', 'color': color_list[1], 'alpha':0.3, 'lw':1.3}, 
+            '3900.0': {'label': 'HIGH', 'color': color_list[2], 'alpha':0.3, 'lw':1.3},
         }
     
     for f0_val in restrict_conditions_f0:
