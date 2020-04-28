@@ -881,23 +881,20 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
     if legend_on:
         legend_plot_kwargs = {
             'loc': 'upper right',
-            'ncol': 2,
+            'ncol': len(condition_list),
+            'columnspacing': 0.8,
             'borderpad': 0.4,
             'borderaxespad': 0.1,
-            'handletextpad': 0.8,
+            'handletextpad': 0.4,
             'frameon': False,
             'handlelength': 0.0,
-            'markerscale': 1.5,
+            'markerscale': 1.0,
             'fontsize': fontsize_legend,
         }
         legend_plot_kwargs.update(kwargs_legend)
-        lines, labels = ax.get_legend_handles_labels()
-        if len(lines) % 2 > 0:
-            # Insert invisible legend entry to right-justify columns
-            SKIP_IDX = len(lines) // 2
-            lines.insert(SKIP_IDX, plt.Line2D([],[], alpha=0))
-            labels.insert(SKIP_IDX, '')
-        ax.legend(lines, labels, **legend_plot_kwargs)
+        leg = ax.legend(**legend_plot_kwargs)
+        for line, text in zip(leg.get_lines(), leg.get_texts()):
+            text.set_color(line.get_color())
     return results_dict
 
 
