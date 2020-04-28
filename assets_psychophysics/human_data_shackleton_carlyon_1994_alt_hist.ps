@@ -1,0 +1,1052 @@
+%!PS-Adobe-2.1
+%%Pages: (atend)
+%%EndComments
+
+/cm { 28.346457 mul } def
+
+/xscale { xsize xoff 2 mul sub nobin 1 sub div } def
+/yscale { ysize yoff 2 mul sub yend ystart sub div } def
+
+/landscape { 1 cm 1 cm scale
+			 21 0 translate
+			 90 rotate
+} def
+
+/longsize 0.2 def
+/shortsize 0.1 def
+/xlaboffset 0.2 def
+/ylaboffset 0.2 def
+/xsize 7.5 def
+/ysize 4.5 def
+/xtit 0.15 def
+/ytit ysize 0.9 sub def
+/xoff 0.05 def
+/yoff 0.0 def
+/width 1 def
+/yinc 5 def
+/xinc 0.1 def
+/fontsize 0.60 def
+/titsize fontsize 0.05 add def
+/line 0.02 def
+
+/htick { 3 1 roll moveto dup neg 0      rmoveto 2 mul 0      rlineto stroke } def
+/vtick { 3 1 roll moveto dup neg 0 exch rmoveto 2 mul 0 exch rlineto stroke } def
+
+/h { dup 0 exch rlineto neg width exch rmoveto } def
+
+/log2 { log 2 log div } def
+
+/leftprint { % str x y leftprint -
+    moveto
+    dup
+    stringwidth pop neg fontsize 0.3 mul yscale div neg rmoveto
+    show
+} def
+
+/midprint { % str x y midprint -
+    moveto
+    dup
+    stringwidth pop 2 div neg 0 rmoveto
+    show
+} def
+
+/axes { % label xpos ypos ystart yend ylabstart ylabend nobin offset nobinoctave xstart xend xlab ylab axes -
+	/ylab exch def
+	/xlab exch def
+	/xend exch def
+	/xstart exch def
+	/nobinoctave exch def
+	/offset exch def
+	/nobin exch def
+	/ylabend exch def
+	/ylabstart exch def
+	/yend exch def
+	/ystart exch def
+	/ypos exch def
+	/xpos exch def
+
+	/lab 4 string def
+
+	xpos ypos translate
+	0 0 xsize ysize rectstroke
+
+	/Helvetica fontsize selectfont
+	xtit ytit moveto show
+
+	0 yoff translate
+
+	1 yscale scale
+
+	0 ystart neg translate
+
+	line yscale div setlinewidth
+	
+	/Helvetica findfont 
+		[fontsize  
+		0 0 
+		fontsize yscale div
+		0 0] makefont setfont
+
+	ylabstart yinc ylabend {
+		dup dup dup 
+		0     exch shortsize htick
+		xsize exch shortsize htick
+		ylab 1 eq { lab cvs exch xlaboffset neg exch leftprint } if
+	} for
+
+	xoff 0 translate
+	xscale 1 scale
+
+	line xscale div setlinewidth
+
+	offset                 yoff yscale div neg longsize yscale div vtick
+	offset nobinoctave add yoff yscale div neg longsize yscale div vtick
+	offset                 ysize yoff sub yscale div longsize yscale div vtick
+	offset nobinoctave add ysize yoff sub yscale div longsize yscale div vtick
+
+	xstart xinc xend {
+		log2 nobinoctave mul offset add     % convert freq (x) to bin units
+		dup
+		yoff yscale div neg       shortsize yscale div vtick
+		ysize yoff sub yscale div shortsize yscale div vtick
+	} for
+
+	1.5 log2 nobinoctave mul offset add     % convert freq (x) to bin units
+		dup
+		yoff yscale div neg       longsize yscale div vtick
+		ysize yoff sub yscale div longsize yscale div vtick
+
+
+	/Helvetica findfont 
+		[fontsize xscale div 
+		0 0 
+		fontsize yscale div
+		0 0] makefont setfont
+
+	xlab 1 eq {
+		1 0.5 2 {
+			dup 
+			lab cvs exch 
+			log2 nobinoctave mul offset add     % convert freq (x) to bin units			
+			ylaboffset yoff add fontsize add neg yscale div midprint  
+		} for
+	} if
+
+	line yscale div setlinewidth
+
+	0.5 neg ystart moveto nobin 0.5 sub ystart lineto stroke
+	0 ystart moveto
+	width setlinewidth
+
+
+} def
+
+%%EndProlog
+%%Page 1 1
+
+
+landscape
+line setlinewidth
+/Helvetica titsize selectfont
+
+ 2.1 10.8 moveto
+(Percentage of Pitch matches in 1% wide bins)
+dup stringwidth pop 2 div neg 0 exch rmoveto
+90 rotate show -90 rotate
+15.3  2.3 moveto
+(Ratio of matching frequency to target fundamental)
+dup stringwidth pop 2 div neg 0 rmoveto show
+gsave
+(a\)      Low, 62.5 Hz) 4.000000 13.000000 0.000000 25.000000 0.000000 25.000000 95 10 70 0.900000 2.300000 0 1 axes 
+  0.0 h
+  0.0 h
+  0.7 h
+  0.0 h
+  0.0 h
+  0.7 h
+  1.4 h
+  1.4 h
+  7.6 h
+  9.0 h
+ 13.2 h
+ 14.6 h
+ 11.8 h
+ 11.1 h
+ 10.4 h
+  6.9 h
+  4.2 h
+  1.4 h
+  0.7 h
+  1.4 h
+  1.4 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.7 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.7 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.7 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+stroke
+ grestore
+gsave
+(b\)      Low, 125 Hz) 11.500000 13.000000 0.000000 25.000000 0.000000 25.000000 95 10 70 0.900000 2.300000 0 0 axes 
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.7 h
+  2.8 h
+  8.3 h
+ 13.9 h
+ 20.8 h
+ 16.0 h
+ 16.7 h
+  9.0 h
+  6.9 h
+  1.4 h
+  0.7 h
+  0.7 h
+  0.7 h
+  0.0 h
+  0.7 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.7 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+stroke
+ grestore
+gsave
+(c\)      Low, 250 Hz) 19.000000 13.000000 0.000000 25.000000 0.000000 25.000000 95 10 70 0.900000 2.300000 0 0 axes 
+  0.0 h
+  0.0 h
+  0.0 h
+  0.7 h
+  0.7 h
+  1.4 h
+  2.8 h
+  2.1 h
+ 22.2 h
+ 22.9 h
+ 25.7 h
+ 13.2 h
+  6.3 h
+  0.7 h
+  0.7 h
+  0.0 h
+  0.7 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+stroke
+ grestore
+gsave
+(d\)      Mid, 62.5 Hz) 4.000000 8.500000 0.000000 25.000000 0.000000 20.000000 95 10 70 0.900000 2.300000 0 1 axes 
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.7 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.7 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.7 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.7 h
+  0.0 h
+  0.0 h
+  0.0 h
+  1.4 h
+  0.0 h
+  0.7 h
+  1.4 h
+  0.7 h
+  0.7 h
+  4.2 h
+  3.5 h
+  6.3 h
+  2.1 h
+  1.4 h
+  6.3 h
+ 12.5 h
+ 11.8 h
+  7.6 h
+ 10.4 h
+  8.3 h
+  5.6 h
+  3.5 h
+  2.8 h
+  1.4 h
+  2.1 h
+  0.7 h
+  0.7 h
+  0.0 h
+  0.0 h
+  0.7 h
+  0.0 h
+  0.7 h
+stroke
+ grestore
+gsave
+(e\)      Mid, 125 Hz) 11.500000 8.500000 0.000000 25.000000 0.000000 20.000000 95 10 70 0.900000 2.300000 0 0 axes 
+  0.0 h
+  0.7 h
+  0.0 h
+  0.7 h
+  0.0 h
+  0.7 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.7 h
+  0.7 h
+  2.1 h
+  2.1 h
+  2.8 h
+  1.4 h
+  2.8 h
+  3.5 h
+  5.6 h
+  2.8 h
+  1.4 h
+  3.5 h
+  1.4 h
+  0.0 h
+  0.7 h
+  1.4 h
+  0.7 h
+  0.7 h
+  2.8 h
+  1.4 h
+  0.0 h
+  2.1 h
+  0.0 h
+  1.4 h
+  1.4 h
+  0.0 h
+  0.0 h
+  0.0 h
+  1.4 h
+  1.4 h
+  0.7 h
+  0.7 h
+  1.4 h
+  2.1 h
+  0.0 h
+  0.0 h
+  0.0 h
+  2.1 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.7 h
+  1.4 h
+  0.7 h
+  1.4 h
+  0.0 h
+  2.1 h
+  0.0 h
+  2.1 h
+  0.7 h
+  0.7 h
+  2.8 h
+  3.5 h
+  4.9 h
+  2.1 h
+  2.1 h
+  4.2 h
+  0.0 h
+  2.1 h
+  2.8 h
+  2.1 h
+  0.7 h
+  2.1 h
+  0.0 h
+  0.7 h
+  0.0 h
+  0.0 h
+  0.7 h
+  1.4 h
+  0.7 h
+  0.0 h
+  0.0 h
+  0.7 h
+  0.0 h
+  0.0 h
+  0.7 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.7 h
+  0.7 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+stroke
+ grestore
+gsave
+(f\)      Mid, 250 Hz) 19.000000 8.500000 0.000000 25.000000 0.000000 20.000000 95 10 70 0.900000 2.300000 0 0 axes 
+  1.4 h
+  0.0 h
+  1.4 h
+  0.7 h
+  2.8 h
+  0.0 h
+  3.5 h
+ 12.5 h
+ 11.8 h
+ 17.4 h
+ 17.4 h
+ 13.2 h
+  9.0 h
+  2.8 h
+  2.1 h
+  1.4 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.7 h
+  0.0 h
+  0.0 h
+  1.4 h
+  0.0 h
+  0.0 h
+  0.7 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+stroke
+ grestore
+gsave
+(g\)     High, 62.5 Hz) 4.000000 4.000000 0.000000 25.000000 0.000000 20.000000 95 10 70 0.900000 2.300000 1 1 axes 
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  1.9 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  1.9 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  1.9 h
+  3.7 h
+  3.7 h
+  3.7 h
+  0.0 h
+  0.0 h
+  7.4 h
+  1.9 h
+  5.6 h
+  9.3 h
+ 11.1 h
+  9.3 h
+  9.3 h
+  3.7 h
+ 16.7 h
+  5.6 h
+  3.7 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+stroke
+ grestore
+gsave
+(h\)     High, 125 Hz) 11.500000 4.000000 0.000000 25.000000 0.000000 20.000000 95 10 70 0.900000 2.300000 1 0 axes 
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.7 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.7 h
+  0.0 h
+  0.7 h
+  0.7 h
+  0.7 h
+  0.0 h
+  0.7 h
+  0.7 h
+  0.7 h
+  0.0 h
+  0.7 h
+  0.7 h
+  1.4 h
+  0.7 h
+  0.7 h
+  1.4 h
+  1.4 h
+  2.8 h
+  1.4 h
+  6.3 h
+  7.6 h
+  8.3 h
+  8.3 h
+  6.9 h
+  5.6 h
+  5.6 h
+  8.3 h
+  4.2 h
+  3.5 h
+  1.4 h
+  1.4 h
+  2.1 h
+  4.2 h
+  4.2 h
+  2.8 h
+  0.7 h
+  1.4 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.7 h
+stroke
+ grestore
+gsave
+(i\)     High, 250 Hz) 19.000000 4.000000 0.000000 25.000000 0.000000 20.000000 95 10 70 0.900000 2.300000 1 0 axes 
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  1.4 h
+  0.0 h
+  0.0 h
+  1.4 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  2.8 h
+  2.1 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  2.8 h
+  1.4 h
+  0.0 h
+  3.5 h
+  1.4 h
+  0.7 h
+  0.7 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.0 h
+  0.7 h
+  2.1 h
+  2.1 h
+  2.8 h
+  4.2 h
+  2.8 h
+  4.9 h
+  1.4 h
+  5.6 h
+  3.5 h
+  6.3 h
+  1.4 h
+  3.5 h
+  4.9 h
+  3.5 h
+  2.1 h
+  0.7 h
+  4.9 h
+  1.4 h
+  2.1 h
+  1.4 h
+  2.1 h
+  0.7 h
+  2.8 h
+  2.1 h
+  1.4 h
+  0.0 h
+  1.4 h
+  0.7 h
+  2.8 h
+  1.4 h
+  0.0 h
+  1.4 h
+  0.7 h
+  0.7 h
+  2.1 h
+stroke
+ grestore
+showpage
+%%Trailer
+%%Pages: 1
