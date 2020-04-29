@@ -6,6 +6,7 @@ import glob
 import pdb
 import scipy.interpolate
 import scipy.stats
+import scipy.spatial.distance
 import copy
 
 
@@ -485,6 +486,10 @@ def compare_human_model_data(results_vector_human,
     metric_functions = {
         'pearsonr': scipy.stats.pearsonr,
         'spearmanr': scipy.stats.spearmanr,
+        'distance_correlation': scipy.spatial.distance.correlation,
+        'distance_cosine': scipy.spatial.distance.cosine,
+        'distance_euclidean': scipy.spatial.distance.euclidean,
+        'distance_jensenshannon': scipy.spatial.distance.jensenshannon,
     }
     assert results_vector_human.shape == results_vector_model.shape
     assert metric in metric_functions.keys(), "metric=`{}` is not supported".format(metric)
