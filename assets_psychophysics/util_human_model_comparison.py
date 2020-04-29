@@ -726,9 +726,7 @@ def compare_altphasecomplexes_hist(human_results_dict,
     model_bin_widths = model_hist_results_dict['bin_widths']
     model_bin_heights_array = model_hist_results_dict['bin_heights_array']
     
-    comparison_metrics = []
-#     results_vector_human = []
-#     results_vector_model = []
+    list_histogram_comparison_metric = []
     for f0_val in restrict_conditions_f0:
         for filter_val in restrict_conditions_filter:
             idx_human = np.logical_and(human_f0_conditions==f0_val, human_filter_conditions==filter_val)
@@ -742,19 +740,9 @@ def compare_altphasecomplexes_hist(human_results_dict,
             idx = list(idx_human).index(True)
             human_dist = human_bin_heights_array[idx] / np.sum(human_bin_heights_array[idx])
             model_dist = model_bin_heights_array[idx] / np.sum(model_bin_heights_array[idx])
-#             results_vector_human.extend(list(human_dist))
-#             results_vector_model.extend(list(model_dist))
             comparison_metric = compare_human_model_data(human_dist, model_dist, **kwargs_compare)
             if len(np.array(comparison_metric).reshape([-1])) > 1:
                 comparison_metric = comparison_metric[0]
-            comparison_metrics.append(comparison_metric)
-#             distance_metrics.append(-np.log(np.sum(np.sqrt(human_dist * model_dist)))) # Bhattacharyya distance
-#             distance_metrics.append(np.sum(np.sqrt(human_dist * model_dist))) # Bhattacharyya coefficient
+            list_histogram_comparison_metric.append(comparison_metric)
     
-#     results_vector_human = np.array(results_vector_human)
-#     results_vector_model = np.array(results_vector_model)
-#     distance_metrics = np.sum(np.array(distance_metrics))
-#     return distance_metrics, None
-    return np.mean(comparison_metrics)
-#     return compare_human_model_data(results_vector_human, results_vector_model,
-#                                     **kwargs_compare)
+    return np.mean(list_histogram_comparison_metric)
