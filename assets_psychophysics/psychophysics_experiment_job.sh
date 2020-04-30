@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=6
 #SBATCH --mem=36000
 #SBATCH --time=0-6:00:00
-#SBATCH --array=0-79
+#SBATCH --array=0-19
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --exclude=node[001-030]
@@ -18,7 +18,7 @@ echo $(hostname)
 
 # OUTDIR_REGEX='/om2/user/msaddler/pitchnet/saved_models/models_sr20000/arch_0302/*'
 OUTDIR_REGEX='/om/scratch/*/msaddler/pitchnet/saved_models/arch_search_v01_spont*/arch*'
-EFN_PREFIX='EVAL_SOFTMAX_'
+EFN_PREFIX='EVAL_SOFTMAX_TEST_*_ANMODEL_'
 PRIOR_RANGE='0.5'
 
 
