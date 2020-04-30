@@ -10,17 +10,17 @@
 #SBATCH --time=0-24:00:00
 ##SBATCH --exclude=node063
 ##SBATCH --partition=mcdermott
-#SBATCH --array=87,97,208,245,270,285,287,302,325,373
+#SBATCH --array=0-2#87,97,208,245,270,285,287,302,325,373
 
-ZERO_PADDED_JOBID=$(printf "%04d" $SLURM_ARRAY_TASK_ID)
-OUTDIR='/saved_models/arch_search_v01_spont070_BW10eN1_IHC9000Hz_IHC7order/arch_'$ZERO_PADDED_JOBID
-SAVED_MODELS_PATH="$SCRATCH_PATH/pitchnet/saved_models"
+# ZERO_PADDED_JOBID=$(printf "%04d" $SLURM_ARRAY_TASK_ID)
+# OUTDIR='/saved_models/arch_search_v01_spont070_BW10eN1_IHC9000Hz_IHC7order/arch_'$ZERO_PADDED_JOBID
+# SAVED_MODELS_PATH="$SCRATCH_PATH/pitchnet/saved_models"
 
-# OUTDIR='/saved_models/models_sr20000/arch_0302/PND_v08_TLAS_snr_neg10pos10_AN_BW10eN1_IHC3000Hz_classification'$SLURM_ARRAY_TASK_ID
-# SAVED_MODELS_PATH="/om2/user/msaddler/pitchnet/saved_models"
+OUTDIR='/saved_models/models_sr20000/arch_0302/PND_v08_TLAS_snr_neg10pos10_AN_BW10eN1_IHC3000Hz_classification'$SLURM_ARRAY_TASK_ID
+SAVED_MODELS_PATH="/om2/user/msaddler/pitchnet/saved_models"
 
-TFRECORDS_REGEX='sr20000_cf100_species002_spont070_BW10eN1_IHC9000Hz_IHC7order/*.tfrecords'
-EFN_PREFIX='EVAL_SOFTMAX_'
+TFRECORDS_REGEX='sr20000_cf100_species002_spont070_BW20eN1_IHC3000Hz_IHC7order/*.tfrecords'
+EFN_PREFIX='EVAL_SOFTMAX_TEST_BW20eN1_IHC3000Hz_ANMODEL_'
 WRITE_PROBS_OUT=1
 
 echo "evaluating model in output directory: $OUTDIR"
