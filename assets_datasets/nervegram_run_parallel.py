@@ -94,7 +94,7 @@ if __name__ == "__main__":
             'buffer_end_dur': 0.010
         },
         'ANmodel_params': {
-            'num_cfs': 100,
+            'num_cfs': 1000,
             'min_cf':125,
             'max_cf':14e3,
             'bandwidth_scale_factor':args.bandwidth_scale_factor,
