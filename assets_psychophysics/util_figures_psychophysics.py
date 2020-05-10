@@ -1234,8 +1234,8 @@ def make_f0dl_threshold_plot(ax, results_dict_input,
                              kwargs_legend={},
                              kwargs_bootstrap={}):
     '''
-    Function for plotting Bernstein & Oxenham (2005) experiment results:
-    F0 discrimination thresholds as a function of lowest harmonic number.
+    Function for plotting generic F0 discrimination experiment results:
+    F0 discrimination thresholds as a function of value specified by `key_xval`.
     '''
     if isinstance(results_dict_input, dict):
         results_dict = copy.deepcopy(results_dict_input)
