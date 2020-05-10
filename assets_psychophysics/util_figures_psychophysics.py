@@ -1213,3 +1213,126 @@ def make_altphase_histogram_plot(ax, results_dict_input,
         for legobj in leg.legendHandles:
             legobj.set_linewidth(8.0)
     return hist_results_dict_list
+
+
+def make_f0dl_threshold_plot(ax, results_dict_input,
+                             key_xval=None,
+                             str_title=None,
+                             str_xlabel=None,
+                             legend_on=True,
+                             include_yerr=True,
+                             plot_kwargs_update={},
+                             threshold_cap=100.0,
+                             fontsize_title=12,
+                             fontsize_labels=12,
+                             fontsize_legend=12,
+                             fontsize_ticks=12,
+                             xlimits=None,
+                             ylimits=[1e-1, 1e2],
+                             xticks=None,
+                             xticks_minor=None,
+                             kwargs_legend={},
+                             kwargs_bootstrap={}):
+    '''
+    Function for plotting Bernstein & Oxenham (2005) experiment results:
+    F0 discrimination thresholds as a function of lowest harmonic number.
+    '''
+    if isinstance(results_dict_input, dict):
+        results_dict = copy.deepcopy(results_dict_input)
+        f0dls = np.array(results_dict['f0dl'])
+        if threshold_cap is not None:
+            f0dls[f0dls > threshold_cap] = threshold_cap
+        results_dict['f0dl'] = f0dls
+        if 'f0dl_err' not in results_dict.keys():
+            results_dict['f0dl_err'] = [0] * len(results_dict['f0dl'])
+    elif isinstance(results_dict_input, list):
+        f0dls = np.array([rd['f0dl'] for rd in results_dict_input])
+        if threshold_cap is not None:
+            f0dls[f0dls > threshold_cap] = threshold_cap
+        yval, yerr = combine_subjects(f0dls, kwargs_bootstrap=kwargs_bootstrap)
+        results_dict = {
+            key_xval: results_dict_input[0][key_xval],
+            'f0dl': yval,
+            'f0dl_err': yerr,
+        }
+    else:
+        raise ValueError("INVALID results_dict_input")
+    
+    xval = np.array(results_dict[key_xval])
+    yval = np.array(results_dict['f0dl'])
+    yerr = np.array(results_dict['f0dl_err'])
+    
+    if xlimits is not None:
+        IDX = np.logical_and(xval >= xlimits[0], xval <= xlimits[1])
+        xval = xval[IDX]
+        yval = yval[IDX]
+        yerr = yerr[IDX]
+    
+    plot_kwargs = {
+        'color': 'k',
+        'ls': '-',
+        'lw': 2,
+        'marker': '',
+    }
+    plot_kwargs.update(plot_kwargs_update)
+    if not legend_on:
+        plot_kwargs['label'] = None
+    if include_yerr:
+        errorbar_kwargs = {
+            'yerr': [yval - yval / (1+yerr/yval), yval * (1+yerr/yval) - yval],
+            'fmt': 'none',
+            'ecolor': plot_kwargs.get('color', 'k'),
+            'elinewidth': plot_kwargs.get('lw', 2),
+            'capsize': 1.5*plot_kwargs.get('lw', 2),
+        }
+        ax.errorbar(xval, yval, **errorbar_kwargs)
+        
+        yerr_min = yval / (1+yerr/yval)
+        yerr_max = yval * (1+yerr/yval)
+        ax.fill_between(xval,
+                        yerr_min,
+                        yerr_max,
+                        alpha=0.15,
+                        facecolor=plot_kwargs.get('color', 'k'))
+    ax.plot(xval, yval, **plot_kwargs)
+    
+    ax = util_figures.format_axes(ax,
+                                  str_xlabel=str_xlabel,
+                                  str_ylabel='F0 discrimination\nthreshold (%F0)',
+                                  fontsize_labels=fontsize_labels,
+                                  fontsize_ticks=fontsize_ticks,
+                                  fontweight_labels=None,
+                                  xscale='linear',
+                                  yscale='log',
+                                  xlimits=xlimits,
+                                  ylimits=ylimits,
+                                  xticks=None,
+                                  yticks=None,
+                                  xticks_minor=None,
+                                  yticks_minor=None,
+                                  xticklabels=None,
+                                  yticklabels=None,
+                                  spines_to_hide=[],
+                                  major_tick_params_kwargs_update={},
+                                  minor_tick_params_kwargs_update={})
+    if isinstance(xticks, (int, float)):
+        ax.xaxis.set_major_locator(matplotlib.ticker.MultipleLocator(xticks))
+    if isinstance(xticks_minor, (int, float)):
+        ax.xaxis.set_minor_locator(matplotlib.ticker.MultipleLocator(xticks_minor))
+    
+    if str_title is not None:
+        ax.set_title(str_title, fontsize=fontsize_title)
+    if legend_on:
+        legend_plot_kwargs = {
+            'loc': 'lower right',
+            'borderpad': 0.4,
+            'borderaxespad': 0.5,
+            'handletextpad': 0.8,
+            'frameon': False,
+            'handlelength': 1.5,
+            'markerscale': 0.0,
+            'fontsize': fontsize_legend,
+        }
+        legend_plot_kwargs.update(kwargs_legend)
+        ax.legend(**legend_plot_kwargs)
+    return results_dict
