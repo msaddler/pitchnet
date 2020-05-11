@@ -8,7 +8,7 @@
 #SBATCH --time=2-24:00:00
 ##SBATCH --time-min=0-24:00:00
 #SBATCH --exclude=node[001-030,080]
-#SBATCH --array=0-29
+#SBATCH --array=0-19
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --requeue
@@ -32,9 +32,13 @@
 # dest_filename='/om/user/msaddler/data_pitchnet/mcpherson2020/testSPL_v01_f0min080_f0max320_dBSPLmin000_dBSPLmax120/sr2000_cf1000_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates.hdf5'
 # jobs_per_source_file=60
 
-source_regex='/om/user/msaddler/data_pitchnet/shackcarl1994/AltPhase_v01_f0min080_f0max320/*.hdf5'
-dest_filename='/om/user/msaddler/data_pitchnet/shackcarl1994/AltPhase_v01_f0min080_f0max320/sr2000_cf1000_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates.hdf5'
-jobs_per_source_file=30
+# source_regex='/om/user/msaddler/data_pitchnet/shackcarl1994/AltPhase_v01_f0min080_f0max320/*.hdf5'
+# dest_filename='/om/user/msaddler/data_pitchnet/shackcarl1994/AltPhase_v01_f0min080_f0max320/sr2000_cf1000_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates.hdf5'
+# jobs_per_source_file=30
+
+source_regex='/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to320Hz/*.hdf5'
+dest_filename='/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to320Hz/sr2000_cf1000_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates.hdf5'
+jobs_per_source_file=20
 
 # source_regex='/om/user/msaddler/data_pitchnet/bernox2006/nharm10_f0min100_f0max300_TENlevel10dB_harmlevel20dBSPL/*.hdf5'
 # dest_filename='/om/user/msaddler/data_pitchnet/bernox2006/nharm10_f0min100_f0max300_TENlevel10dB_harmlevel20dBSPL/sr20000_cf100_species002_spont070_BW20eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
@@ -60,6 +64,19 @@ echo $(hostname)
 # -mrsr '2000.0' \
 # -spont 'H'
 
+# python -u nervegram_run_parallel.py \
+# -s "${source_regex}" \
+# -d "${dest_filename}" \
+# -j ${job_idx} \
+# -jps ${jobs_per_source_file} \
+# -bwsf '1.0' \
+# -lpf '50.0' \
+# -lpfo '7' \
+# -sks 'tone_in_noise' \
+# -sksr 'config_tone/fs' \
+# -mrsr '2000.0' \
+# -spont 'H'
+
 python -u nervegram_run_parallel.py \
 -s "${source_regex}" \
 -d "${dest_filename}" \
@@ -68,20 +85,7 @@ python -u nervegram_run_parallel.py \
 -bwsf '1.0' \
 -lpf '50.0' \
 -lpfo '7' \
--sks 'tone_in_noise' \
+-sks 'stimuli/signal' \
 -sksr 'config_tone/fs' \
 -mrsr '2000.0' \
 -spont 'H'
-
-# python -u nervegram_run_parallel.py \
-# -s "${source_regex}" \
-# -d "${dest_filename}" \
-# -j ${job_idx} \
-# -jps ${jobs_per_source_file} \
-# -bwsf '1.0' \
-# -lpf '3000.0' \
-# -lpfo '7' \
-# -sks 'stimuli/signal' \
-# -sksr 'config_tone/fs' \
-# -mrsr '20000.0' \
-# -spont 'H'
