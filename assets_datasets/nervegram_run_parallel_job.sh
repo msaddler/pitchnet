@@ -36,8 +36,8 @@
 # dest_filename='/om/user/msaddler/data_pitchnet/shackcarl1994/AltPhase_v01_f0min080_f0max320/sr2000_cf1000_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates.hdf5'
 # jobs_per_source_file=30
 
-source_regex='/om/user/msaddler/data_pitchnet/mooremoore2003/MooreMoore2003_frequencyShiftedComplexes_f0_080to480Hz/*.hdf5'
-dest_filename='/om/user/msaddler/data_pitchnet/mooremoore2003/MooreMoore2003_frequencyShiftedComplexes_f0_080to480Hz/sr2000_cf1000_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates.hdf5'
+source_regex='/om/user/msaddler/data_pitchnet/moore1985/Moore1985_MistunedHarmonics_v01/*.hdf5'
+dest_filename='/om/user/msaddler/data_pitchnet/moore1985/Moore1985_MistunedHarmonics_v01/sr2000_cf1000_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates.hdf5'
 jobs_per_source_file=60
 
 # source_regex='/om/user/msaddler/data_pitchnet/bernox2006/nharm10_f0min100_f0max300_TENlevel10dB_harmlevel20dBSPL/*.hdf5'
