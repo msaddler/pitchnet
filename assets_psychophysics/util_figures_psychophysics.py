@@ -852,6 +852,7 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
         [xb, yb, dxb, dyb] = ax.dataLim.bounds
         ylimits = [-0.1, yb + dyb * (1 + buffer_ylim)]
         if ylimits[1] < 0.4: ylimits[1] = 0.4
+        if ylimits[1] > 4.0: ylimits[1] = 4.0
     yticks = np.arange(0, 10, 0.3)
     yticks = yticks[np.logical_and(yticks>=ylimits[0], yticks<=ylimits[1])]
     yticks_minor = np.arange(-0.1, 10, 0.1)
