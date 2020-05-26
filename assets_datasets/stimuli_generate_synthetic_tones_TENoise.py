@@ -128,15 +128,15 @@ if __name__ == "__main__":
     assert len(sys.argv) == 2, "scipt usage: python <script_name> <hdf5_filename>"
     hdf5_filename = str(sys.argv[1])
     main(hdf5_filename,
-         fs=32e3,
+         fs=48e3,
          dur=0.150,
          phase_modes=['sine'],
          low_harm_min=1,
-         low_harm_max=1,
+         low_harm_max=24,
          num_harm=1,
          f0_min=80.0,
-         f0_max=10240.0,
-         f0_step_in_octaves=1/384,
+         f0_max=640.0,
+         f0_step_in_octaves=1/768,
          TENoise_dBSPL_per_ERB=10.0,
          component_dBSPL=45.0,
          disp_step=100)
