@@ -20,9 +20,9 @@ def compute_1d_tuning(output_dict,
     ----
     output_dict (dict): dictionary of network activations and stimulus metadata
     key_act (str): output_dict key for activations of interest (specifies layer)
-    key_dim0 (str): output_dict key for stimulus metadata dimension of interest
+    key_dim0 (str): output_dict key for stimulus dimension of interest
     normalize_unit_activity (bool): if true, re-scale activations to fall between
-        0 and 1 across all stimuli (each unit is scaled separately)
+        0 and 1 across all stimulus bins (each unit is scaled separately)
     tuning_dict (dict): dictionary that tuning results will be added to
     
     Returns
@@ -43,16 +43,72 @@ def compute_1d_tuning(output_dict,
         dim0_tuning_std[dim0_index, :] = np.std(bin_activations, axis=0)
         dim0_tuning_n[dim0_index, :] = bin_activations.shape[0]
     if normalize_unit_activity:
-        dim0_tuning_mean -= np.min(dim0_tuning_mean, axis=0, keepdims=True)
-        dim0_tuning_mean_max = np.max(dim0_tuning_mean, axis=0, keepdims=True)
+        dim0_tuning_mean -= np.amin(dim0_tuning_mean, axis=0, keepdims=True)
+        dim0_tuning_mean_max = np.amax(dim0_tuning_mean, axis=0, keepdims=True)
         dead_unit_indexes = dim0_tuning_mean_max == 0
         dim0_tuning_mean_max[dead_unit_indexes] = 1
         dim0_tuning_mean /= dim0_tuning_mean_max
         dim0_tuning_std /= dim0_tuning_mean_max
-    tuning_dict[key_dim0 + '_bins'] = dim0_bins
-    tuning_dict[key_dim0 + '_tuning_mean'] = dim0_tuning_mean
-    tuning_dict[key_dim0 + '_tuning_std'] = dim0_tuning_std
-    tuning_dict[key_dim0 + '_tuning_n'] = dim0_tuning_n
+    tuning_dict['{}_bins'.format(key_dim0)] = dim0_bins
+    tuning_dict['{}_tuning_mean'.format(key_dim0)] = dim0_tuning_mean
+    tuning_dict['{}_tuning_std'.format(key_dim0)] = dim0_tuning_std
+    tuning_dict['{}_tuning_n'.format(key_dim0)] = dim0_tuning_n
+    return tuning_dict
+
+
+def compute_2d_tuning(output_dict,
+                      key_act='relu_0',
+                      key_dim0='low_harm',
+                      key_dim1='f0_label',
+                      normalize_unit_activity=True,
+                      tuning_dict={}):
+    '''
+    Network neurophysiology function for computing tuning of individual units
+    along two simulus dimensions as specified by key_dim0 and key_dim1.
+    
+    Args
+    ----
+    output_dict (dict): dictionary of network activations and stimulus metadata
+    key_act (str): output_dict key for activations of interest (specifies layer)
+    key_dim0 (str): output_dict key for first stimulus dimension of interest
+    key_dim0 (str): output_dict key for second stimulus dimension of interest
+    normalize_unit_activity (bool): if true, re-scale activations to fall between
+        0 and 1 across all stimulus bins (each unit is scaled separately)
+    tuning_dict (dict): dictionary that tuning results will be added to
+    
+    Returns
+    -------
+    tuning_dict (dict): dictionary of tuning results (contains stimulus dimension
+        bins and mean / standard deviation / sample size of activations)
+    '''
+    dim0_values = output_dict[key_dim0]
+    dim0_bins = np.unique(dim0_values)
+    dim1_values = output_dict[key_dim1]
+    dim1_bins = np.unique(dim1_values)
+    activations = output_dict[key_act]
+    dim01_tuning_mean = np.zeros([dim0_bins.shape[0], dim1_bins.shape[0], activations.shape[1]])
+    dim01_tuning_std = np.zeros([dim0_bins.shape[0], dim1_bins.shape[0], activations.shape[1]])
+    dim01_tuning_n = np.zeros([dim0_bins.shape[0], dim1_bins.shape[0], activations.shape[1]])
+    for dim0_index, dim0_bin_value in enumerate(dim0_bins):
+        for dim1_index, dim1_bin_value in enumerate(dim1_bins):
+            bin_indexes = np.logical_and(dim0_values == dim0_bin_value,
+                                         dim1_values == dim1_bin_value)
+            bin_activations = activations[bin_indexes]
+            dim01_tuning_mean[dim0_index, dim1_index, :] = np.mean(bin_activations, axis=0)
+            dim01_tuning_std[dim0_index, dim1_index, :] = np.std(bin_activations, axis=0)
+            dim01_tuning_n[dim0_index, dim1_index, :] = bin_activations.shape[0]
+    if normalize_unit_activity:
+        dim01_tuning_mean -= np.amin(dim01_tuning_mean, axis=(0,1), keepdims=True)
+        dim01_tuning_mean_max = np.amax(dim01_tuning_mean, axis=(0,1), keepdims=True)
+        dead_unit_indexes = dim01_tuning_mean_max == 0
+        dim01_tuning_mean_max[dead_unit_indexes] = 1
+        dim01_tuning_mean /= dim01_tuning_mean_max
+        dim01_tuning_std /= dim01_tuning_mean_max
+    tuning_dict['{}_bins'.format(key_dim0)] = dim0_bins
+    tuning_dict['{}_bins'.format(key_dim1)] = dim1_bins
+    tuning_dict['{}_{}_tuning_mean'.format(key_dim0, key_dim1)] = dim01_tuning_mean
+    tuning_dict['{}_{}_tuning_std'.format(key_dim0, key_dim1)] = dim01_tuning_std
+    tuning_dict['{}_{}_tuning_n'.format(key_dim0, key_dim1)] = dim01_tuning_n
     return tuning_dict
 
 
@@ -76,7 +132,7 @@ def compute_f0_tuning_re_best(output_dict,
     key_f0_label (str): output_dict key to store binned f0 values
     kwargs_f0_bins (dict): keyword arguments for binning f0 values
     normalize_unit_activity (bool): if true, re-scale activations to fall between
-        0 and 1 across all stimuli (each unit is scaled separately)
+        0 and 1 across all stimulus bins (each unit is scaled separately)
     tuning_dict (dict): dictionary that tuning results will be added to
     
     Returns
