@@ -3,8 +3,124 @@ import sys
 import json
 import copy
 import numpy as np
+import tensorflow as tf
+
+import pitchnet_evaluate_best
+
 sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
 import dataset_util
+
+sys.path.append('ibmHearingAid/multi_gpu')
+import functions_graph_assembly as fga
+
+
+def get_network_activations(output_directory,
+                            tfrecords_regex,
+                            fn_config='config.json',
+                            fn_valid_metrics='validation_metrics.json',
+                            metadata_keys=['f0', 'low_harm', 'phase_mode', 'snr'],
+                            maindata_keyparts=['relu'],
+                            batch_size=128,
+                            display_step=50):
+    '''
+    Evaluate network and return dictionary of activations and stimulus metadata.
+    '''
+    tf.reset_default_graph()
+    
+    if fn_config == os.path.basename(fn_config):
+        fn_config = os.path.join(output_directory, fn_config)
+    if fn_valid_metrics == os.path.basename(fn_valid_metrics):
+        fn_valid_metrics = os.path.join(output_directory, fn_valid_metrics)    
+    with open(fn_config) as f:
+        CONFIG = json.load(f)
+    
+    # Build input data pipeline
+    ITERATOR_PARAMS = CONFIG['ITERATOR_PARAMS']
+    bytesList_decoding_dict = {"meanrates": {"dtype": "tf.float32", "shape": [100, 1000]}}
+    feature_parsing_dict = pitchnet_evaluate_best.get_feature_parsing_dict_from_tfrecords(
+        tfrecords_regex,
+        bytesList_decoding_dict)
+    ITERATOR_PARAMS['feature_parsing_dict'] = feature_parsing_dict
+    iterator, dataset, _ = fga.build_tfrecords_iterator(tfrecords_regex,
+                                                        num_epochs=1,
+                                                        shuffle_flag=False,
+                                                        batch_size=batch_size,
+                                                        iterator_type='one-shot',
+                                                        **ITERATOR_PARAMS)
+    input_tensor_dict = iterator.get_next()
+    
+    # Build network graph
+    BRAIN_PARAMS = CONFIG['BRAIN_PARAMS']
+    for key in sorted(BRAIN_PARAMS.keys()):
+        if ('path' in key) or ('config' in key):
+            dirname = os.path.dirname(BRAIN_PARAMS[key])
+            if not dirname == output_directory:
+                BRAIN_PARAMS[key] = BRAIN_PARAMS[key].replace(dirname, output_directory)
+    N_CLASSES_DICT = CONFIG['N_CLASSES_DICT']
+    batch_subbands = input_tensor_dict[ITERATOR_PARAMS['feature_signal_path']]
+    while len(batch_subbands.shape) < 4:
+        batch_subbands = tf.expand_dims(batch_subbands, axis=-1)
+    batch_out_dict, brain_container = fga.build_brain_graph(batch_subbands,
+                                                            N_CLASSES_DICT,
+                                                            **BRAIN_PARAMS)
+    
+    # Start session and initialize variable
+    init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
+    sess = tf.Session()
+    sess.run(init_op)
+    
+    # Build saver graph and load network checkpoint
+    ckpt_num = pitchnet_evaluate_best.get_best_checkpoint_number(fn_valid_metrics,
+                                                                 metric_key='f0_label:accuracy',
+                                                                 maximize=True,
+                                                                 checkpoint_number_key='step')
+    brain_var_scope = 'brain_network'
+    brain_ckpt_prefix_name = BRAIN_PARAMS.get('save_ckpt_path', 'brain_model.ckpt')
+    restore_model_path = os.path.join(output_directory, brain_ckpt_prefix_name + '-{}'.format(ckpt_num))
+    brain_globals = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=brain_var_scope)
+    brain_locals = tf.get_collection(tf.GraphKeys.LOCAL_VARIABLES, scope=brain_var_scope)
+    brain_variables =  brain_globals + brain_locals
+    saver_brain_net, out_ckpt_loc_brain_net, brain_net_ckpt = fga.build_saver(
+        sess, brain_variables, output_directory,
+        restore_model_path=restore_model_path,
+        ckpt_prefix_name=brain_ckpt_prefix_name)
+    
+    # Set up dictionary of tensors to evaluate
+    tensors_to_evaluate = {}
+    for key in sorted(set(input_tensor_dict.keys()).intersection(metadata_keys)):
+        tensors_to_evaluate[key] = input_tensor_dict[key]
+    for key in sorted(brain_container.keys()):
+        for keypart in maindata_keyparts:
+            if keypart in key:
+                if len(brain_container[key].shape) == 4:
+                    tensors_to_evaluate[key] = tf.reduce_mean(brain_container[key], axis=(1,2))
+                else:
+                    tensors_to_evaluate[key] = brain_container[key]
+                break
+    output_dict = {}
+    for key in sorted(tensors_to_evaluate.keys()):
+        print('[START] output_dict[`{}`]'.format(key))
+        output_dict[key] = []
+    
+    # Main evaluation routine
+    batch_count = 0
+    try:
+        while True:
+            evaluated_batch = sess.run(tensors_to_evaluate)
+            for key in set(output_dict.keys()).intersection(evaluated_batch.keys()):
+                key_val = np.array(evaluated_batch[key]).tolist()
+                if not isinstance(key_val, list): key_val = [key_val]
+                output_dict[key].extend(key_val)
+            batch_count += 1
+            if batch_count % display_step == 0:
+                print('Evaluation step: {}'.format(batch_count))
+    except tf.errors.OutOfRangeError:
+        print('End of evaluation dataset reached')
+    
+    for key in sorted(output_dict.keys()):
+        output_dict[key] = np.array(output_dict[key])
+        print('[END] output_dict[`{}`]'.format(key), output_dict[key].shape)
+    return output_dict
 
 
 def compute_1d_tuning(output_dict,
