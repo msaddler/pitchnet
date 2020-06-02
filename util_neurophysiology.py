@@ -7,6 +7,9 @@ import tensorflow as tf
 
 import pitchnet_evaluate_best
 
+sys.path.append('/om2/user/msaddler/python-packages/msutil')
+import util_figures
+
 sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
 import dataset_util
 
@@ -288,3 +291,237 @@ def compute_f0_tuning_re_best(output_dict,
     tuning_dict['octave_tuning_std'] = octave_tuning_std
     tuning_dict['octave_tuning_n'] = octave_tuning_n
     return tuning_dict
+
+
+def make_low_harm_tuning_plot(ax,
+                              results_dict_input,
+                              restrict_conditions=None,
+                              include_yerr=True,
+                              kwargs_plot_update={},
+                              kwargs_legend_update={}):
+    '''
+    '''
+    if not isinstance(results_dict_input, list):
+        results_dict_input = [results_dict_input]
+    
+    if restrict_conditions is None:
+        restrict_conditions = sorted(results_dict_input[0].keys())
+    
+    for key_condition in restrict_conditions:
+        yval_list = []
+        for results_dict in results_dict_input:
+            tuning_dict = results_dict[key_condition]
+            xval = tuning_dict['low_harm_bins']
+            yval_list.append(np.mean(tuning_dict['low_harm_tuning_mean'], axis=1))
+        yval_list = np.stack(yval_list, axis=0)
+        yval = np.mean(yval_list, axis=0)
+        yerr = np.std(yval_list, axis=0) / np.sqrt(yval_list.shape[0])
+        kwargs_plot = {
+            'label': key_condition,
+            'color': 'k',
+            'ls': '-',
+            'lw': 2,
+            'marker': '.',
+        }
+        kwargs_plot.update(kwargs_plot_update)
+        if include_yerr:
+            yerr_min = yval - yerr
+            yerr_max = yval + yerr
+            ax.fill_between(xval, yerr_min, yerr_max, alpha=0.15,
+                            facecolor=kwargs_plot.get('color', 'k'))
+        ax.plot(xval, yval, **kwargs_plot)
+    
+    kwargs_legend = {
+        'loc': 'upper right',
+        'ncol': 1,
+        'frameon': False,
+        'fontsize': 12,
+        'handlelength': 0.5,
+        'borderpad': 0.5,
+        'borderaxespad': 0.1,
+    }
+    kwargs_legend.update(kwargs_legend_update)
+    leg = ax.legend(**kwargs_legend)
+    for legobj in leg.legendHandles:
+        legobj.set_linewidth(4.0)
+    
+    ax = util_figures.format_axes(ax,
+                                  str_xlabel='Lowest harmonic nuumber',
+                                  str_ylabel='Activation (normalized)',
+                                  fontsize_labels=12,
+                                  fontsize_ticks=12,
+                                  fontweight_labels=None,
+                                  xscale='linear',
+                                  yscale='linear',
+                                  xlimits=[0, 31],
+                                  ylimits=[0, 1],
+                                  xticks=None,
+                                  yticks=None,
+                                  xticks_minor=None,
+                                  yticks_minor=None,
+                                  xticklabels=None,
+                                  yticklabels=None,
+                                  spines_to_hide=[],
+                                  major_tick_params_kwargs_update={},
+                                  minor_tick_params_kwargs_update={})
+    return ax
+
+
+
+def make_f0_tuning_plot(ax,
+                        results_dict_input,
+                        restrict_conditions=None,
+                        include_yerr=True,
+                        kwargs_plot_update={},
+                        kwargs_legend_update={}):
+    '''
+    '''
+    if not isinstance(results_dict_input, list):
+        results_dict_input = [results_dict_input]
+    
+    if restrict_conditions is None:
+        restrict_conditions = sorted(results_dict_input[0].keys())
+    
+    for key_condition in restrict_conditions:
+        yval_list = []
+        for results_dict in results_dict_input:
+            tuning_dict = results_dict[key_condition]
+            xval = tuning_dict['f0_label_bins']
+            yval_list.append(np.mean(tuning_dict['f0_label_tuning_mean'], axis=1))
+        yval_list = np.stack(yval_list, axis=0)
+        yval = np.mean(yval_list, axis=0)
+        yerr = np.std(yval_list, axis=0) / np.sqrt(yval_list.shape[0])
+        kwargs_plot = {
+            'label': key_condition,
+            'color': 'k',
+            'ls': '-',
+            'lw': 2,
+            'marker': '',
+        }
+        kwargs_plot.update(kwargs_plot_update)
+        if include_yerr:
+            yerr_min = yval - yerr
+            yerr_max = yval + yerr
+            ax.fill_between(xval, yerr_min, yerr_max, alpha=0.15,
+                            facecolor=kwargs_plot.get('color', 'k'))
+        ax.plot(xval, yval, **kwargs_plot)
+    
+    kwargs_legend = {
+        'loc': 'upper right',
+        'ncol': 1,
+        'frameon': False,
+        'fontsize': 12,
+        'handlelength': 0.5,
+        'borderpad': 0.5,
+        'borderaxespad': 0.1,
+    }
+    kwargs_legend.update(kwargs_legend_update)
+    leg = ax.legend(**kwargs_legend)
+    for legobj in leg.legendHandles:
+        legobj.set_linewidth(4.0)
+    
+    xval_labels = tuning_dict['f0_bins']
+    x_indexes = np.linspace(xval[0], xval[-1], 7, dtype=int)
+    xticks = [xval[xi] for xi in x_indexes]
+    xticklabels = ['{:.0f}'.format(xval_labels[xi]) for xi in x_indexes]
+    ax = util_figures.format_axes(ax,
+                                  str_xlabel='F0 (Hz)',
+                                  str_ylabel='Activation (normalized)',
+                                  fontsize_labels=12,
+                                  fontsize_ticks=12,
+                                  fontweight_labels=None,
+                                  xscale='linear',
+                                  yscale='linear',
+                                  xlimits=[xval[0], xval[-1]],
+                                  ylimits=[0, 1],
+                                  xticks=xticks,
+                                  yticks=None,
+                                  xticks_minor=None,
+                                  yticks_minor=None,
+                                  xticklabels=xticklabels,
+                                  yticklabels=None,
+                                  spines_to_hide=[],
+                                  major_tick_params_kwargs_update={},
+                                  minor_tick_params_kwargs_update={})
+    return ax
+
+
+def make_octave_tuning_plot(ax,
+                            results_dict_input,
+                            restrict_conditions=None,
+                            n_subsample=None,
+                            include_yerr=True,
+                            kwargs_plot_update={},
+                            kwargs_legend_update={}):
+    '''
+    '''
+    if not isinstance(results_dict_input, list):
+        results_dict_input = [results_dict_input]
+    
+    if restrict_conditions is None:
+        restrict_conditions = sorted(results_dict_input[0].keys())
+    
+    for key_condition in restrict_conditions:
+        yval_list = []
+        for results_dict in results_dict_input:
+            tuning_dict = results_dict[key_condition]
+            xval = tuning_dict['octave_bins']
+            octave_tuning_mean = np.array(tuning_dict['octave_tuning_mean'])
+            if n_subsample is not None:
+                assert n_subsample <= octave_tuning_mean.shape[1]
+                IDX = np.arange(0, octave_tuning_mean.shape[1], 1, dtype=int)
+                np.random.shuffle(IDX)
+                octave_tuning_mean = octave_tuning_mean[:, IDX[:n_subsample]]
+            yval_list.append(np.mean(octave_tuning_mean, axis=1))
+        yval_list = np.stack(yval_list, axis=0)
+        yval = np.mean(yval_list, axis=0)
+        yerr = np.std(yval_list, axis=0) / np.sqrt(yval_list.shape[0])
+        kwargs_plot = {
+            'label': key_condition,
+            'color': 'k',
+            'ls': '-',
+            'lw': 2,
+            'marker': '',
+        }
+        kwargs_plot.update(kwargs_plot_update)
+        if include_yerr:
+            yerr_min = yval - yerr
+            yerr_max = yval + yerr
+            ax.fill_between(xval, yerr_min, yerr_max, alpha=0.15,
+                            facecolor=kwargs_plot.get('color', 'k'))
+        ax.plot(xval, yval, **kwargs_plot)
+    
+    kwargs_legend = {
+        'loc': 'upper right',
+        'ncol': 1,
+        'frameon': False,
+        'fontsize': 12,
+        'handlelength': 0.5,
+        'borderpad': 0.5,
+        'borderaxespad': 0.1,
+    }
+    kwargs_legend.update(kwargs_legend_update)
+    leg = ax.legend(**kwargs_legend)
+    for legobj in leg.legendHandles:
+        legobj.set_linewidth(4.0)
+    
+    ax = util_figures.format_axes(ax,
+                                  str_xlabel='Octaves above best F0',
+                                  str_ylabel='Activation (normalized)',
+                                  fontsize_labels=12,
+                                  fontsize_ticks=12,
+                                  fontweight_labels=None,
+                                  xscale='linear',
+                                  yscale='linear',
+                                  xlimits=None,
+                                  ylimits=[0, 1],
+                                  xticks=None,
+                                  yticks=None,
+                                  xticks_minor=None,
+                                  yticks_minor=None,
+                                  xticklabels=None,
+                                  yticklabels=None,
+                                  spines_to_hide=[],
+                                  major_tick_params_kwargs_update={},
+                                  minor_tick_params_kwargs_update={})
+    return ax
