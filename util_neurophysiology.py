@@ -355,7 +355,7 @@ def make_1d_tuning_plot(ax,
     kwargs_legend.update(kwargs_legend_update)
     leg = ax.legend(**kwargs_legend)
     for legobj in leg.legendHandles:
-        legobj.set_linewidth(4.0)
+        legobj.set_linewidth(8.0)
     
     ax = util_figures.format_axes(ax, **kwargs_format_axes)
     return ax
@@ -367,7 +367,7 @@ def make_low_harm_tuning_plot(ax, results_dict_input, **kwargs):
     kwargs_make_1d_tuning_plot = {
         'key_dim0': 'low_harm',
         'str_xlabel': 'Lowest harmonic nuumber',
-        'str_ylabel': 'Activation (normalized)',
+        'str_ylabel': 'Mean activation\n(normalized)',
         'xlimits': [0, 31],
         'ylimits': [0, 1],
         'xticks': np.arange(0, 31, 5),
@@ -394,7 +394,7 @@ def make_f0_tuning_plot(ax, results_dict_input, **kwargs):
     kwargs_make_1d_tuning_plot = {
         'key_dim0': 'f0_label',
         'str_xlabel': 'F0 (Hz)',
-        'str_ylabel': 'Activation (normalized)',
+        'str_ylabel': 'Mean activation\n(normalized)',
         'xlimits': [xval[0], xval[-1]],
         'ylimits': [0, 1],
         'xticks': xticks,
@@ -412,7 +412,7 @@ def make_octave_tuning_plot(ax, results_dict_input, **kwargs):
         'key_dim0': 'octave',
         'n_subsample': 32,
         'str_xlabel': 'Octaves above best F0',
-        'str_ylabel': 'Activation (normalized)',
+        'str_ylabel': 'Mean activation\n(normalized)',
         'xlimits': [-2, 2],
         'ylimits': [0, 1],
     }
