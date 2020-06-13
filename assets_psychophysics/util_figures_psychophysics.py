@@ -424,9 +424,9 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
     if not condition_plot_kwargs:
         color_list = util_figures.get_color_list(3, cmap_name='coolwarm')
         condition_plot_kwargs = {
-            '5': {'label': 'LOW', 'marker': '.', 'ms':12, 'ls':'-', 'lw': 2, 'color':color_list[0]},
-            '11': {'label': 'MID', 'marker': '.', 'ms':12, 'ls':'-', 'lw': 2, 'color':color_list[1]},
-            '16': {'label': 'HIGH', 'marker': '.', 'ms':12, 'ls':'-', 'lw': 2, 'color':color_list[2]},
+            '5': {'label': 'Low harmonics', 'marker': '.', 'ms':12, 'ls':'-', 'lw': 2, 'color':color_list[0]},
+            '11': {'label': 'Mid harmonics', 'marker': '.', 'ms':12, 'ls':'-', 'lw': 2, 'color':color_list[1]},
+            '16': {'label': 'High harmonics', 'marker': '.', 'ms':12, 'ls':'-', 'lw': 2, 'color':color_list[2]},
         }
     
     assert set(results_dict[expt_key].keys()) == set(condition_plot_kwargs.keys())
@@ -945,9 +945,9 @@ def make_altphase_line_plot(ax, results_dict_input,
     if not condition_plot_kwargs:
         color_list = util_figures.get_color_list(3, cmap_name='coolwarm')
         condition_plot_kwargs = {
-            '125.0': {'label': 'LOW', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2, 'color': color_list[0]},
-            '1375.0': {'label': 'MID', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2, 'color': color_list[1]},
-            '3900.0': {'label': 'HIGH', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2, 'color': color_list[2]},
+            '125.0': {'label': 'Low harmonics', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2, 'color': color_list[0]},
+            '1375.0': {'label': 'Mid harmonics', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2, 'color': color_list[1]},
+            '3900.0': {'label': 'High harmonics', 'marker': '.', 'ms':10, 'ls':'-', 'lw': 2, 'color': color_list[2]},
         }
     
     condition_list = sorted(results_dict[expt_key].keys())
@@ -1155,9 +1155,9 @@ def make_altphase_histogram_plot(ax, results_dict_input,
     if not condition_plot_kwargs_filter:
         color_list = util_figures.get_color_list(3, cmap_name='coolwarm')
         condition_plot_kwargs_filter = {
-            '125.0': {'label': 'LOW', 'color': color_list[0], 'alpha':0.3, 'lw':1.3},
-            '1375.0': {'label': 'MID', 'color': color_list[1], 'alpha':0.3, 'lw':1.3}, 
-            '3900.0': {'label': 'HIGH', 'color': color_list[2], 'alpha':0.3, 'lw':1.3},
+            '125.0': {'label': 'Low harmonics', 'color': color_list[0], 'alpha':0.3, 'lw':1.3},
+            '1375.0': {'label': 'Mid harmonics', 'color': color_list[1], 'alpha':0.3, 'lw':1.3}, 
+            '3900.0': {'label': 'High harmonics', 'color': color_list[2], 'alpha':0.3, 'lw':1.3},
         }
     
     for f0_val in restrict_conditions_f0:
@@ -1166,7 +1166,7 @@ def make_altphase_histogram_plot(ax, results_dict_input,
             assert np.sum(idx) == 1
             idx = list(idx).index(True)
             plot_kwargs = condition_plot_kwargs_filter[str(filter_val)]
-            label = '{} ({:.0f} Hz)'.format(plot_kwargs.pop('label'), f0_val)
+            label = plot_kwargs.pop('label')
             bin_yvals = np.ravel(np.column_stack((bin_heights_array[idx], bin_heights_array[idx])))
             ax.fill_between(bin_xvals, bin_yvals, **plot_kwargs)
             plot_kwargs.pop('alpha')
