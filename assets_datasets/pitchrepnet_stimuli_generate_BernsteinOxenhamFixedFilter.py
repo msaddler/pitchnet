@@ -155,8 +155,6 @@ def harmonic_or_inharmonic_complex_tone(f0,
         'jitter_pattern': component_freqs / harmonic_freqs,
         'component_freqs': component_freqs,
         'component_dBSPL': component_dBSPL,
-        'component_dBSL': component_dBSL,
-        'threshold_dBSPL': threshold_dBSPL,
     }
     signal_metadata.update(kwargs_complex_tone)
     return signal, signal_metadata
