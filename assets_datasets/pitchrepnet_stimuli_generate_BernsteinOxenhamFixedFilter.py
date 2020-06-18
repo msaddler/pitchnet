@@ -13,7 +13,7 @@ sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDat
 from dataset_util import initialize_hdf5_file, write_example_to_hdf5
 
 
-def get_bandpass_filter_frequency_response(fl, fh, fs=32e3, order=4):
+def get_bandpass_filter_frequency_response(fl, fh, fs=20e3, order=4):
     '''
     Returns a function that computes the frequency response in dB of a bandpass
     filter with cutoff frequencies [fl, fh]. This function is based on 
@@ -49,8 +49,10 @@ def get_bandpass_filter_frequency_response(fl, fh, fs=32e3, order=4):
     return frequency_response_in_dB
 
 
-def shift_bandpass_filter_frequency_response(desired_fl, desired_fl_gain_in_dB,
-                                             fs=32000, unshifted_passband=None,
+def shift_bandpass_filter_frequency_response(desired_fl,
+                                             desired_fl_gain_in_dB,
+                                             fs=20e3,
+                                             unshifted_passband=None,
                                              frequency_response_in_dB=None):
     '''
     Accepts a frequency response function and translates it along the frequency axis
@@ -86,18 +88,27 @@ def shift_bandpass_filter_frequency_response(desired_fl, desired_fl_gain_in_dB,
     return shifted_frequency_response_in_dB
 
 
-def bernox2005_bandpass_complex_tone(f0, fs, dur, frequency_response_in_dB=None,
-                                     threshold_dBSPL=33.3, component_dBSL=15.,
-                                     **kwargs_complex_tone):
+def harmonic_or_inharmonic_complex_tone(f0,
+                                        fs=20e3,
+                                        dur=2e0,
+                                        inharmonic_jitter_pattern=None,
+                                        frequency_response_in_dB=None,
+                                        threshold_dBSPL=33.3,
+                                        component_dBSL=15.0,
+                                        **kwargs_complex_tone):
     '''
-    Generates a bandpass filtered complex tone with component levels as determined by
-    Berntein and Oxenhamm (2005, JASA).
+    Generates a complex tone (either harmonic or inharmonic) with component
+    levels determined by frequency_response_in_dB, threshold_dBSPL, and
+    component_dBSL (adapted from function designed to generate bandpass-
+    filtered harmonic tones used by Bernstein and Oxenham, 2005 JASA).
     
     Args
     ----
     f0 (float): fundamental frequency (Hz)
     fs (int): sampling rate (Hz)
     dur (float): duration of tone (s)
+    inharmonic_jitter_pattern (np.ndarray): vector of jitter values to apply to 
+        harmonic frequencies to make an inharmonic tone (if None, tone is harmonic)
     frequency_response_in_dB (function): see `get_bandpass_filter_frequency_response()`
     threshold_dBSPL (float): audible threshold in units of dB re 20e-6 Pa
     component_dBSL (float): "sensation level" in units of dB above audible threshold
@@ -105,17 +116,50 @@ def bernox2005_bandpass_complex_tone(f0, fs, dur, frequency_response_in_dB=None,
     
     Returns
     -------
-    signal (np array): sound waveform (Pa)
-    audible_harmonic_numbers (np array): harmonic numbers presented above threshold_dBSPL
+    signal (np.ndarray): sound waveform (Pa)
+    signal_metadata (dict): signal generation parameters
     '''
+    # Define component frequencies
     harmonic_freqs = np.arange(f0, fs/2, f0)
-    harmonic_numbers = harmonic_freqs / f0
-    harmonic_dBSPL = threshold_dBSPL + component_dBSL + frequency_response_in_dB(harmonic_freqs)
-    amplitudes = 20e-6 * np.power(10, (harmonic_dBSPL/20))
-    signal = util_stimuli.complex_tone(f0, fs, dur, harmonic_numbers=harmonic_numbers,
-                                       amplitudes=amplitudes, **kwargs_complex_tone)
-    audible_harmonic_numbers = harmonic_numbers[harmonic_dBSPL >= threshold_dBSPL]
-    return signal, audible_harmonic_numbers
+    nominal_harmonic_numbers = harmonic_freqs / f0
+    if inharmonic_jitter_pattern is None:
+        # Component frequencies are harmonic frequencies
+        component_freqs = harmonic_freqs
+    else:
+        # Component frequencies are harmonic frequencies * inharmonic_jitter_pattern
+        N_component_freqs = nominal_harmonic_numbers.shape[0]
+        msg = "inharmonic_jitter_pattern must be at least as long as nominal_harmonic_numbers"
+        assert len(inharmonic_jitter_pattern.shape) == 1, msg
+        assert inharmonic_jitter_pattern.shape[0] >= N_component_freqs, msg
+        component_freqs = harmonic_freqs * inharmonic_jitter_pattern[:N_component_freqs]
+        component_freqs[component_freqs > fs/2] = fs/2
+    # Define component levels
+    if frequency_response_in_dB is None:
+        # Return equal-amplitude harmonics if frequency_response_in_dB is not specified
+        frequency_response_in_dB = lambda f: np.zeros_like(f)
+    component_dBSPL = threshold_dBSPL + component_dBSL + frequency_response_in_dB(component_freqs)
+    component_amplitudes = 20e-6 * np.power(10, (component_dBSPL/20))
+    # Return signal waveform and dictionary of metadata
+    signal = util_stimuli.complex_tone(f0,
+                                       fs,
+                                       dur,
+                                       harmonic_numbers=None,
+                                       frequencies=component_freqs,
+                                       amplitudes=component_amplitudes,
+                                       **kwargs_complex_tone)
+    signal_metadata = {
+        'f0': f0,
+        'fs': fs,
+        'dur': dur,
+        'nominal_harmonic_numbers': nominal_harmonic_numbers,
+        'jitter_pattern': component_freqs / harmonic_freqs,
+        'component_freqs': component_freqs,
+        'component_dBSPL': component_dBSPL,
+        'component_dBSL': component_dBSL,
+        'threshold_dBSPL': threshold_dBSPL,
+    }
+    signal_metadata.update(kwargs_complex_tone)
+    return signal, signal_metadata
 
 
 def generate_BernsteinOxenhamFixedFilter_dataset(hdf5_filename,
