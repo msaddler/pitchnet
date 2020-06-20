@@ -160,60 +160,67 @@ def harmonic_or_inharmonic_complex_tone(f0,
     return signal, signal_metadata
 
 
-def generate_BernsteinOxenhamFixedFilter_dataset(hdf5_filename,
-                                                 fs=32e3,
-                                                 dur=0.150,
-                                                 phase_modes=['sine', 'rand'],
-                                                 low_harm_min=1,
-                                                 low_harm_max=30,
-                                                 base_f0_min=100.0,
-                                                 base_f0_max=300.0,
-                                                 base_f0_n=10,
-                                                 delta_f0_min=0.94,
-                                                 delta_f0_max=1.06,
-                                                 delta_f0_n=121,
-                                                 highpass_filter_cutoff=2.5e3,
-                                                 lowpass_filter_cutoff=3.5e3,
-                                                 filter_order=4,
-                                                 threshold_dBSPL=33.3,
-                                                 component_dBSL=15.0,
-                                                 noise_dBHzSPL=15.0,
-                                                 noise_attenuation_start=600.0,
-                                                 noise_attenuation_slope=2,
-                                                 disp_step=100):
+def generate_fixed_bandpass_filter_dataset(hdf5_filename,
+                                           fs=20e3,
+                                           dur=2e0,
+                                           phase_modes=['sine'],
+                                           jitter_modes=[None],
+                                           bandpass_fl_min=6e1,
+                                           bandpass_fl_max=6e3,
+                                           bandpass_fl_num=100,
+                                           bandpass_fl_spacing='linear',
+                                           bandpass_filter_bw=2e3,
+                                           bandpass_filter_order=4,
+                                           f0_min=80.0,
+                                           f0_max=320.0,
+                                           f0_step=1.001,
+                                           threshold_dBSPL=33.3,
+                                           component_dBSL=15.0,
+                                           noise_dBHzSPL=15.0,
+                                           noise_attenuation_start=600.0,
+                                           noise_attenuation_slope=2,
+                                           random_seed=858,
+                                           disp_step=100):
     '''
     '''
+    # Set numpy random seed
+    np.random.seed(random_seed)
     # Define encoding / decoding dictionaries for phase_mode
     phase_mode_encoding = {'sine':0, 'rand':1, 'sch':2, 'cos':3, 'alt':4}
     phase_mode_decoding = {0:'sine', 1:'rand', 2:'sch', 3:'cos', 4:'alt'}
-    # Define lists of unique phase modes and low harm numbers
-    unique_ph_list = np.array([phase_mode_encoding[p] for p in phase_modes])
-    unique_lh_list = np.arange(low_harm_min, low_harm_max + 1)
-    # Define list of "base f0" values (Hz), which are used to set the filters
-    base_f0_list = np.power(2, np.linspace(np.log2(base_f0_min), np.log2(base_f0_max), base_f0_n))
-    # Define list of "delta f0" values (fraction of f0)
-    delta_f0_list = np.linspace(delta_f0_min, delta_f0_max, delta_f0_n)
-    # Compute number of stimuli (all combinations of low_harm, base_f0, delta_f0, and phase_mode)
-    N = len(unique_ph_list) * len(unique_lh_list) * len(base_f0_list) * len(delta_f0_list)
-    # Calculate the "unshifted" bandpass filter frequency response function to use as a baseline
-    baseline_freq_response = get_bandpass_filter_frequency_response(highpass_filter_cutoff,
-                                                                    lowpass_filter_cutoff,
-                                                                    fs=fs, order=filter_order)
+    # Define lists of unique phase modes and jitter modes
+    list_unique_phase = np.array([phase_mode_encoding[p] for p in phase_modes])
+    list_unique_jitter = np.array(jitter_modes)
+    # Define list of unique bandpass filter low frequency cutoffs
+    if bandpass_fl_spacing.lower() == 'linear':
+        list_unique_bandpass_fl = np.linspace(bandpass_fl_min,
+                                              bandpass_fl_max,
+                                              num=bandpass_fl_num)
+    elif bandpass_fl_spacing.lower() == 'log':
+        list_unique_bandpass_fl = np.exp(np.linspace(np.log(bandpass_fl_min),
+                                                     np.log(bandpass_fl_max),
+                                                     num=bandpass_fl_num))
+    # Define list of unique F0s
+    list_unique_f0 = [f0_min]
+    while f0_step * list_unique_f0[-1] <= f0_max:
+        list_unique_f0.append(f0_step * list_unique_f0[-1])
+    list_unique_f0 = np.array(list_unique_f0)
+    # Compute number of stimuli
+    N = len(list_unique_phase) * len(list_unique_jitter) * len(list_unique_bandpass_fl) * len(list_unique_f0)
+    
     # Prepare data_dict and config_key_pair_list for hdf5 filewriting
     data_dict = {
         'config_tone/fs': fs,
         'config_tone/dur': dur,
-        'config_tone/low_harm_min': low_harm_min,
-        'config_tone/low_harm_max': low_harm_max,
-        'config_tone/base_f0_min': base_f0_min,
-        'config_tone/base_f0_max': base_f0_max,
-        'config_tone/base_f0_n': base_f0_n,
-        'config_tone/delta_f0_min': delta_f0_min,
-        'config_tone/delta_f0_max': delta_f0_max,
-        'config_tone/delta_f0_n': delta_f0_n,
-        'config_tone/unshifted_highpass_filter_cutoff': highpass_filter_cutoff,
-        'config_tone/unshifted_lowpass_filter_cutoff': lowpass_filter_cutoff,
-        'config_tone/unshifted_filter_order': filter_order,
+        'config_tone/f0_min': f0_min,
+        'config_tone/f0_max': f0_max,
+        'config_tone/f0_step': f0_step,
+        'config_tone/bandpass_fl_min': bandpass_fl_min,
+        'config_tone/bandpass_fl_max': bandpass_fl_max,
+        'config_tone/bandpass_fl_num': bandpass_fl_num,
+        'config_tone/bandpass_fl_spacing': bandpass_fl_spacing,
+        'config_tone/bandpass_filter_bw': bandpass_filter_bw,
+        'config_tone/bandpass_filter_order': bandpass_filter_order,
         'config_tone/threshold_dBSPL': threshold_dBSPL,
         'config_tone/component_dBSL': component_dBSL,
         'config_tone/noise_dBHzSPL': noise_dBHzSPL,
@@ -222,51 +229,75 @@ def generate_BernsteinOxenhamFixedFilter_dataset(hdf5_filename,
     }
     config_key_pair_list = [(k, k) for k in data_dict.keys()]
     data_key_pair_list = [] # Will be populated right before initializing hdf5 file
+    
+    print(N, len(list_unique_f0), list_unique_f0.min(), list_unique_f0.max(), len(list_unique_bandpass_fl))
+    for k in data_dict.keys():
+        print(k, data_dict[k])
+    return
+    
     # Main loop to generate the bandpass filtered tones
     itrN = 0
-    for lh in unique_lh_list:
-        for base_f0 in base_f0_list:
-            # Compute fixed filter's frequency response using low harm number and base_f0
-            desired_fl = base_f0 * lh
-            desired_fl_gain_in_dB = -1 * component_dBSL
-            fixed_freq_response = shift_bandpass_filter_frequency_response(
-                desired_fl, desired_fl_gain_in_dB, fs=fs, unshifted_passband=None,
-                frequency_response_in_dB=baseline_freq_response)
-            for delta_f0 in delta_f0_list:
-                for ph in unique_ph_list:
-                    # Construct signal with specified f0 and phase mode
-                    f0 = base_f0 * delta_f0
-                    signal, audible_harmonic_numbers = bernox2005_bandpass_complex_tone(
-                        f0, fs, dur, frequency_response_in_dB=fixed_freq_response,
-                        threshold_dBSPL=threshold_dBSPL, component_dBSL=component_dBSL,
-                        phase_mode=phase_mode_decoding[ph])
-                    # Construct modified uniform masking noise
+    for fl in list_unique_bandpass_fl:
+        fh = fl + bandpass_filter_bw
+        frequency_response_in_dB = get_bandpass_filter_frequency_response(fl,
+                                                                          fh,
+                                                                          fs=fs,
+                                                                          order=bandpass_filter_bw_order)
+        for phase_mode_int in list_unique_phase:
+            for jitter in list_unique_jitter:
+                if jitter is None:
+                    get_jitter_pattern = lambda: None
+                else:
+                    (jitter_type, jitter_max) = jitter
+                    max_harmonics = int(np.ceil(fs / f0_min))
+                    if jitter_type == 'fixed':
+                        jitter_pattern = np.random.uniform(low=-jitter_max,
+                                                           high=jitter_max,
+                                                           size=[max_harmonics])
+                        get_jitter_pattern = lambda: jitter_pattern + 1
+                    else:
+                        raise ValueError("Unrecognized jitter_type = `{}`".format(jitter_type))
+                        
+                for f0 in list_unique_f0:
+                    # Construct signal
+                    signal, signal_metadata = harmonic_or_inharmonic_complex_tone(
+                        f0,
+                        fs=fs,
+                        dur=dur,
+                        inharmonic_jitter_pattern=get_jitter_pattern(),
+                        frequency_response_in_dB=frequency_response_in_dB,
+                        threshold_dBSPL=threshold_dBSPL,
+                        component_dBSL=component_dBSL,
+                        phase_mode=phase_mode_decoding[phase_mode_int])
+                    # Construct noise
                     noise = util_stimuli.modified_uniform_masking_noise(
-                        fs, dur, dBHzSPL=noise_dBHzSPL,
+                        fs,
+                        dur,
+                        dBHzSPL=noise_dBHzSPL,
                         attenuation_start=noise_attenuation_start,
                         attenuation_slope=noise_attenuation_slope)
-                    # Add signal + noise and metadata to data_dict for hdf5 filewriting
+                    
                     tone_in_noise = signal + noise
                     data_dict['tone_in_noise'] = tone_in_noise.astype(np.float32)
                     data_dict['f0'] = f0
-                    data_dict['base_f0'] = base_f0
-                    data_dict['delta_f0'] = delta_f0
-                    data_dict['phase_mode'] = int(ph)
-                    data_dict['low_harm'] = int(lh)
-                    data_dict['min_audible_harm'] = int(np.min(audible_harmonic_numbers))
-                    data_dict['max_audible_harm'] = int(np.max(audible_harmonic_numbers))
+                    data_dict['phase_mode'] = int(phase_mode_int)
                     # Initialize the hdf5 file on the first iteration
                     if itrN == 0:
                         print('[INITIALIZING]: {}'.format(hdf5_filename))
                         for k in data_dict.keys():
                             if not (k, k) in config_key_pair_list:
                                 data_key_pair_list.append((k, k))
-                        initialize_hdf5_file(hdf5_filename, N, data_dict, file_mode='w',
+                        initialize_hdf5_file(hdf5_filename,
+                                             N,
+                                             data_dict,
+                                             file_mode='w',
                                              data_key_pair_list=data_key_pair_list,
                                              config_key_pair_list=config_key_pair_list)
                         hdf5_f = h5py.File(hdf5_filename, 'r+')
                     # Write each data_dict to hdf5 file
-                    write_example_to_hdf5(hdf5_f, data_dict, itrN,
+                    write_example_to_hdf5(hdf5_f,
+                                          data_dict,
+                                          itrN,
                                           data_key_pair_list=data_key_pair_list)
                     if itrN % disp_step == 0:
                         print('... signal {} of {}'.format(itrN, N))
@@ -274,52 +305,11 @@ def generate_BernsteinOxenhamFixedFilter_dataset(hdf5_filename,
     # Close hdf5 file
     hdf5_f.close()
     print('[END]: {}'.format(hdf5_filename))
+    return
 
 
-if __name__ == "__main__":
-    ''' TEMPORARY COMMAND-LINE USAGE '''
-    assert len(sys.argv) == 2, "scipt usage: python <script_name> <hdf5_filename>"
-    hdf5_filename = str(sys.argv[1])
-    
-#     generate_BernsteinOxenhamFixedFilter_dataset(hdf5_filename,
-#                                                  fs=32e3,
-#                                                  dur=0.150,
-#                                                  phase_modes=['sine', 'rand'],
-#                                                  low_harm_min=1,
-#                                                  low_harm_max=30,
-#                                                  base_f0_min=100.0,
-#                                                  base_f0_max=300.0,
-#                                                  base_f0_n=10,
-#                                                  delta_f0_min=0.94,
-#                                                  delta_f0_max=1.06,
-#                                                  delta_f0_n=121,
-#                                                  highpass_filter_cutoff=2.5e3,
-#                                                  lowpass_filter_cutoff=3.5e3,
-#                                                  filter_order=4,
-#                                                  threshold_dBSPL=33.3,
-#                                                  component_dBSL=15.0,
-#                                                  noise_dBHzSPL=15.0,
-#                                                  noise_attenuation_start=600.0,
-#                                                  noise_attenuation_slope=2,
-#                                                  disp_step=100)
-    generate_BernsteinOxenhamFixedFilter_dataset(hdf5_filename,
-                                                 fs=32e3,
-                                                 dur=0.150,
-                                                 phase_modes=['sine'],
-                                                 low_harm_min=1,
-                                                 low_harm_max=30,
-                                                 base_f0_min=80.0,
-                                                 base_f0_max=320.0,
-                                                 base_f0_n=192*2*4,
-                                                 delta_f0_min=1,
-                                                 delta_f0_max=1,
-                                                 delta_f0_n=1,
-                                                 highpass_filter_cutoff=2.5e3,
-                                                 lowpass_filter_cutoff=3.5e3,
-                                                 filter_order=4,
-                                                 threshold_dBSPL=33.3,
-                                                 component_dBSL=15.0,
-                                                 noise_dBHzSPL=15.0,
-                                                 noise_attenuation_start=600.0,
-                                                 noise_attenuation_slope=2,
-                                                 disp_step=100)
+# if __name__ == "__main__":
+#     ''' TEMPORARY COMMAND-LINE USAGE '''
+#     assert len(sys.argv) == 2, "scipt usage: python <script_name> <hdf5_filename>"
+#     hdf5_filename = str(sys.argv[1])
+#     generate_fixed_bandpass_filter_dataset(hdf5_filename)
