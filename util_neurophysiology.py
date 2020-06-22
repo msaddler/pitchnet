@@ -344,7 +344,7 @@ def make_1d_tuning_plot(ax,
         ax.plot(xval, yval, **kwargs_plot)
     
     kwargs_legend = {
-        'loc': 'upper right',
+        'loc': 'upper center',
         'ncol': 1,
         'frameon': False,
         'fontsize': 12,
