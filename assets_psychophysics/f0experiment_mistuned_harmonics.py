@@ -12,28 +12,15 @@ def compute_mistuning_shifts(expt_dict,
                              key_mistuned_harm='mistuned_harm',
                              key_mistuned_pct='mistuned_pct',
                              f0_ref=100.0,
-                             f0_ref_width=0.04,
-                             use_relative_shift=True):
+                             f0_ref_width=0.04):
     '''
     '''
-    # Filter expt_dict to f0 range specified by f0_ref and f0_ref_width
     f0_min = f0_ref * (1.0 - f0_ref_width)
     f0_max = f0_ref * (1.0 + f0_ref_width)
-    sub_expt_dict = f0dl_bernox.filter_expt_dict(expt_dict, filter_dict={'f0': [f0_min, f0_max]})
-    # Compute f0_pred_pct (shift in f0_pred relative to f0_true)
-    f0_true = sub_expt_dict['f0']
-    f0_pred = sub_expt_dict['f0_pred']
-    if use_relative_shift:
-        # If use_relative_shift, adjust all f0_pred using the mean offset from stimuli with 0% mistuning
-        harmonic_idx = sub_expt_dict[key_mistuned_pct] == 0.0
-        harmonic_f0_shift = f0_pred[harmonic_idx] - f0_true[harmonic_idx]
-        f0_pred = f0_pred - np.mean(harmonic_f0_shift)
-    sub_expt_dict['f0_pred_pct'] = 100.0 * (f0_pred - f0_true) / f0_true
-    # For each individual harmonic and each percent mistuning, compute mean, median, stddev f0_pred_pct
-    unique_harm = np.unique(sub_expt_dict[key_mistuned_harm])
-    unique_pct = np.unique(sub_expt_dict[key_mistuned_pct])
+    unique_harmonic_numbers = np.unique(expt_dict[key_mistuned_harm])
+    unique_mistuned_pct = np.unique(expt_dict[key_mistuned_pct])
     sub_results_dict = {key_mistuned_harm:{}, 'f0_min':f0_min, 'f0_max':f0_max}
-    for harm in unique_harm:
+    for harm in unique_harmonic_numbers:
         sub_results_dict[key_mistuned_harm][int(harm)] = {
             'f0_pred_pct_median': [],
             'f0_pred_pct_mean': [],
@@ -41,21 +28,78 @@ def compute_mistuning_shifts(expt_dict,
             'mistuned_pct': [],
             'mistuned_harm': harm
         }
-        for pct in unique_pct:
-            filter_dict = {
+        for pct in unique_mistuned_pct:
+            pct_filter_dict = {
                 key_mistuned_harm: harm,
                 key_mistuned_pct: pct,
                 'f0': [f0_min, f0_max],
             }
-            harm_pct_dict = f0dl_bernox.filter_expt_dict(sub_expt_dict, filter_dict=filter_dict)
-            sub_results_dict[key_mistuned_harm][harm]['f0_pred_pct_median'].append(np.median(harm_pct_dict['f0_pred_pct']))
-            sub_results_dict[key_mistuned_harm][harm]['f0_pred_pct_mean'].append(np.mean(harm_pct_dict['f0_pred_pct']))
-            sub_results_dict[key_mistuned_harm][harm]['f0_pred_pct_stddev'].append(np.std(harm_pct_dict['f0_pred_pct']))
+            ref_filter_dict = {
+                key_mistuned_harm: harm,
+                key_mistuned_pct: 0.0,
+                'f0': [f0_min, f0_max],
+            }
+            harm_pct_dict = f0dl_bernox.filter_expt_dict(expt_dict, filter_dict=pct_filter_dict)
+            harm_ref_dict = f0dl_bernox.filter_expt_dict(expt_dict, filter_dict=ref_filter_dict)
+            f0_true = harm_pct_dict['f0']
+            ref_f0_true = harm_ref_dict['f0']
+            assert np.array_equal(f0_true, ref_f0_true)
+            f0_pred_pct_shift = 100 * (harm_pct_dict['f0_pred'] - f0_true) / f0_true
+            sub_results_dict[key_mistuned_harm][harm]['f0_pred_pct_median'].append(np.median(f0_pred_pct_shift))
+            sub_results_dict[key_mistuned_harm][harm]['f0_pred_pct_mean'].append(np.mean(f0_pred_pct_shift))
+            sub_results_dict[key_mistuned_harm][harm]['f0_pred_pct_stddev'].append(np.std(f0_pred_pct_shift))
             sub_results_dict[key_mistuned_harm][harm]['mistuned_pct'].append(pct)
     return sub_results_dict
 
 
-def run_f0experiment_mistuned_harmonics(json_fn, use_relative_shift=True,
+# def compute_mistuning_shifts(expt_dict,
+#                              key_mistuned_harm='mistuned_harm',
+#                              key_mistuned_pct='mistuned_pct',
+#                              f0_ref=100.0,
+#                              f0_ref_width=0.04,
+#                              use_relative_shift=True):
+#     '''
+#     '''
+#     # Filter expt_dict to f0 range specified by f0_ref and f0_ref_width
+#     f0_min = f0_ref * (1.0 - f0_ref_width)
+#     f0_max = f0_ref * (1.0 + f0_ref_width)
+#     sub_expt_dict = f0dl_bernox.filter_expt_dict(expt_dict, filter_dict={'f0': [f0_min, f0_max]})
+#     # Compute f0_pred_pct (shift in f0_pred relative to f0_true)
+#     f0_true = sub_expt_dict['f0']
+#     f0_pred = sub_expt_dict['f0_pred']
+#     if use_relative_shift:
+#         # If use_relative_shift, adjust all f0_pred using the mean offset from stimuli with 0% mistuning
+#         harmonic_idx = sub_expt_dict[key_mistuned_pct] == 0.0
+#         harmonic_f0_shift = f0_pred[harmonic_idx] - f0_true[harmonic_idx]
+#         f0_pred = f0_pred - np.mean(harmonic_f0_shift)
+#     sub_expt_dict['f0_pred_pct'] = 100.0 * (f0_pred - f0_true) / f0_true
+#     # For each individual harmonic and each percent mistuning, compute mean, median, stddev f0_pred_pct
+#     unique_harm = np.unique(sub_expt_dict[key_mistuned_harm])
+#     unique_pct = np.unique(sub_expt_dict[key_mistuned_pct])
+#     sub_results_dict = {key_mistuned_harm:{}, 'f0_min':f0_min, 'f0_max':f0_max}
+#     for harm in unique_harm:
+#         sub_results_dict[key_mistuned_harm][int(harm)] = {
+#             'f0_pred_pct_median': [],
+#             'f0_pred_pct_mean': [],
+#             'f0_pred_pct_stddev': [],
+#             'mistuned_pct': [],
+#             'mistuned_harm': harm
+#         }
+#         for pct in unique_pct:
+#             filter_dict = {
+#                 key_mistuned_harm: harm,
+#                 key_mistuned_pct: pct,
+#                 'f0': [f0_min, f0_max],
+#             }
+#             harm_pct_dict = f0dl_bernox.filter_expt_dict(sub_expt_dict, filter_dict=filter_dict)
+#             sub_results_dict[key_mistuned_harm][harm]['f0_pred_pct_median'].append(np.median(harm_pct_dict['f0_pred_pct']))
+#             sub_results_dict[key_mistuned_harm][harm]['f0_pred_pct_mean'].append(np.mean(harm_pct_dict['f0_pred_pct']))
+#             sub_results_dict[key_mistuned_harm][harm]['f0_pred_pct_stddev'].append(np.std(harm_pct_dict['f0_pred_pct']))
+#             sub_results_dict[key_mistuned_harm][harm]['mistuned_pct'].append(pct)
+#     return sub_results_dict
+
+
+def run_f0experiment_mistuned_harmonics(json_fn,
                                         f0_label_pred_key='f0_label:labels_pred',
                                         f0_label_true_key='f0_label:labels_true',
                                         f0_label_prob_key='f0_label:probs_out',
@@ -82,14 +126,14 @@ def run_f0experiment_mistuned_harmonics(json_fn, use_relative_shift=True,
                                                                          key_mistuned_harm='mistuned_harm',
                                                                          key_mistuned_pct='mistuned_pct',
                                                                          f0_ref=f0_ref,
-                                                                         f0_ref_width=f0_ref_width,
-                                                                         use_relative_shift=use_relative_shift)
+                                                                         f0_ref_width=f0_ref_width)
     # Return dictionary of psychophysical experiment results
     return results_dict
 
 
-def main(json_eval_fn, json_results_dict_fn=None, save_results_to_file=False,
-         use_relative_shift=True,
+def main(json_eval_fn,
+         json_results_dict_fn=None,
+         save_results_to_file=False,
          f0_label_pred_key='f0_label:labels_pred',
          f0_label_true_key='f0_label:labels_true',
          f0_label_prob_key='f0_label:probs_out',
@@ -99,7 +143,6 @@ def main(json_eval_fn, json_results_dict_fn=None, save_results_to_file=False,
     '''
     # Run the Moore et al. (1985) harmonic mistuning experiment; results stored in results_dict
     results_dict = run_f0experiment_mistuned_harmonics(json_eval_fn,
-                                                       use_relative_shift=use_relative_shift,
                                                        f0_label_pred_key=f0_label_pred_key,
                                                        f0_label_true_key=f0_label_true_key,
                                                        f0_label_prob_key=f0_label_prob_key,
