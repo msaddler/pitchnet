@@ -363,7 +363,7 @@ def extract_data_from_alt_phase_histogram_ps_file(fn='human_data_shackleton_carl
 
 def get_mistuned_harmonics_bar_graph_results_dict(results_dict,
                                                   mistuned_pct=3.0,
-                                                  pitch_shift_key='f0_pred_pct_median',
+                                                  pitch_shift_key='f0_pred_pct_mean',
                                                   pitch_shift_err_key=None,
                                                   harmonic_list=None,
                                                   use_relative_shift=False):
@@ -584,7 +584,7 @@ def compare_transposedtones(human_results_dict,
 
 def compare_freqshiftedcomplexes(human_results_dict,
                                  model_results_dict,
-                                 pitch_shift_key='f0_pred_shift_median',
+                                 pitch_shift_key='f0_pred_shift_mean',
                                  restrict_conditions=['5', '11', '16'],
                                  kwargs_interp={},
                                  kwargs_compare={'log_scale':False}):
@@ -626,7 +626,7 @@ def compare_freqshiftedcomplexes(human_results_dict,
 
 def compare_mistunedharmonics(human_results_dict,
                               model_results_dict,
-                              pitch_shift_key='f0_pred_pct_median',
+                              pitch_shift_key='f0_pred_pct_mean',
                               restrict_conditions_f0=None,
                               restrict_conditions_harm=None,
                               kwargs_compare={'log_scale':False}):
