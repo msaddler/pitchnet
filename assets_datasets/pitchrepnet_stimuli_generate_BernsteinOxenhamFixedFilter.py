@@ -172,6 +172,12 @@ def generate_fixed_bandpass_filter_dataset(hdf5_filename,
     list_unique_f0 = np.array(list_unique_f0)
     # Compute number of stimuli
     N = len(list_unique_phase) * len(list_unique_jitter) * len(list_unique_bandpass_fl) * len(list_unique_f0)
+    print('[BEGIN] {}'.format(hdf5_filename))
+    print('total stimuli = {}'.format(N))
+    print('unique filter positions = {}'.format(len(list_unique_bandpass_fl)))
+    print('unique phase modes = {}'.format(len(list_unique_phase)))
+    print('unique jitter modes = {}'.format(len(list_unique_jitter)))
+    print('unique f0 values = {}'.format(len(list_unique_f0)))
     
     # Prepare data_dict and config_key_pair_list for hdf5 filewriting
     data_dict = {
@@ -240,7 +246,7 @@ def generate_fixed_bandpass_filter_dataset(hdf5_filename,
                     tone_in_noise = signal + noise
                     # Prepare metadata
                     IDX_AUDIBLE = signal_metadata['component_dBSPL'] >= threshold_dBSPL
-                    audible_harmonic_numbers = signal_metadata['nominal_harmonic_numbers']
+                    audible_harmonic_numbers = signal_metadata['nominal_harmonic_numbers'][IDX_AUDIBLE]
                     jitter_pattern = signal_metadata['inharmonic_jitter_pattern']
                     jitter_pattern = np.pad(jitter_pattern,
                                             (0, max_num_harm-jitter_pattern.shape[0]),
@@ -254,7 +260,7 @@ def generate_fixed_bandpass_filter_dataset(hdf5_filename,
                     data_dict['max_audible_harm'] = int(np.max(audible_harmonic_numbers))
                     data_dict['bandpass_fl'] = fl
                     data_dict['bandpass_fh'] = fh
-                    data_dict['jitter_pattern'] = jitter_pattern
+                    data_dict['jitter_pattern'] = jitter_pattern.astype(np.float32)
                     # Initialize the hdf5 file on the first iteration
                     if itrN == 0:
                         print('[INITIALIZING]: {}'.format(hdf5_filename))
@@ -282,8 +288,8 @@ def generate_fixed_bandpass_filter_dataset(hdf5_filename,
     return
 
 
-# if __name__ == "__main__":
-#     ''' TEMPORARY COMMAND-LINE USAGE '''
-#     assert len(sys.argv) == 2, "scipt usage: python <script_name> <hdf5_filename>"
-#     hdf5_filename = str(sys.argv[1])
-#     generate_fixed_bandpass_filter_dataset(hdf5_filename)
+if __name__ == "__main__":
+    ''' TEMPORARY COMMAND-LINE USAGE '''
+    assert len(sys.argv) == 2, "scipt usage: python <script_name> <hdf5_filename>"
+    hdf5_filename = str(sys.argv[1])
+    generate_fixed_bandpass_filter_dataset(hdf5_filename)
