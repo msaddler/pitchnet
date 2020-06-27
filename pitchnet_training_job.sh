@@ -5,14 +5,14 @@
 #SBATCH --cpus-per-task=12
 #SBATCH --mem=18000
 ##SBATCH --gres=gpu:tesla-v100:1
-##SBATCH --gres=gpu:QUADRORTX6000:1
-#SBATCH --gres=gpu:GEFORCEGTX1080TI:1
+#SBATCH --gres=gpu:QUADRORTX6000:1
+##SBATCH --gres=gpu:GEFORCEGTX1080TI:1
 ##SBATCH --gres=gpu:GEFORCERTX2080TI:1
 #SBATCH --time=0-48:00:00
 ##SBATCH --time-min=0-24:00:00
 #SBATCH --array=3-9
 ##SBATCH --exclude=node063
-#SBATCH --partition=mcdermott
+##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --requeue
 
