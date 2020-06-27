@@ -11,7 +11,7 @@ import f0dl_bernox
 
 
 def run_f0dl_experiment(json_fn,
-                        max_pct_diff=6,
+                        max_pct_diff=3.0,
                         noise_stdev=1e-12,
                         bin_width=5e-2,
                         mu=0.0,
@@ -95,7 +95,7 @@ def run_f0dl_experiment(json_fn,
 def main(json_eval_fn,
          json_results_dict_fn=None,
          save_results_to_file=False,
-         max_pct_diff=6,
+         max_pct_diff=3.0,
          noise_stdev=1e-12,
          bin_width=5e-2,
          mu=0.0,
