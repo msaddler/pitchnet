@@ -3,9 +3,9 @@
 #SBATCH --job-name=pitchnet_eval
 #SBATCH --out="/om2/user/msaddler/pitchnet/slurm_pitchnet_eval-%A_%a.out"
 ##SBATCH --gres=gpu:tesla-v100:1
-##SBATCH --gres=gpu:QUADRORTX6000:1
+#SBATCH --gres=gpu:QUADRORTX6000:1
 ##SBATCH --gres=gpu:GEFORCEGTX1080TI:1
-#SBATCH --gres=gpu:GEFORCERTX2080TI:1
+##SBATCH --gres=gpu:GEFORCERTX2080TI:1
 #SBATCH --mem=18000
 #SBATCH --cpus-per-task=10
 #SBATCH --time=0-24:00:00
@@ -19,7 +19,7 @@
 # OUTDIR='/saved_models/arch_search_v01_sr2000_cf1000_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/arch_'$ZERO_PADDED_JOBID
 # SAVED_MODELS_PATH="$SCRATCH_PATH/pitchnet/saved_models"
 
-OUTDIR='/saved_models/models_sr20000/arch_0302/PND_v08inst_TLAS_snr_neg10pos10_AN_BW10eN1_IHC3000Hz_classification'$SLURM_ARRAY_TASK_ID
+OUTDIR='/saved_models/models_sr20000/arch_0302/PND_v08_TLAS_snr_pos10pos30_AN_BW10eN1_IHC3000Hz_classification'$SLURM_ARRAY_TASK_ID
 SAVED_MODELS_PATH="/om2/user/msaddler/pitchnet/saved_models"
 
 TFRECORDS_REGEX='sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/*.tfrecords'
