@@ -108,9 +108,9 @@ def main(json_eval_fn,
          kwargs_f0_octave={},
          kwargs_f0_normalization={},
          kwargs_f0_prior={},
-         f0_ref_min=100.0,
-         f0_ref_max=300.0,
-         f0_ref_n_step=5,
+         f0_ref_min=80.0,
+         f0_ref_max=320.0,
+         f0_ref_n_step=9,
          metadata_key_list=['f_carrier', 'f_envelope', 'f0']):
     '''
     '''
