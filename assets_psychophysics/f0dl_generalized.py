@@ -15,7 +15,7 @@ import util_misc
 
 def run_f0dl_experiment(json_fn,
                         key_condition,
-                        max_pct_diff=3.0,
+                        max_pct_diff=6.0,
                         noise_stdev=1e-12,
                         bin_width=5e-2,
                         mu=0.0,
