@@ -24,8 +24,8 @@ def run_f0dl_experiment(json_fn,
                         kwargs_f0_octave={},
                         kwargs_f0_normalization={},
                         kwargs_f0_prior={},
-                        f0_ref_min=90.0,
-                        f0_ref_max=300.0,
+                        f0_ref_min=80.0,
+                        f0_ref_max=320.0,
                         f0_ref_n_step=5,
                         metadata_key_list=['f_carrier', 'f_envelope', 'f0']):
     '''
@@ -36,6 +36,21 @@ def run_f0dl_experiment(json_fn,
                                                         f0_label_pred_key=f0_label_pred_key,
                                                         f0_label_prob_key=f0_label_prob_key,
                                                         metadata_key_list=metadata_key_list)
+    # Define list of reference F0s at which to measure discrimination thresholds
+    f0_ref_list = np.power(2, np.linspace(np.log2(f0_ref_min), np.log2(f0_ref_max), f0_ref_n_step))
+    unique_f_carrier_list = np.unique(expt_dict['f_carrier'])
+    N = len(unique_f_carrier_list) * len(f0_ref_list)
+    # Add list of nearest f0_ref values for centering prior (defined as the nearest reference F0)
+    nearest_f0_ref_bins = [-np.inf]
+    for itr0 in range(1, f0_ref_list.shape[0]):
+        f0_low = f0_ref_list[itr0 - 1]
+        f0_high = f0_ref_list[itr0]
+        nearest_f0_ref_bins.append(np.exp(np.mean(np.log([f0_low, f0_high]))))
+    nearest_f0_ref_bins.append(np.inf)
+    nearest_f0_ref_bins = np.array(nearest_f0_ref_bins)
+    f0_ref_indexes = np.digitize(expt_dict['f0'], nearest_f0_ref_bins) - 1
+    expt_dict['nearest_f0_ref'] = f0_ref_list[f0_ref_indexes]
+    # Add f0 estimates to expt_dict (possibly using prior)
     expt_dict = f0dl_bernox.add_f0_estimates_to_expt_dict(expt_dict,
                                                           f0_label_true_key=f0_label_true_key,
                                                           f0_label_pred_key=f0_label_pred_key,
@@ -43,9 +58,6 @@ def run_f0dl_experiment(json_fn,
                                                           kwargs_f0_octave=kwargs_f0_octave,
                                                           kwargs_f0_normalization=kwargs_f0_normalization,
                                                           kwargs_f0_prior=kwargs_f0_prior)
-    unique_f_carrier_list = np.unique(expt_dict['f_carrier'])
-    f0_ref_list = np.power(2, np.linspace(np.log2(f0_ref_min), np.log2(f0_ref_max), f0_ref_n_step))
-    N = len(unique_f_carrier_list) * len(f0_ref_list)
     # Initialize dictionary to hold psychophysical results
     results_dict = {
         'f_carrier': [None]*N,
@@ -110,7 +122,7 @@ def main(json_eval_fn,
          kwargs_f0_prior={},
          f0_ref_min=80.0,
          f0_ref_max=320.0,
-         f0_ref_n_step=9,
+         f0_ref_n_step=5,
          metadata_key_list=['f_carrier', 'f_envelope', 'f0']):
     '''
     '''
@@ -173,10 +185,10 @@ if __name__ == "__main__":
     if parsed_args_dict['prior_range_in_octaves'] > 0:
         kwargs_f0_prior = {
             'f0_label_prob_key': 'f0_label:probs_out',
-            'f0_prior_ref_key': 'f0', # Note: using true F0 may slightly bias up/down judgments
+            'f0_prior_ref_key': 'nearest_f0_ref',
             'octave_range': [
-                -parsed_args_dict['prior_range_in_octaves'],
-                parsed_args_dict['prior_range_in_octaves']
+                -parsed_args_dict['prior_range_in_octaves']/2,
+                parsed_args_dict['prior_range_in_octaves']/2
             ],
         }
     else:
