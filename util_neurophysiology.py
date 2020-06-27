@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import glob
 import copy
 import numpy as np
 import tensorflow as tf
@@ -9,6 +10,7 @@ import pitchnet_evaluate_best
 
 sys.path.append('/om2/user/msaddler/python-packages/msutil')
 import util_figures
+import util_misc
 
 sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
 import dataset_util
@@ -419,3 +421,50 @@ def make_octave_tuning_plot(ax, results_dict_input, **kwargs):
     kwargs_make_1d_tuning_plot.update(kwargs)
     ax = make_1d_tuning_plot(ax, results_dict_input, **kwargs_make_1d_tuning_plot)
     return ax
+
+
+if __name__ == "__main__":
+    ''' TEMPORARY COMMAND-LINE USAGE '''
+    
+    def run_network_neurophysiology(output_dict):
+        '''
+        '''
+        results_dict = {}
+        for key in sorted(output_dict.keys()):
+            if ('relu' in key):
+                print('processing {}'.format(key))
+                tuning_dict = {}
+                tuning_dict = compute_f0_tuning_re_best(output_dict,
+                                                        key_act=key,
+                                                        tuning_dict=tuning_dict)
+                if 'low_harm' in output_dict.keys():
+                    tuning_dict = compute_1d_tuning(output_dict,
+                                                    key_act=key,
+                                                    key_dim0='low_harm',
+                                                    tuning_dict=tuning_dict)
+                    tuning_dict = compute_2d_tuning(output_dict,
+                                                    key_act=key,
+                                                    key_dim0='low_harm',
+                                                    key_dim1='f0_label',
+                                                    tuning_dict=tuning_dict)
+                results_dict[key] = copy.deepcopy(tuning_dict)
+        return results_dict
+    
+    
+    assert len(sys.argv) == 2, "scipt usage: python <script_name> <output_directory_regex>"
+    output_directory_regex = str(sys.argv[1])
+    
+    tfrecords_regex = '/om/user/msaddler/data_pitchnet/neurophysiology/bernox2005_SlidingFixedFilter_lharm01to30_phase0_f0min080_f0max320/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/*.tfrecords'
+    output_directory_list = sorted(glob.glob(output_directory_regex))
+    print('output_directory_list:')
+    for output_directory in output_directory_list:
+        print('<> {}'.format(output_directory))
+    
+    for output_directory in output_directory_list:
+        print('\n\n\nSTART: {}'.format(output_directory))
+        output_dict = get_network_activations(output_directory, tfrecords_regex)
+        results_dict = run_network_neurophysiology(output_dict)
+        fn_results_dict = os.path.join(output_directory, 'NEUROPHYSIOLOGY_bernox2005.json')
+        with open(fn_results_dict, 'w') as f:
+            json.dump(results_dict, f, cls=util_misc.NumpyEncoder, sort_keys=True)
+        print('WROTE: {}\n\n\n'.format(fn_results_dict))
