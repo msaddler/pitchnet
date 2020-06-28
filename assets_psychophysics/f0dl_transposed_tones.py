@@ -187,8 +187,8 @@ if __name__ == "__main__":
             'f0_label_prob_key': 'f0_label:probs_out',
             'f0_prior_ref_key': 'nearest_f0_ref',
             'octave_range': [
-                -parsed_args_dict['prior_range_in_octaves']/2,
-                parsed_args_dict['prior_range_in_octaves']/2
+                -parsed_args_dict['prior_range_in_octaves'],
+                parsed_args_dict['prior_range_in_octaves']
             ],
         }
     else:
