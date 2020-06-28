@@ -1172,7 +1172,7 @@ def make_altphase_histogram_plot(ax, results_dict_input,
             ax.plot(bin_xvals, bin_yvals, label=label, **plot_kwargs)
     
     ax = util_figures.format_axes(ax,
-                                  str_xlabel='Predicted F0 / target F0',
+                                  str_xlabel='Predicted F0 / stimulus F0',
                                   str_ylabel='% of F0 predictions',
                                   fontsize_labels=fontsize_labels,
                                   fontsize_ticks=fontsize_ticks,
