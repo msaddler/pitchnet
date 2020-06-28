@@ -113,7 +113,7 @@ def make_bernox_threshold_plot(ax, results_dict_input,
                                xlimits=[0, 33],
                                ylimits=[1e-1, 1e2],
                                kwargs_legend={},
-                               kwargs_bootstrap={}):
+                               kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'median'}):
     '''
     Function for plotting Bernstein & Oxenham (2005) experiment results:
     F0 discrimination thresholds as a function of lowest harmonic number.
@@ -223,7 +223,7 @@ def make_TT_threshold_plot(ax, results_dict_input,
                            xlimits=[40, 360],
                            ylimits=[1e-1, 1e2],
                            kwargs_legend={},
-                           kwargs_bootstrap={},
+                           kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'median'},
                            collapse_transposed_tones=True):
     '''
     Function for plotting transposed tones discrimination experiment results:
@@ -387,7 +387,7 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
                                    xlimits=[-1, 25],
                                    ylimits=[-4, 12],
                                    kwargs_legend={},
-                                   kwargs_bootstrap={}):
+                                   kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'median'}):
     '''
     Function for plotting frequency-shifted complexes experiment results:
     F0 shift as a function of frequency shift.
@@ -504,7 +504,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
                                       ylimits=[-0.1, 1.1],
                                       cmap_name='coolwarm',
                                       kwargs_legend={},
-                                      kwargs_bootstrap={}):
+                                      kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'median'}):
     '''
     Function for plotting mistuned harmonics experiment results:
     F0 shift bar graph for a given mistuning percent.
@@ -634,7 +634,7 @@ def make_mistuned_harmonics_line_graph(ax, results_dict_input,
                                        ylimits=[-0.05, 1.05],
                                        cmap_name='coolwarm',
                                        kwargs_legend={},
-                                       kwargs_bootstrap={}):
+                                       kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'median'}):
     '''
     '''
     if pitch_shift_err_key is None: pitch_shift_err_key = pitch_shift_key + '_err'
@@ -785,7 +785,7 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
                                       ylimits=None,
                                       cmap_name='coolwarm',
                                       kwargs_legend={},
-                                      kwargs_bootstrap={}):
+                                      kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'median'}):
     '''
     Function for plotting mistuned harmonics experiment results:
     F0 shift as a function of percent mistuning.
@@ -915,7 +915,7 @@ def make_altphase_line_plot(ax, results_dict_input,
                             xlimits=[62.5*0.9, 250*1.1],
                             ylimits=[-1.1, 1.1],
                             kwargs_legend={},
-                            kwargs_bootstrap={}):
+                            kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'median'}):
     '''
     Function for plotting alternating phase experiment results:
     fraction of 2*F0 - 1*F0 judgments as a function of F0 for
@@ -1116,8 +1116,7 @@ def make_altphase_histogram_plot(ax, results_dict_input,
                                  fontsize_legend=12,
                                  fontsize_ticks=12,
                                  include_yerr=False,
-                                 kwargs_legend={},
-                                 kwargs_bootstrap={}):
+                                 kwargs_legend={}):
     '''
     Function for plotting alternating phase experiment results:
     histograms of ratio between predicted F0s and target F0s
@@ -1233,7 +1232,7 @@ def make_f0dl_threshold_plot(ax, results_dict_input,
                              xticks=None,
                              xticks_minor=None,
                              kwargs_legend={},
-                             kwargs_bootstrap={}):
+                             kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'median'}):
     '''
     Function for plotting generic F0 discrimination experiment results:
     F0 discrimination thresholds as a function of value specified by `key_xval`.
