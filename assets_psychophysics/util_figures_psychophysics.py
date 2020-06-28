@@ -1199,7 +1199,8 @@ def make_altphase_histogram_plot(ax, results_dict_input,
         ax.set_title(str_title, fontsize=fontsize_title)
     if legend_on:
         legend_plot_kwargs = {
-            'loc': 'best',
+            'loc':'best',
+            'bbox_to_anchor': (0.0, 0.6, 1.0, 0.4),
             'borderpad': 0.4,
             'borderaxespad': 0.5,
             'handletextpad': 0.8,
