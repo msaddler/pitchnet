@@ -8,7 +8,7 @@
 #SBATCH --time=2-24:00:00
 ##SBATCH --time-min=0-24:00:00
 #SBATCH --exclude=node[001-030,080]
-#SBATCH --array=0-14
+#SBATCH --array=0-29
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --requeue
@@ -32,17 +32,17 @@
 # dest_filename='/om/user/msaddler/data_pitchnet/mcpherson2020/testSPL_v01_f0min080_f0max320_dBSPLmin000_dBSPLmax120/sr2000_cf1000_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates.hdf5'
 # jobs_per_source_file=60
 
-# source_regex='/om/user/msaddler/data_pitchnet/shackcarl1994/AltPhase_v01_f0min080_f0max320/*.hdf5'
-# dest_filename='/om/user/msaddler/data_pitchnet/shackcarl1994/AltPhase_v01_f0min080_f0max320/sr2000_cf1000_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates.hdf5'
-# jobs_per_source_file=30
+source_regex='/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to320Hz_v01/*.hdf5'
+dest_filename='/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to320Hz_v01/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
+jobs_per_source_file=30
 
 # source_regex='/om/user/msaddler/data_pitchnet/moore1985/Moore1985_MistunedHarmonics_v01/*.hdf5'
 # dest_filename='/om/user/msaddler/data_pitchnet/moore1985/Moore1985_MistunedHarmonics_v01/sr2000_cf1000_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates.hdf5'
 # jobs_per_source_file=60
 
-source_regex='/om/user/msaddler/data_pitchnet/neurophysiology/bernox2005_SlidingFixedFilter_lharm01to30_phase0_f0min080_f0max320/*.hdf5'
-dest_filename='/om/user/msaddler/data_pitchnet/neurophysiology/bernox2005_SlidingFixedFilter_lharm01to30_phase0_f0min080_f0max320/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
-jobs_per_source_file=15
+# source_regex='/om/user/msaddler/data_pitchnet/neurophysiology/bernox2005_SlidingFixedFilter_lharm01to30_phase0_f0min080_f0max320/*.hdf5'
+# dest_filename='/om/user/msaddler/data_pitchnet/neurophysiology/bernox2005_SlidingFixedFilter_lharm01to30_phase0_f0min080_f0max320/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
+# jobs_per_source_file=15
 
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
@@ -50,19 +50,6 @@ job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
 export HDF5_USE_FILE_LOCKING=FALSE
 source activate mdlab # Activate conda environment with "cython_bez2018" module installed
 echo $(hostname)
-
-# python -u nervegram_run_parallel.py \
-# -s "${source_regex}" \
-# -d "${dest_filename}" \
-# -j ${job_idx} \
-# -jps ${jobs_per_source_file} \
-# -bwsf '1.0' \
-# -lpf '50.0' \
-# -lpfo '7' \
-# -sks 'stimuli/signal_in_noise' \
-# -sksr 'sr' \
-# -mrsr '2000.0' \
-# -spont 'H'
 
 python -u nervegram_run_parallel.py \
 -s "${source_regex}" \
@@ -72,10 +59,23 @@ python -u nervegram_run_parallel.py \
 -bwsf '1.0' \
 -lpf '3000.0' \
 -lpfo '7' \
--sks 'tone_in_noise' \
--sksr 'config_tone/fs' \
--mrsr '20000.0' \
+-sks 'stimuli/signal_in_noise' \
+-sksr 'sr' \
+-mrsr '2000.0' \
 -spont 'H'
+
+# python -u nervegram_run_parallel.py \
+# -s "${source_regex}" \
+# -d "${dest_filename}" \
+# -j ${job_idx} \
+# -jps ${jobs_per_source_file} \
+# -bwsf '1.0' \
+# -lpf '3000.0' \
+# -lpfo '7' \
+# -sks 'tone_in_noise' \
+# -sksr 'config_tone/fs' \
+# -mrsr '20000.0' \
+# -spont 'H'
 
 # python -u nervegram_run_parallel.py \
 # -s "${source_regex}" \
