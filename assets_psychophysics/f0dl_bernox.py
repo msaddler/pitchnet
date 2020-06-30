@@ -68,10 +68,12 @@ def load_f0_expt_dict_from_json(json_fn,
     return expt_dict
 
 
-def compute_f0_pred_with_prior(expt_dict, f0_bins,
+def compute_f0_pred_with_prior(expt_dict,
+                               f0_bins,
                                f0_label_prob_key='f0_label:probs_out',
                                f0_prior_ref_key='base_f0',
-                               octave_range=[-1, 1]):
+                               octave_range=[-1, 1],
+                               use_octave_folding_prior=False):
     '''
     Computes predicted f0 values from a probability distribution
     over f0 classes and a specified prior.
@@ -83,6 +85,8 @@ def compute_f0_pred_with_prior(expt_dict, f0_bins,
     f0_label_prob_key (str): key for f0_label_pred probabilities in expt_dict
     f0_prior_ref_key (str): key for f0_prior_ref (reference f0 for the prior)
     octave_range (list): limits for the uniform prior (in octaves re: f0_prior_ref)
+    use_octave_folding_prior (bool) if True, f0 predictions are multiplied by powers
+        of two to return a prediction in the same octave_range as f0_prior_ref_key
     
     Returns
     -------
@@ -106,7 +110,19 @@ def compute_f0_pred_with_prior(expt_dict, f0_bins,
         if not np.argmax(probs_masked) == np.argmax(f0_pred_prob[stimulus_idx]):
             counter += 1
     print('Computed f0_pred using uniform prior: {} octaves'.format(octave_range), flush=True)
-    print('Prior adjusted {} f0 predictions'.format(counter))
+    print('Prior adjusted {} f0 predictions'.format(counter), flush=True)
+    
+    if use_octave_folding_prior:
+        f0_pred_tmp = f0_pred.reshape([-1, 1])
+        f0_prior_ref_tmp = f0_prior_ref.reshape([-1, 1])
+        pows2 = np.power(2.0, np.arange(octave_range[0], octave_range[1]+0.1, 1)).reshape([1, -1])
+        f0_pred_oct = f0_pred_tmp * pows2
+        f0_err_vals = np.abs(f0_pred_oct - f0_prior_ref_tmp) / f0_prior_ref_tmp
+        octave_fold_indexes = np.argmin(f0_err_vals, axis=1)
+        for itr0 in range(f0_pred.shape[0]):
+            f0_pred[itr0] = f0_pred_oct[itr0, octave_fold_indexes[itr0]]
+        print('Applied octave folding prior', flush=True)
+        print(f0_pred_tmp.shape, pows2.shape, f0_pred_oct.shape, f0_err_vals.shape, f0_pred.shape)
     return f0_pred
 
 
