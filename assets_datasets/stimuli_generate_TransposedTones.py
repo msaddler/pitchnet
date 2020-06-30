@@ -12,8 +12,14 @@ sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDat
 from dataset_util import initialize_hdf5_file, write_example_to_hdf5
 
 
-def get_Oxenham2004_transposed_tone(f_carrier, f_envelope, fs=32000, dur=0.150, buffer_dur=1.0,
-                                    dBSPL=70.0, offset_start=True, lowpass_filter_envelope=True):
+def get_Oxenham2004_transposed_tone(f_carrier,
+                                    f_envelope,
+                                    fs=32000,
+                                    dur=0.150,
+                                    buffer_dur=1.0,
+                                    dBSPL=70.0,
+                                    offset_start=True,
+                                    lowpass_filter_envelope=True):
     '''
     Returns a transposed tone with specified carrier and envelope frequencies
     as described by Oxenham et al. (2004, PNAS). If `f_carrier` is set to 0,
@@ -59,10 +65,18 @@ def get_Oxenham2004_transposed_tone(f_carrier, f_envelope, fs=32000, dur=0.150, 
     return signal
 
 
-def generate_Oxenham2004_dataset(hdf5_filename, fs=32000, dur=0.150, buffer_dur=1.0,
-                                 dBSPL=70.0, offset_start=True, lowpass_filter_envelope=True,
-                                 list_f_carrier = [0.0, 4000.0, 6350.0, 10080.0],
-                                 f0_min=80.0, f0_max=320., step_size_in_octaves=1/(12*16*16),
+def generate_Oxenham2004_dataset(hdf5_filename,
+                                 fs=32000,
+                                 dur=0.150,
+                                 buffer_dur=1.0,
+                                 dBSPL=70.0,
+                                 offset_start=True,
+                                 lowpass_filter_envelope=True,
+                                 list_f_carrier=[0.0, 4000.0, 6350.0, 10080.0],
+                                 f0_min=80.0,
+                                 f0_max=320.,
+                                 step_size_in_octaves=1/(12*16*16),
+                                 noise_params={'dBHzSPL':15.0, 'attenuation_start':600.0, 'attenuation_slope':2.0},
                                  disp_step=100):
     '''
     Main routine for generating Oxenham et al. (2004, PNAS) transposed tone dataset.
@@ -100,6 +114,11 @@ def generate_Oxenham2004_dataset(hdf5_filename, fs=32000, dur=0.150, buffer_dur=
                 'f_envelope': np.float32(f_envelope),
                 'f_carrier': np.float32(f_carrier),
             }
+            # If noise_params is specified, add UMNm
+            if noise_params:
+                noise = util_stimuli.modified_uniform_masking_noise(fs, dur, **noise_params)
+                signal_in_noise = y + noise
+                data_dict['stimuli/signal_in_noise'] = signal_in_noise.astype(np.float32)
             # Initialize output hdf5 dataset on first iteration
             if itrN == 0:
                 print('[INITIALIZING]: {}'.format(hdf5_filename))
