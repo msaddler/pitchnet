@@ -8,7 +8,7 @@
 #SBATCH --time=2-24:00:00
 ##SBATCH --time-min=0-24:00:00
 #SBATCH --exclude=node[001-030,080]
-#SBATCH --array=0-29
+#SBATCH --array=0-49
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --requeue
@@ -34,7 +34,7 @@
 
 source_regex='/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to320Hz_v02/*.hdf5'
 dest_filename='/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to320Hz_v02/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
-jobs_per_source_file=30
+jobs_per_source_file=50
 
 # source_regex='/om/user/msaddler/data_pitchnet/moore1985/Moore1985_MistunedHarmonics_v01/*.hdf5'
 # dest_filename='/om/user/msaddler/data_pitchnet/moore1985/Moore1985_MistunedHarmonics_v01/sr2000_cf1000_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates.hdf5'
@@ -61,7 +61,7 @@ python -u nervegram_run_parallel.py \
 -lpfo '7' \
 -sks 'stimuli/signal_in_noise' \
 -sksr 'sr' \
--mrsr '2000.0' \
+-mrsr '20000.0' \
 -spont 'H'
 
 # python -u nervegram_run_parallel.py \
