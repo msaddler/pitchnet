@@ -88,7 +88,7 @@ def combine_subjects(subject_data, kwargs_bootstrap={}):
     '''
     if kwargs_bootstrap:
         # If kwargs_bootstrap is specified, compute mean and
-        # standard deviation from bootstrapped subject data
+        # standard deviation of bootstrapped subject data
         yval, yerr = bootstrap(subject_data, **kwargs_bootstrap)
     else:
         # Default behavior is to compute mean and standard error
@@ -113,7 +113,7 @@ def make_bernox_threshold_plot(ax, results_dict_input,
                                xlimits=[0, 33],
                                ylimits=[1e-1, 1e2],
                                kwargs_legend={},
-                               kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'median'}):
+                               kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'mean'}):
     '''
     Function for plotting Bernstein & Oxenham (2005) experiment results:
     F0 discrimination thresholds as a function of lowest harmonic number.
@@ -123,34 +123,36 @@ def make_bernox_threshold_plot(ax, results_dict_input,
         f0dls = np.array(results_dict['f0dl'])
         if threshold_cap is not None:
             f0dls[f0dls > threshold_cap] = threshold_cap
-        results_dict['f0dl'] = f0dls
-        if 'f0dl_err' not in results_dict.keys():
-            results_dict['f0dl_err'] = [0] * len(results_dict['f0dl'])
+        results_dict['log10_f0dl'] = np.log10(f0dls)
+        if 'f0dl_err' in results_dict.keys():
+            results_dict['log10_f0dl_err'] = np.log10(np.array(results_dict['f0dl_err']))
+        else:
+            results_dict['log10_f0dl_err'] = np.zeros_like(results_dict['log10_f0dl'])
     elif isinstance(results_dict_input, list):
         f0dls = np.array([rd['f0dl'] for rd in results_dict_input])
         if threshold_cap is not None:
             f0dls[f0dls > threshold_cap] = threshold_cap
-        yval, yerr = combine_subjects(f0dls, kwargs_bootstrap=kwargs_bootstrap)
+        yval, yerr = combine_subjects(np.log10(f0dls), kwargs_bootstrap=kwargs_bootstrap)
         results_dict = {
             'phase_mode': results_dict_input[0]['phase_mode'],
             'low_harm': results_dict_input[0]['low_harm'],
-            'f0dl': yval,
-            'f0dl_err': yerr,
+            'log10_f0dl': yval,
+            'log10_f0dl_err': yerr,
         }
     else:
         raise ValueError("INVALID results_dict_input")
     
     phase_mode_list = np.array(results_dict['phase_mode'])
     low_harm_list = np.array(results_dict['low_harm'])
-    f0dl_list = np.array(results_dict['f0dl'])
-    f0dl_err_list = np.array(results_dict['f0dl_err'])
+    log10_f0dl_list = np.array(results_dict['log10_f0dl'])
+    log10_f0dl_err_list = np.array(results_dict['log10_f0dl_err'])
     unique_phase_modes = np.flip(np.unique(phase_mode_list))
     if restrict_conditions is not None:
         unique_phase_modes = restrict_conditions
     for phase_mode in unique_phase_modes:
         xval = low_harm_list[phase_mode_list == phase_mode]
-        yval = f0dl_list[phase_mode_list == phase_mode]
-        yerr = f0dl_err_list[phase_mode_list == phase_mode]
+        log10_yval = log10_f0dl_list[phase_mode_list == phase_mode]
+        log10_yerr = log10_f0dl_err_list[phase_mode_list == phase_mode]
         if phase_mode == 0:
             plot_kwargs = {'label': 'SINE', 'color': 'k',
                            'ls':'-', 'lw':2, 'marker':''}
@@ -165,11 +167,12 @@ def make_bernox_threshold_plot(ax, results_dict_input,
             plot_kwargs.update(rand_plot_kwargs)
         if not legend_on: plot_kwargs['label'] = None
         if include_yerr:
-            yerr_min = yval / (1+yerr/yval)
-            yerr_max = yval * (1+yerr/yval)
-            ax.fill_between(xval, yerr_min, yerr_max, alpha=0.15,
+            ax.fill_between(xval,
+                            np.power(10.0, log10_yval - 2*log10_yerr),
+                            np.power(10.0, log10_yval + 2*log10_yerr),
+                            alpha=0.15,
                             facecolor=plot_kwargs.get('color', 'k'))
-        ax.plot(xval, yval, **plot_kwargs)
+        ax.plot(xval, np.power(10.0, log10_yval), **plot_kwargs)
     
     ax = util_figures.format_axes(ax,
                                   str_xlabel='Lowest harmonic number',
@@ -251,7 +254,7 @@ def make_TT_threshold_plot(ax, results_dict_input,
             for idx, f0_ref_value in enumerate(PT_f0_ref):
                 COLLAPSE_IDX = np.logical_and(f_carrier > 0.0, f0_ref == f0_ref_value)
                 TT_f0_ref[idx] = f0_ref_value
-                TT_f0dl[idx] = np.mean(f0dl[COLLAPSE_IDX])
+                TT_f0dl[idx] = np.power(10.0, np.mean(np.log10(f0dl[COLLAPSE_IDX])))
             results_dict['f_carrier'] = np.concatenate([PT_f_carrier, TT_f_carrier], axis=0)
             results_dict['f0_ref'] = np.concatenate([PT_f0_ref, TT_f0_ref], axis=0)
             results_dict['f0dl'] = np.concatenate([PT_f0dl, TT_f0dl], axis=0)
@@ -263,34 +266,36 @@ def make_TT_threshold_plot(ax, results_dict_input,
         f0dls = np.array(results_dict['f0dl'])
         if threshold_cap is not None:
             f0dls[f0dls > threshold_cap] = threshold_cap
-        results_dict['f0dl'] = f0dls
-        if 'f0dl_err' not in results_dict.keys():
-            results_dict['f0dl_err'] = [0] * len(results_dict['f0dl'])
+        results_dict['log10_f0dl'] = np.log10(f0dls)
+        if 'f0dl_err' in results_dict.keys():
+            results_dict['log10_f0dl_err'] = np.log10(np.array(results_dict['f0dl_err']))
+        else:
+            results_dict['log10_f0dl_err'] = np.zeros_like(results_dict['log10_f0dl'])
     elif isinstance(results_dict_input, list):
         f0dls = np.array([rd['f0dl'] for rd in results_dict_input])
         if threshold_cap is not None:
             f0dls[f0dls > threshold_cap] = threshold_cap
-        yval, yerr = combine_subjects(f0dls, kwargs_bootstrap=kwargs_bootstrap)
+        yval, yerr = combine_subjects(np.log10(f0dls), kwargs_bootstrap=kwargs_bootstrap)
         results_dict = {
             'f0_ref': results_dict_input[0]['f0_ref'],
             'f_carrier': results_dict_input[0]['f_carrier'],
-            'f0dl': yval,
-            'f0dl_err': yerr,
+            'log10_f0dl': yval,
+            'log10_f0dl_err': yerr,
         }
     else:
         raise ValueError("INVALID results_dict_input")
     
     f0_ref = np.array(results_dict['f0_ref'])
     f_carrier_list = np.array(results_dict['f_carrier'])
-    f0dl_list = np.array(results_dict['f0dl'])
-    f0dl_err_list = np.array(results_dict['f0dl_err'])
+    log10_f0dl_list = np.array(results_dict['log10_f0dl'])
+    log10_f0dl_err_list = np.array(results_dict['log10_f0dl_err'])
     unique_f_carrier_list = np.flip(np.unique(f_carrier_list))
     if restrict_conditions is not None:
         unique_f_carrier_list = restrict_conditions
     for f_carrier in unique_f_carrier_list:
         xval = f0_ref[f_carrier_list == f_carrier]
-        yval = f0dl_list[f_carrier_list == f_carrier]
-        yerr = f0dl_err_list[f_carrier_list == f_carrier]
+        log10_yval = log10_f0dl_list[f_carrier_list == f_carrier]
+        log10_yerr = log10_f0dl_err_list[f_carrier_list == f_carrier]
         if f_carrier == 0.0:
             label = 'Pure tones'
             plot_kwargs = {'label': label, 'color': 'k', 'ls':'-', 'lw':2, 'ms':8,
@@ -306,19 +311,12 @@ def make_TT_threshold_plot(ax, results_dict_input,
         if not legend_on: plot_kwargs['label'] = None
         plot_kwargs.update(plot_kwargs_update)
         if include_yerr:
-            yerr_min = yval / (1+yerr/yval)
-            yerr_max = yval * (1+yerr/yval)
-            ax.fill_between(xval, yerr_min, yerr_max, alpha=0.15,
+            ax.fill_between(xval,
+                            np.power(10.0, log10_yval - 2*log10_yerr),
+                            np.power(10.0, log10_yval + 2*log10_yerr),
+                            alpha=0.15,
                             facecolor=plot_kwargs.get('color', 'k'))
-#             errorbar_kwargs = {
-#                 'yerr': np.stack([yval - yval / (1+yerr/yval), yval * (1+yerr/yval)-yval], axis=0),
-#                 'fmt': 'none',
-#                 'ecolor': 'k',
-#                 'elinewidth': 1,
-#                 'capsize': 3,
-#             }
-#             ax.errorbar(xval, yval, **errorbar_kwargs)
-        ax.plot(xval, yval, **plot_kwargs)
+        ax.plot(xval, np.power(10.0, log10_yval), **plot_kwargs)
     
     ax = util_figures.format_axes(ax,
                                   str_xlabel='Frequency (Hz)',
