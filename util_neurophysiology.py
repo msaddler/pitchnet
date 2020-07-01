@@ -8,6 +8,9 @@ import tensorflow as tf
 
 import pitchnet_evaluate_best
 
+sys.path.append('/om2/user/msaddler/pitchnet/assets_psychophysics')
+import util_figures_psychophysics
+
 sys.path.append('/om2/user/msaddler/python-packages/msutil')
 import util_figures
 import util_misc
@@ -304,6 +307,7 @@ def make_1d_tuning_plot(ax,
                         random_seed=32,
                         kwargs_plot_update={},
                         kwargs_legend_update={},
+                        kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'mean'},
                         **kwargs_format_axes):
     '''
     '''
@@ -328,8 +332,8 @@ def make_1d_tuning_plot(ax,
                 yval_tmp = yval_tmp[:, IDX[:n_subsample]]
             yval_list.append(np.mean(yval_tmp, axis=1))
         yval_list = np.stack(yval_list, axis=0)
-        yval = np.mean(yval_list, axis=0)
-        yerr = np.std(yval_list, axis=0) / np.sqrt(yval_list.shape[0])
+        yval, yerr = util_figures_psychophysics.combine_subjects(yval_list,
+                                                                 kwargs_bootstrap=kwargs_bootstrap)
         kwargs_plot = {
             'label': key_condition,
             'color': color_list[cidx],
@@ -339,9 +343,10 @@ def make_1d_tuning_plot(ax,
         }
         kwargs_plot.update(kwargs_plot_update)
         if include_yerr:
-            yerr_min = yval - yerr
-            yerr_max = yval + yerr
-            ax.fill_between(xval, yerr_min, yerr_max, alpha=0.15,
+            ax.fill_between(xval,
+                            yval-2*yerr,
+                            yval+2*yerr,
+                            alpha=0.15,
                             facecolor=kwargs_plot.get('color', 'k'))
         ax.plot(xval, yval, **kwargs_plot)
     
