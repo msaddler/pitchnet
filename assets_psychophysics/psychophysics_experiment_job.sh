@@ -46,7 +46,7 @@ singularity exec --nv \
 -B /om4 \
 /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
 python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_transposed_tones.py \
--r "${OUTDIR_REGEX}/${EFN_PREFIX}oxenham2004_080to320Hz_bestckpt.json" \
+-r "${OUTDIR_REGEX}/${EFN_PREFIX}oxenham2004_080to320Hz_v01_bestckpt.json" \
 -p ${PRIOR_RANGE} \
 -j ${job_idx}
 

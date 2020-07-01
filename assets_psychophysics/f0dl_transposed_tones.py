@@ -183,20 +183,20 @@ if __name__ == "__main__":
     print('Processing file: {}'.format(json_eval_fn))
     
     if parsed_args_dict['prior_range_in_octaves'] > 0:
-#         kwargs_f0_prior = {
-#             'f0_label_prob_key': 'f0_label:probs_out',
-#             'f0_prior_ref_key': 'nearest_f0_ref',
-#             'octave_range': [
-#                 -parsed_args_dict['prior_range_in_octaves'],
-#                 parsed_args_dict['prior_range_in_octaves']
-#             ],
-#         }
         kwargs_f0_prior = {
             'f0_label_prob_key': 'f0_label:probs_out',
-            'f0_prior_ref_key': 'f0',
-            'octave_range': [-5, 5],
-            'use_octave_folding_prior': True
+            'f0_prior_ref_key': 'nearest_f0_ref',
+            'octave_range': [
+                -parsed_args_dict['prior_range_in_octaves'],
+                parsed_args_dict['prior_range_in_octaves']
+            ],
         }
+#         kwargs_f0_prior = {
+#             'f0_label_prob_key': 'f0_label:probs_out',
+#             'f0_prior_ref_key': 'f0',
+#             'octave_range': [-5, 5],
+#             'use_octave_folding_prior': True
+#         }
     else:
         kwargs_f0_prior = {}
     
