@@ -8,7 +8,7 @@
 #SBATCH --time=24:00:00
 ##SBATCH --time-min=0-24:00:00
 #SBATCH --exclude=node[001-030,080]
-#SBATCH --array=0-24
+#SBATCH --array=0-9
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --requeue
@@ -32,10 +32,6 @@
 # dest_filename='/om/user/msaddler/data_pitchnet/mcpherson2020/testSPL_v01_f0min080_f0max320_dBSPLmin000_dBSPLmax120/sr2000_cf1000_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates.hdf5'
 # jobs_per_source_file=60
 
-source_regex='/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to320Hz_v01/*.hdf5'
-dest_filename='/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to320Hz_v01/sr20000_cf100_species002_spont1eN1_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
-jobs_per_source_file=25
-
 # source_regex='/om/user/msaddler/data_pitchnet/moore1985/Moore1985_MistunedHarmonics_v01/*.hdf5'
 # dest_filename='/om/user/msaddler/data_pitchnet/moore1985/Moore1985_MistunedHarmonics_v01/sr2000_cf1000_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates.hdf5'
 # jobs_per_source_file=60
@@ -43,6 +39,11 @@ jobs_per_source_file=25
 # source_regex='/om/user/msaddler/data_pitchnet/neurophysiology/bernox2005_SlidingFixedFilter_lharm01to30_phase0_f0min080_f0max320/*.hdf5'
 # dest_filename='/om/user/msaddler/data_pitchnet/neurophysiology/bernox2005_SlidingFixedFilter_lharm01to30_phase0_f0min080_f0max320/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
 # jobs_per_source_file=15
+
+source_regex='/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to320Hz_v01/*.hdf5'
+dest_filename='/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to320Hz_v01/sr20000_cf100_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates.hdf5'
+jobs_per_source_file=10
+
 
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
@@ -57,12 +58,12 @@ python -u nervegram_run_parallel.py \
 -j ${job_idx} \
 -jps ${jobs_per_source_file} \
 -bwsf '1.0' \
--lpf '3000.0' \
+-lpf '50.0' \
 -lpfo '7' \
 -sks 'stimuli/signal_in_noise' \
 -sksr 'sr' \
 -mrsr '20000.0' \
--spont 'L'
+-spont 'H'
 
 # python -u nervegram_run_parallel.py \
 # -s "${source_regex}" \
