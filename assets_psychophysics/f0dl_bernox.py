@@ -210,7 +210,7 @@ def filter_expt_dict(expt_dict, filter_dict={'phase_mode': 0}):
 def add_f0_judgments_to_expt_dict(expt_dict,
                                   f0_true_key='f0',
                                   f0_pred_key='f0_pred',
-                                  max_pct_diff=6.0,
+                                  max_pct_diff=100/6,
                                   noise_stdev=1e-12):
     '''
     Function simulates f0 discrimination experiment given a list of true and predicted f0s.
@@ -317,7 +317,7 @@ def parallel_run_f0dl_experiment(par_idx,
                                  expt_dict,
                                  unique_phase_mode_list,
                                  unique_low_harm_list,
-                                 max_pct_diff=6.0,
+                                 max_pct_diff=100/6,
                                  noise_stdev=1e-12,
                                  bin_width=5e-2,
                                  mu=0.0,
@@ -383,7 +383,7 @@ def parallel_run_f0dl_experiment(par_idx,
 
 
 def run_f0dl_experiment(json_fn,
-                        max_pct_diff=6.0,
+                        max_pct_diff=100/6,
                         noise_stdev=1e-12,
                         bin_width=5e-2,
                         mu=0.0,
@@ -542,7 +542,7 @@ def compute_confusion_matrices(json_fn, f0_label_true_key='f0_label:labels_true'
 def main(json_eval_fn,
          json_results_dict_fn=None,
          save_results_to_file=False,
-         max_pct_diff=6.0,
+         max_pct_diff=100/6,
          bin_width=5e-2,
          use_empirical_f0dl_if_possible=False,
          f0_label_true_key='f0_label:labels_true',

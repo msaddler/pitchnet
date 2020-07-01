@@ -1294,7 +1294,7 @@ def make_f0dl_threshold_plot(ax, results_dict_input,
             'fmt': 'none',
             'ecolor': plot_kwargs.get('color', 'k'),
             'elinewidth': plot_kwargs.get('lw', 2),
-            'capsize': 1.25*plot_kwargs.get('lw', 2),
+            'capsize': 1.2*plot_kwargs.get('lw', 2),
         }
         ax.errorbar(xval, np.power(10.0, log10_yval), **errorbar_kwargs)
         
