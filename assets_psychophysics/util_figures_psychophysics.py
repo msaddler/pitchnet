@@ -1248,31 +1248,33 @@ def make_f0dl_threshold_plot(ax, results_dict_input,
         f0dls = np.array(results_dict['f0dl'])
         if threshold_cap is not None:
             f0dls[f0dls > threshold_cap] = threshold_cap
-        results_dict['f0dl'] = f0dls
-        if 'f0dl_err' not in results_dict.keys():
-            results_dict['f0dl_err'] = [0] * len(results_dict['f0dl'])
+        results_dict['log10_f0dl'] = np.log10(f0dls)
+        if 'f0dl_err' in results_dict.keys():
+            results_dict['log10_f0dl_err'] = np.log10(np.array(results_dict['f0dl_err']))
+        else:
+            results_dict['log10_f0dl_err'] = np.zeros_like(results_dict['log10_f0dl'])
     elif isinstance(results_dict_input, list):
         f0dls = np.array([rd['f0dl'] for rd in results_dict_input])
         if threshold_cap is not None:
             f0dls[f0dls > threshold_cap] = threshold_cap
-        yval, yerr = combine_subjects(f0dls, kwargs_bootstrap=kwargs_bootstrap)
+        yval, yerr = combine_subjects(np.log10(f0dls), kwargs_bootstrap=kwargs_bootstrap)
         results_dict = {
             key_xval: results_dict_input[0][key_xval],
-            'f0dl': yval,
-            'f0dl_err': yerr,
+            'log10_f0dl': yval,
+            'log10_f0dl_err': yerr,
         }
     else:
         raise ValueError("INVALID results_dict_input")
     
     xval = np.array(results_dict[key_xval])
-    yval = np.array(results_dict['f0dl'])
-    yerr = np.array(results_dict['f0dl_err'])
+    log10_yval = np.array(results_dict['log10_f0dl'])
+    log10_yerr = np.array(results_dict['log10_f0dl_err'])
     
     if xlimits is not None:
         IDX = np.logical_and(xval >= xlimits[0], xval <= xlimits[1])
         xval = xval[IDX]
-        yval = yval[IDX]
-        yerr = yerr[IDX]
+        log10_yval = log10_yval[IDX]
+        log10_yerr = log10_yerr[IDX]
     
     plot_kwargs = {
         'color': 'k',
@@ -1285,22 +1287,23 @@ def make_f0dl_threshold_plot(ax, results_dict_input,
         plot_kwargs['label'] = None
     if include_yerr:
         errorbar_kwargs = {
-            'yerr': [yval - yval / (1+yerr/yval), yval * (1+yerr/yval) - yval],
+            'yerr': [
+                np.power(10.0, log10_yval) - np.power(10.0, log10_yval-2*log10_yerr),
+                np.power(10.0, log10_yval+2*log10_yerr) - np.power(10.0, log10_yval)
+            ],
             'fmt': 'none',
             'ecolor': plot_kwargs.get('color', 'k'),
             'elinewidth': plot_kwargs.get('lw', 2),
-            'capsize': 1.5*plot_kwargs.get('lw', 2),
+            'capsize': 1.25*plot_kwargs.get('lw', 2),
         }
-        ax.errorbar(xval, yval, **errorbar_kwargs)
+        ax.errorbar(xval, np.power(10.0, log10_yval), **errorbar_kwargs)
         
-        yerr_min = yval / (1+yerr/yval)
-        yerr_max = yval * (1+yerr/yval)
         ax.fill_between(xval,
-                        yerr_min,
-                        yerr_max,
+                        np.power(10.0, log10_yval-2*log10_yerr),
+                        np.power(10.0, log10_yval+2*log10_yerr),
                         alpha=0.15,
                         facecolor=plot_kwargs.get('color', 'k'))
-    ax.plot(xval, yval, **plot_kwargs)
+    ax.plot(xval, np.power(10.0, log10_yval), **plot_kwargs)
     
     ax = util_figures.format_axes(ax,
                                   str_xlabel=str_xlabel,
