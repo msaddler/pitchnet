@@ -33,7 +33,7 @@
 # jobs_per_source_file=60
 
 source_regex='/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to320Hz_v01/*.hdf5'
-dest_filename='/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to320Hz_v01/sr20000_cf100_species002_spont070_BW10eN1_IHC9000Hz_IHC7order/bez2018meanrates.hdf5'
+dest_filename='/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to320Hz_v01/sr20000_cf100_species002_spont070_BW05eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
 jobs_per_source_file=25
 
 # source_regex='/om/user/msaddler/data_pitchnet/moore1985/Moore1985_MistunedHarmonics_v01/*.hdf5'
@@ -56,8 +56,8 @@ python -u nervegram_run_parallel.py \
 -d "${dest_filename}" \
 -j ${job_idx} \
 -jps ${jobs_per_source_file} \
--bwsf '1.0' \
--lpf '9000.0' \
+-bwsf '0.5' \
+-lpf '3000.0' \
 -lpfo '7' \
 -sks 'stimuli/signal_in_noise' \
 -sksr 'sr' \
