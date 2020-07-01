@@ -5,10 +5,10 @@
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=5000
 #SBATCH --nodes=1
-#SBATCH --time=2-24:00:00
+#SBATCH --time=24:00:00
 ##SBATCH --time-min=0-24:00:00
 #SBATCH --exclude=node[001-030,080]
-#SBATCH --array=0-49
+#SBATCH --array=0-24
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --requeue
@@ -33,8 +33,8 @@
 # jobs_per_source_file=60
 
 source_regex='/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to320Hz_v01/*.hdf5'
-dest_filename='/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to320Hz_v01/sr2000_cf1000_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates.hdf5'
-jobs_per_source_file=50
+dest_filename='/om/user/msaddler/data_pitchnet/oxenham2004/Oxenham2004_transposedTones_f0_080to320Hz_v01/sr20000_cf100_species002_spont070_BW10eN1_IHC9000Hz_IHC7order/bez2018meanrates.hdf5'
+jobs_per_source_file=25
 
 # source_regex='/om/user/msaddler/data_pitchnet/moore1985/Moore1985_MistunedHarmonics_v01/*.hdf5'
 # dest_filename='/om/user/msaddler/data_pitchnet/moore1985/Moore1985_MistunedHarmonics_v01/sr2000_cf1000_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates.hdf5'
@@ -57,11 +57,11 @@ python -u nervegram_run_parallel.py \
 -j ${job_idx} \
 -jps ${jobs_per_source_file} \
 -bwsf '1.0' \
--lpf '50.0' \
+-lpf '9000.0' \
 -lpfo '7' \
 -sks 'stimuli/signal_in_noise' \
 -sksr 'sr' \
--mrsr '2000.0' \
+-mrsr '20000.0' \
 -spont 'H'
 
 # python -u nervegram_run_parallel.py \
