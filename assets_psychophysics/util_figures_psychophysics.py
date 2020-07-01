@@ -168,8 +168,8 @@ def make_bernox_threshold_plot(ax, results_dict_input,
         if not legend_on: plot_kwargs['label'] = None
         if include_yerr:
             ax.fill_between(xval,
-                            np.power(10.0, log10_yval - 2*log10_yerr),
-                            np.power(10.0, log10_yval + 2*log10_yerr),
+                            np.power(10.0, log10_yval-2*log10_yerr),
+                            np.power(10.0, log10_yval+2*log10_yerr),
                             alpha=0.15,
                             facecolor=plot_kwargs.get('color', 'k'))
         ax.plot(xval, np.power(10.0, log10_yval), **plot_kwargs)
@@ -226,7 +226,7 @@ def make_TT_threshold_plot(ax, results_dict_input,
                            xlimits=[40, 360],
                            ylimits=[1e-1, 1e2],
                            kwargs_legend={},
-                           kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'median'},
+                           kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'mean'},
                            collapse_transposed_tones=True):
     '''
     Function for plotting transposed tones discrimination experiment results:
@@ -312,8 +312,8 @@ def make_TT_threshold_plot(ax, results_dict_input,
         plot_kwargs.update(plot_kwargs_update)
         if include_yerr:
             ax.fill_between(xval,
-                            np.power(10.0, log10_yval - 2*log10_yerr),
-                            np.power(10.0, log10_yval + 2*log10_yerr),
+                            np.power(10.0, log10_yval-2*log10_yerr),
+                            np.power(10.0, log10_yval+2*log10_yerr),
                             alpha=0.15,
                             facecolor=plot_kwargs.get('color', 'k'))
         ax.plot(xval, np.power(10.0, log10_yval), **plot_kwargs)
@@ -385,7 +385,7 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
                                    xlimits=[-1, 25],
                                    ylimits=[-4, 12],
                                    kwargs_legend={},
-                                   kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'median'}):
+                                   kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'mean'}):
     '''
     Function for plotting frequency-shifted complexes experiment results:
     F0 shift as a function of frequency shift.
@@ -439,7 +439,10 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
         plot_kwargs.update(plot_kwargs_update)
         if not legend_on: plot_kwargs['label'] = None
         if include_yerr:
-            ax.fill_between(xval, yval-yerr, yval+yerr, alpha=0.15,
+            ax.fill_between(xval,
+                            yval-2*yerr,
+                            yval+2*yerr,
+                            alpha=0.15,
                             facecolor=plot_kwargs['color'])
         ax.plot(xval, yval, **plot_kwargs)
     
@@ -502,7 +505,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
                                       ylimits=[-0.1, 1.1],
                                       cmap_name='coolwarm',
                                       kwargs_legend={},
-                                      kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'median'}):
+                                      kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'mean'}):
     '''
     Function for plotting mistuned harmonics experiment results:
     F0 shift bar graph for a given mistuning percent.
@@ -563,7 +566,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
         }
         if not legend_on: plot_kwargs['label'] = None
         if include_yerr:
-            plot_kwargs['yerr'] = yerr
+            plot_kwargs['yerr'] = 2*yerr
             plot_kwargs['error_kw'] = {'ecolor': 'k', 'elinewidth':1, 'capsize':1}
         ax.bar(xval, yval, **plot_kwargs)
     
@@ -632,7 +635,7 @@ def make_mistuned_harmonics_line_graph(ax, results_dict_input,
                                        ylimits=[-0.05, 1.05],
                                        cmap_name='coolwarm',
                                        kwargs_legend={},
-                                       kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'median'}):
+                                       kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'mean'}):
     '''
     '''
     if pitch_shift_err_key is None: pitch_shift_err_key = pitch_shift_key + '_err'
@@ -710,15 +713,13 @@ def make_mistuned_harmonics_line_graph(ax, results_dict_input,
         }
         if include_yerr:
             errorbar_kwargs = {
-                'yerr': yerr,
+                'yerr': 2*yerr,
                 'fmt': 'none',
                 'ecolor': 'k',
                 'elinewidth': 1,
                 'capsize': 3,
             }
             ax.errorbar(xval, yval, **errorbar_kwargs)
-#             ax.fill_between(xval, yval-yerr, yval+yerr, alpha=0.15,
-#                             facecolor=color_list[cidx])
         ax.plot(xval, yval, **plot_kwargs)
     if ylimits is None:
         buffer_ylim = 0.1
@@ -783,7 +784,7 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
                                       ylimits=None,
                                       cmap_name='coolwarm',
                                       kwargs_legend={},
-                                      kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'median'}):
+                                      kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'mean'}):
     '''
     Function for plotting mistuned harmonics experiment results:
     F0 shift as a function of percent mistuning.
@@ -841,7 +842,10 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
         plot_kwargs.update(plot_kwargs_update)
         if not legend_on: plot_kwargs['label'] = None
         if include_yerr:
-            ax.fill_between(xval, yval-yerr, yval+yerr, alpha=0.15,
+            ax.fill_between(xval,
+                            yval-2*yerr,
+                            yval+2*yerr,
+                            alpha=0.15,
                             facecolor=plot_kwargs.get('color', color_list[cidx]))
         ax.plot(xval, yval, **plot_kwargs)
     
@@ -913,7 +917,7 @@ def make_altphase_line_plot(ax, results_dict_input,
                             xlimits=[62.5*0.9, 250*1.1],
                             ylimits=[-1.1, 1.1],
                             kwargs_legend={},
-                            kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'median'}):
+                            kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'mean'}):
     '''
     Function for plotting alternating phase experiment results:
     fraction of 2*F0 - 1*F0 judgments as a function of F0 for
@@ -960,7 +964,10 @@ def make_altphase_line_plot(ax, results_dict_input,
         plot_kwargs.update(plot_kwargs_update)
         if not legend_on: plot_kwargs['label'] = None
         if include_yerr:
-            ax.fill_between(xval, yval-yerr, yval+yerr, alpha=0.15,
+            ax.fill_between(xval,
+                            yval-2*yerr,
+                            yval+2*yerr,
+                            alpha=0.15,
                             facecolor=plot_kwargs['color'])
         ax.plot(xval, yval, **plot_kwargs)
     
@@ -1231,7 +1238,7 @@ def make_f0dl_threshold_plot(ax, results_dict_input,
                              xticks=None,
                              xticks_minor=None,
                              kwargs_legend={},
-                             kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'median'}):
+                             kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'mean'}):
     '''
     Function for plotting generic F0 discrimination experiment results:
     F0 discrimination thresholds as a function of value specified by `key_xval`.
