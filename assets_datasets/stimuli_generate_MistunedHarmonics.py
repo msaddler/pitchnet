@@ -25,6 +25,7 @@ def generate_MistunedHarmonics_dataset(hdf5_filename,
                                        harmonic_dBSPL=60.0,
                                        list_mistuned_pct=[-8, -6, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6, 8],
                                        list_mistuned_harm=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+                                       noise_params={},
                                        disp_step=100):
     '''
     Main routine for generating Moore et al. (1985, JASA) mistuned harmonics dataset.
@@ -83,6 +84,11 @@ def generate_MistunedHarmonics_dataset(hdf5_filename,
                     'mistuned_harm': int(mistuned_harm),
                     'mistuned_pct': np.float32(mistuned_pct),
                 }
+                # If noise_params is specified, add UMNm
+                if noise_params:
+                    noise = util_stimuli.modified_uniform_masking_noise(fs, dur, **noise_params)
+                    signal_in_noise = signal + noise
+                    data_dict['stimuli/signal_in_noise'] = signal_in_noise.astype(np.float32)
                 # Initialize output hdf5 dataset on first iteration
                 if itrN == 0:
                     print('[INITIALIZING]: {}'.format(hdf5_filename))
@@ -107,4 +113,5 @@ if __name__ == "__main__":
     assert len(sys.argv) == 2, "scipt usage: python <script_name> <hdf5_filename>"
     hdf5_filename = str(sys.argv[1])
     
-    generate_MistunedHarmonics_dataset(hdf5_filename)
+    generate_MistunedHarmonics_dataset(hdf5_filename,
+                                       noise_params={'dBHzSPL':15.0, 'attenuation_start':600.0, 'attenuation_slope':2.0})
