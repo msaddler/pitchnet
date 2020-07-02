@@ -227,39 +227,23 @@ def make_TT_threshold_plot(ax, results_dict_input,
                            ylimits=[1e-1, 1e2],
                            kwargs_legend={},
                            kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'mean'},
-                           collapse_transposed_tones=True):
+                           combine_transposedtones=True):
     '''
     Function for plotting transposed tones discrimination experiment results:
     F0 discrimination thresholds as a function of frequency.
     '''
-    if collapse_transposed_tones:
+    if combine_transposedtones:
         # F0 discrimination thresholds will be averaged across transposed tones
         # with different carrier frequencies
-        collapsed_results_dict_input = []
+        tmp_results_dict_input = []
         if isinstance(results_dict_input, dict):
             results_dict_input = [results_dict_input]
         for results_dict in results_dict_input:
-            results_dict = copy.deepcopy(results_dict)
-            f_carrier = np.array(results_dict['f_carrier'])
-            f0dl = np.array(results_dict['f0dl'])
-            f0_ref = np.array(results_dict['f0_ref'])
-            if threshold_cap is not None:
-                f0dl[f0dl > threshold_cap] = threshold_cap
-            PT_f_carrier = f_carrier[f_carrier == 0.0]
-            PT_f0_ref = f0_ref[f_carrier == 0.0]
-            PT_f0dl = f0dl[f_carrier == 0.0]
-            TT_f_carrier = np.ones_like(PT_f_carrier)
-            TT_f0_ref = np.zeros_like(PT_f0_ref)
-            TT_f0dl = np.zeros_like(PT_f0dl)
-            for idx, f0_ref_value in enumerate(PT_f0_ref):
-                COLLAPSE_IDX = np.logical_and(f_carrier > 0.0, f0_ref == f0_ref_value)
-                TT_f0_ref[idx] = f0_ref_value
-                TT_f0dl[idx] = np.power(10.0, np.mean(np.log10(f0dl[COLLAPSE_IDX])))
-            results_dict['f_carrier'] = np.concatenate([PT_f_carrier, TT_f_carrier], axis=0)
-            results_dict['f0_ref'] = np.concatenate([PT_f0_ref, TT_f0_ref], axis=0)
-            results_dict['f0dl'] = np.concatenate([PT_f0dl, TT_f0dl], axis=0)
-            collapsed_results_dict_input.append(results_dict)
-        results_dict_input = collapsed_results_dict_input
+            tmp_rd = util_human_model_comparison.combine_transposedtones_thresholds(
+                results_dict,
+                threshold_cap=threshold_cap)
+            tmp_results_dict_input.append(tmp_rd)
+        results_dict_input = tmp_results_dict_input
     
     if isinstance(results_dict_input, dict):
         results_dict = copy.deepcopy(results_dict_input)

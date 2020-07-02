@@ -459,6 +459,32 @@ def get_altphase_histogram_results_dict(results_dict,
     return histogram_results_dict
 
 
+def combine_transposedtones_thresholds(results_dict,
+                                       threshold_cap=100.0):
+    '''
+    '''
+    results_dict = copy.deepcopy(results_dict)
+    f_carrier = np.array(results_dict['f_carrier'])
+    f0dl = np.array(results_dict['f0dl'])
+    f0_ref = np.array(results_dict['f0_ref'])
+    if threshold_cap is not None:
+        f0dl[f0dl > threshold_cap] = threshold_cap
+    PT_f_carrier = f_carrier[f_carrier == 0.0]
+    PT_f0_ref = f0_ref[f_carrier == 0.0]
+    PT_f0dl = f0dl[f_carrier == 0.0]
+    TT_f_carrier = np.ones_like(PT_f_carrier)
+    TT_f0_ref = np.zeros_like(PT_f0_ref)
+    TT_f0dl = np.zeros_like(PT_f0dl)
+    for idx, f0_ref_value in enumerate(PT_f0_ref):
+        COLLAPSE_IDX = np.logical_and(f_carrier > 0.0, f0_ref == f0_ref_value)
+        TT_f0_ref[idx] = f0_ref_value
+        TT_f0dl[idx] = np.power(10.0, np.mean(np.log10(f0dl[COLLAPSE_IDX])))
+    results_dict['f_carrier'] = np.concatenate([PT_f_carrier, TT_f_carrier], axis=0)
+    results_dict['f0dl'] = np.concatenate([PT_f0dl, TT_f0dl], axis=0)
+    results_dict['f0_ref'] = np.concatenate([PT_f0_ref, TT_f0_ref], axis=0)
+    return results_dict
+
+
 def interpolate_data(xvals,
                      yvals,
                      interp_xvals,
@@ -503,7 +529,7 @@ def compare_bernox2005(human_results_dict,
                        model_results_dict,
                        extrapolate_lowest_harm=True,
                        kwargs_interp={},
-                       kwargs_compare={'log_scale':True}):
+                       kwargs_compare={'log_scale':True, 'metric':'pearsonr'}):
     '''
     '''
     human_phase_mode_list = np.array(human_results_dict['phase_mode'])
@@ -546,7 +572,7 @@ def compare_bernox2005(human_results_dict,
 def compare_transposedtones(human_results_dict,
                             model_results_dict,
                             kwargs_interp={},
-                            kwargs_compare={'log_scale':True}):
+                            kwargs_compare={'log_scale':True, 'metric':'pearsonr'}):
     '''
     '''
     human_f_carrier_list = np.array(human_results_dict['f_carrier'])
@@ -587,7 +613,7 @@ def compare_freqshiftedcomplexes(human_results_dict,
                                  pitch_shift_key='f0_pred_shift_median',
                                  restrict_conditions=['5', '11', '16'],
                                  kwargs_interp={},
-                                 kwargs_compare={'log_scale':False}):
+                                 kwargs_compare={'log_scale':False, 'metric':'pearsonr'}):
     '''
     '''
     human_conditions = human_results_dict['spectral_envelope_centered_harmonic'].keys()
@@ -627,9 +653,9 @@ def compare_freqshiftedcomplexes(human_results_dict,
 def compare_mistunedharmonics(human_results_dict,
                               model_results_dict,
                               pitch_shift_key='f0_pred_pct_median',
-                              restrict_conditions_f0=None,
-                              restrict_conditions_harm=None,
-                              kwargs_compare={'log_scale':False}):
+                              restrict_conditions_f0=[100.0, 200.0, 400.0],
+                              restrict_conditions_harm=[1, 2, 3, 4, 5, 6, 12],
+                              kwargs_compare={'log_scale':False, 'metric':'pearsonr'}):
     '''
     '''
     conditions_f0_human = set(human_results_dict['f0_ref_list'])
@@ -706,7 +732,7 @@ def compare_altphasecomplexes_hist(human_results_dict,
                                    restrict_conditions_filter=[125.0, 1375.0, 3900.0],
                                    restrict_conditions_f0=[125.0, 250.0],
                                    kwargs_histogram={},
-                                   kwargs_compare={'log_scale':False}):
+                                   kwargs_compare={'log_scale':False, 'metric':'pearsonr'}):
     '''
     '''
     human_hist_results_dict = get_altphase_histogram_results_dict(human_results_dict,
@@ -727,6 +753,7 @@ def compare_altphasecomplexes_hist(human_results_dict,
     model_bin_heights_array = model_hist_results_dict['bin_heights_array']
     
     list_histogram_comparison_metric = []
+    list_histogram_comparison_metric_pval = []
     for f0_val in restrict_conditions_f0:
         for filter_val in restrict_conditions_filter:
             idx_human = np.logical_and(human_f0_conditions==f0_val, human_filter_conditions==filter_val)
@@ -740,9 +767,8 @@ def compare_altphasecomplexes_hist(human_results_dict,
             idx = list(idx_human).index(True)
             human_dist = human_bin_heights_array[idx] / np.sum(human_bin_heights_array[idx])
             model_dist = model_bin_heights_array[idx] / np.sum(model_bin_heights_array[idx])
-            comparison_metric = compare_human_model_data(human_dist, model_dist, **kwargs_compare)
-            if len(np.array(comparison_metric).reshape([-1])) > 1:
-                comparison_metric = comparison_metric[0]
+            comparison_metric, pval = compare_human_model_data(human_dist, model_dist, **kwargs_compare)
             list_histogram_comparison_metric.append(comparison_metric)
+            list_histogram_comparison_metric_pval.append(pval)
     
-    return np.mean(list_histogram_comparison_metric)
+    return np.mean(list_histogram_comparison_metric), np.max(list_histogram_comparison_metric_pval)
