@@ -318,6 +318,7 @@ def make_1d_tuning_plot(ax,
         restrict_conditions = sorted(results_dict_input[0].keys())
     
     color_list = util_figures.get_color_list(len(restrict_conditions), 'copper')
+    DATA = {}
     for cidx, key_condition in enumerate(restrict_conditions):
         yval_list = []
         for results_dict in results_dict_input:
@@ -332,6 +333,10 @@ def make_1d_tuning_plot(ax,
                 yval_tmp = yval_tmp[:, IDX[:n_subsample]]
             yval_list.append(np.mean(yval_tmp, axis=1))
         yval_list = np.stack(yval_list, axis=0)
+        DATA[key_condition] = {
+            '{}_bins'.format(key_dim0): xval,
+            '{}_tuning_mean'.format(key_dim0): yval_list,
+        }
         yval, yerr = util_figures_psychophysics.combine_subjects(yval_list,
                                                                  kwargs_bootstrap=kwargs_bootstrap)
         kwargs_plot = {
@@ -365,7 +370,7 @@ def make_1d_tuning_plot(ax,
         legobj.set_linewidth(8.0)
     
     ax = util_figures.format_axes(ax, **kwargs_format_axes)
-    return ax
+    return ax, DATA
 
 
 def make_low_harm_tuning_plot(ax, results_dict_input, **kwargs):
@@ -381,8 +386,8 @@ def make_low_harm_tuning_plot(ax, results_dict_input, **kwargs):
         'xticks_minor': np.arange(0, 31, 1),
     }
     kwargs_make_1d_tuning_plot.update(kwargs)
-    ax = make_1d_tuning_plot(ax, results_dict_input, **kwargs_make_1d_tuning_plot)
-    return ax
+    ax, DATA = make_1d_tuning_plot(ax, results_dict_input, **kwargs_make_1d_tuning_plot)
+    return ax, DATA
 
 
 def make_f0_tuning_plot(ax, results_dict_input, **kwargs):
@@ -408,8 +413,8 @@ def make_f0_tuning_plot(ax, results_dict_input, **kwargs):
         'xticklabels': xticklabels,
     }
     kwargs_make_1d_tuning_plot.update(kwargs)
-    ax = make_1d_tuning_plot(ax, results_dict_input, **kwargs_make_1d_tuning_plot)
-    return ax
+    ax, DATA = make_1d_tuning_plot(ax, results_dict_input, **kwargs_make_1d_tuning_plot)
+    return ax, DATA
 
 
 def make_octave_tuning_plot(ax, results_dict_input, **kwargs):
@@ -424,8 +429,8 @@ def make_octave_tuning_plot(ax, results_dict_input, **kwargs):
         'ylimits': [0, 1],
     }
     kwargs_make_1d_tuning_plot.update(kwargs)
-    ax = make_1d_tuning_plot(ax, results_dict_input, **kwargs_make_1d_tuning_plot)
-    return ax
+    ax, DATA = make_1d_tuning_plot(ax, results_dict_input, **kwargs_make_1d_tuning_plot)
+    return ax, DATA
 
 
 if __name__ == "__main__":
