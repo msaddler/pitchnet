@@ -529,6 +529,7 @@ def compare_human_model_data(results_vector_human,
 def compare_bernox2005(human_results_dict,
                        model_results_dict,
                        threshold_cap=100.0,
+                       restrict_phase_modes=None,
                        extrapolate_lowest_harm=True,
                        kwargs_interp={},
                        kwargs_compare={'log_scale':True, 'metric':'pearsonr'}):
@@ -555,6 +556,8 @@ def compare_bernox2005(human_results_dict,
     
     results_vector_human = []
     results_vector_model = []
+    if restrict_phase_modes is not None:
+        unique_phase_modes = restrict_phase_modes
     for phase_mode in unique_phase_modes:
         human_low_harm = np.array(human_results_dict['low_harm'])[human_phase_mode_list == phase_mode]
         human_f0dl = np.array(human_results_dict['f0dl'])[human_phase_mode_list == phase_mode]
