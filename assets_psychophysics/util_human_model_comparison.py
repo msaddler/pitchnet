@@ -8,6 +8,7 @@ import scipy.interpolate
 import scipy.stats
 import scipy.spatial.distance
 import copy
+import util_figures_psychophysics
 
 
 def get_human_results_dict_bernox2005(average_conditions=True):
@@ -527,11 +528,26 @@ def compare_human_model_data(results_vector_human,
 
 def compare_bernox2005(human_results_dict,
                        model_results_dict,
+                       threshold_cap=100.0,
                        extrapolate_lowest_harm=True,
                        kwargs_interp={},
                        kwargs_compare={'log_scale':True, 'metric':'pearsonr'}):
     '''
     '''
+    if isinstance(model_results_dict, list):
+        print('model_results_dict is a list --> comparing human results to combined model results')
+        f0dls = np.array([rd['f0dl'] for rd in model_results_dict])
+        if threshold_cap is not None:
+            f0dls[f0dls > threshold_cap] = threshold_cap
+        mean_log10_f0dl, err_log10_f0dl = util_figures_psychophysics.combine_subjects(np.log10(f0dls))
+        combined_model_results_dict = {
+            'phase_mode': model_results_dict[0]['phase_mode'],
+            'low_harm': model_results_dict[0]['low_harm'],
+            'f0dl': np.power(10.0, mean_log10_f0dl),
+            'f0dl_err': np.power(10.0, err_log10_f0dl),
+        }
+        model_results_dict = combined_model_results_dict
+    
     human_phase_mode_list = np.array(human_results_dict['phase_mode'])
     model_phase_mode_list = np.array(model_results_dict['phase_mode'])
     assert np.array_equal(np.unique(human_phase_mode_list), np.unique(model_phase_mode_list))
@@ -544,6 +560,8 @@ def compare_bernox2005(human_results_dict,
         human_f0dl = np.array(human_results_dict['f0dl'])[human_phase_mode_list == phase_mode]
         model_low_harm = np.array(model_results_dict['low_harm'])[model_phase_mode_list == phase_mode]
         model_f0dl = np.array(model_results_dict['f0dl'])[model_phase_mode_list == phase_mode]
+        if threshold_cap is not None:
+            model_f0dl[model_f0dl > threshold_cap] = threshold_cap
         
         if extrapolate_lowest_harm:
             lowest_harm_index = np.argmin(human_low_harm)
@@ -571,6 +589,7 @@ def compare_bernox2005(human_results_dict,
 
 def compare_transposedtones(human_results_dict,
                             model_results_dict,
+                            threshold_cap=100.0,
                             kwargs_interp={},
                             kwargs_compare={'log_scale':True, 'metric':'pearsonr'}):
     '''
@@ -587,6 +606,8 @@ def compare_transposedtones(human_results_dict,
         human_f0dl = np.array(human_results_dict['f0dl'])[human_f_carrier_list == f_carrier]
         model_f0_ref = np.array(model_results_dict['f0_ref'])[model_f_carrier_list == f_carrier]
         model_f0dl = np.array(model_results_dict['f0dl'])[model_f_carrier_list == f_carrier]
+        if threshold_cap is not None:
+            model_f0dl[model_f0dl > threshold_cap] = threshold_cap
         
         interp_human_f0_ref, interp_human_f0dl = interpolate_data(human_f0_ref,
                                                                   human_f0dl,
