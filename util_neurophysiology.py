@@ -5,6 +5,7 @@ import glob
 import copy
 import numpy as np
 import tensorflow as tf
+import matplotlib.pyplot as plt
 
 import pitchnet_evaluate_best
 
@@ -371,6 +372,62 @@ def make_1d_tuning_plot(ax,
     
     ax = util_figures.format_axes(ax, **kwargs_format_axes)
     return ax, DATA
+
+
+def make_2d_tuning_plot(ax,
+                        results_dict,
+                        key_act='relu_4',
+                        key_dim0='low_harm',
+                        key_dim1='f0_label',
+                        key_dim0_label='low_harm',
+                        key_dim1_label='f0',
+                        unit_idx=None,
+                        num_ticks_dim0=5,
+                        num_ticks_dim1=5,
+                        kwargs_plot_update={},
+                        kwargs_legend_update={},
+                        **kwargs_format_axes):
+    '''
+    '''
+    if isinstance(results_dict, list):
+        print('Expected non-list input (using only first entry)')
+        results_dict = results_dict[0]
+    dim0_bins = np.array(results_dict[key_act]['{}_bins'.format(key_dim0)])
+    dim1_bins = np.array(results_dict[key_act]['{}_bins'.format(key_dim1)])
+    if key_dim0_label is not None:
+        dim0_labels = np.array(results_dict[key_act]['{}_bins'.format(key_dim0_label)])
+    else:
+        dim0_labels = dim0_bins
+    if key_dim1_label is not None:
+        dim1_labels = np.array(results_dict[key_act]['{}_bins'.format(key_dim1_label)])
+    else:
+        dim1_labels = dim1_bins
+    tuning_mean = np.array(results_dict[key_act]['{}_{}_tuning_mean'.format(key_dim0, key_dim1)])
+    if unit_idx is None:
+        unit_idx = np.random.randint(0, tuning_mean.shape[-1], dtype=int)
+        print('Randomly selected unit_idx={}'.format(unit_idx))
+    # Plot 2d tuning array for a single unit
+    im_data = tuning_mean[:, :, unit_idx].T
+    IMG = ax.imshow(im_data,
+                    origin=(0,0),
+                    aspect='auto',
+                    extent=[0, im_data.shape[1], 0, im_data.shape[0]],
+                    cmap=plt.cm.gray)
+    # Format axes
+    dim0_ticks = np.linspace(0, dim0_bins.shape[0]-1, num=num_ticks_dim0, dtype=int)
+    dim0_ticklabels = ['{:.0f}'.format(dim0_labels[tick]) for tick in dim0_ticks]
+    dim1_ticks = np.linspace(0, dim1_bins.shape[0]-1, num=num_ticks_dim1, dtype=int)
+    dim1_ticklabels = ['{:.0f}'.format(dim1_labels[tick]) for tick in dim1_ticks]
+    kwargs = {
+        'xticks': dim0_ticks,
+        'yticks': dim1_ticks,
+        'xticklabels': dim0_ticklabels,
+        'yticklabels': dim1_ticklabels,
+
+    }
+    kwargs.update(kwargs_format_axes)
+    ax = util_figures.format_axes(ax, **kwargs)
+    return ax, IMG
 
 
 def make_low_harm_tuning_plot(ax, results_dict_input, **kwargs):
