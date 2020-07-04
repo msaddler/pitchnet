@@ -435,7 +435,7 @@ def make_low_harm_tuning_plot(ax, results_dict_input, **kwargs):
     '''
     kwargs_make_1d_tuning_plot = {
         'key_dim0': 'low_harm',
-        'str_xlabel': 'Lowest harmonic nuumber',
+        'str_xlabel': 'Lowest harmonic number',
         'str_ylabel': 'Mean activation\n(normalized)',
         'xlimits': [0, 31],
         'ylimits': [0, 1],
