@@ -10,6 +10,9 @@ import scipy.spatial.distance
 import copy
 import util_figures_psychophysics
 
+sys.path.append('/om2/user/msaddler/python-packages/msutil')
+import util_figures
+
 
 def get_human_results_dict_bernox2005(average_conditions=True):
     '''
@@ -796,3 +799,129 @@ def compare_altphasecomplexes_hist(human_results_dict,
             list_histogram_comparison_metric_pval.append(pval)
     
     return np.mean(list_histogram_comparison_metric), np.max(list_histogram_comparison_metric_pval)
+
+
+def make_human_model_comparison_plot(ax,
+                                     list_validation_metric,
+                                     list_comparison_metric,
+                                     list_accent_indexes=None,
+                                     list_accent_kwargs_plot=None,
+                                     fontsize_title=12,
+                                     fontsize_labels=12,
+                                     fontsize_legend=12,
+                                     fontsize_ticks=12,
+                                     xlimits=[0, 25.5],
+                                     ylimits=[-0.8, 1.1]):
+    '''
+    '''
+    xvals = 100.0 * np.array(list_validation_metric)
+    yvals = np.array(list_comparison_metric)
+#     correlation, pvalue = scipy.stats.spearmanr(xvals, yvals)
+#     label = r"Spearman's $\rho$ = {:+.2f}".format(correlation)
+    correlation, pvalue = scipy.stats.pearsonr(xvals, yvals)
+#     label = r"Pearson's $r$ = {:+.2f}".format(correlation)
+    label = r"$r$={:+.2f}, $p$={:.0E}".format(correlation, pvalue)
+    print(correlation, pvalue)
+    
+    xticks = np.arange(xlimits[0], xlimits[1], 5)
+    xticklabels = ['{:.0f}%'.format(t) for t in xticks]
+    
+    kwargs_plot = {
+        'ls': '',
+        'alpha': 0.5,
+        'color': 'k',
+        'marker': 'o',
+        'markerfacecolor': 'k',
+        'mew': 0,
+        'markersize': 3,
+    }
+    if list_accent_indexes is None:
+        m, b = np.polyfit(xvals, yvals, 1)
+        ax.plot(np.array(xlimits),
+                m*np.array(xlimits)+b,
+                marker='',
+                lw=2.0,
+                color=[0.75]*3)
+        ax.plot(xvals, yvals, label=label, **kwargs_plot)
+        ax.legend(loc='lower right',
+                  borderpad=0.4,
+                  borderaxespad=0.5,
+                  handletextpad=0,
+                  markerscale=0,
+                  handlelength=0,
+                  frameon=True,
+                  fontsize=fontsize_legend,
+                  framealpha=0.75,
+                  facecolor=[0.75]*3,
+                  edgecolor=[0.75]*3)
+    else:
+        if not isinstance(list_accent_indexes, list):
+            list_accent_indexes = [list_accent_indexes]
+        for accent_indexes, accent_kwargs_plot in zip(list_accent_indexes, list_accent_kwargs_plot):
+            color = accent_kwargs_plot.get('color', 'k')
+            markersize = accent_kwargs_plot.get('markersize', 3.0)
+            kwargs_plot.update({
+                'color': color,
+                'alpha': accent_kwargs_plot.get('alpha', 1.0),
+                'marker': 'o',
+                'markerfacecolor': color,
+                'mew': 0,
+                'markersize': markersize,
+            })
+            accent_xvals = xvals[accent_indexes]
+            accent_yvals = yvals[accent_indexes]
+            ax.plot(accent_xvals, accent_yvals, **kwargs_plot)
+            
+            kwargs_bootstrap = {'bootstrap_repeats': 1000, 'metric_function': 'median'}
+            xmed, xerr = util_figures_psychophysics.bootstrap(accent_xvals, **kwargs_bootstrap)
+            ymed, yerr = util_figures_psychophysics.bootstrap(accent_yvals, **kwargs_bootstrap)
+            print('med=({},{}), err=({},{})'.format(xmed,ymed, xerr, yerr))
+            kwargs_errorbar = {
+                'xerr': 2*xerr,
+                'yerr': 2*yerr,
+                'color': color,
+                'markeredgecolor': color,
+                'markerfacecolor': 'w',
+                'marker': 'D',
+                'ms': 6.0,
+                'mew': 1.0,
+                'elinewidth': 1.0,
+                'capsize': 3.0,
+                'capthick': 1.0,
+                'zorder': 999,
+                'label': accent_kwargs_plot.get('label', None),
+            }
+            ax.errorbar(xmed, ymed, **kwargs_errorbar)
+    
+        ax.legend(loc='lower right',
+                  borderpad=0.4,
+                  borderaxespad=0.5,
+                  handletextpad=1.0,
+                  markerscale=1.0,
+                  handlelength=1.0,
+                  frameon=True,
+                  fontsize=fontsize_legend,
+                  framealpha=0.75,
+                  facecolor=[0.75]*3,
+                  edgecolor=[0.75]*3)
+    
+    ax = util_figures.format_axes(ax,
+                                  str_xlabel='Model performance (valid acc.)',
+                                  str_ylabel="Human-model similarity\n(Pearson's $r$)",
+                                  fontsize_labels=fontsize_labels,
+                                  fontsize_ticks=fontsize_ticks,
+                                  fontweight_labels=None,
+                                  xscale='linear',
+                                  yscale='linear',
+                                  xlimits=xlimits,
+                                  ylimits=ylimits,
+                                  xticks=xticks,
+                                  yticks=None,
+                                  xticks_minor=None,
+                                  yticks_minor=None,
+                                  xticklabels=xticklabels,
+                                  yticklabels=None,
+                                  spines_to_hide=[],
+                                  major_tick_params_kwargs_update={},
+                                  minor_tick_params_kwargs_update={})
+    return ax
