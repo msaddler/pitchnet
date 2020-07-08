@@ -817,9 +817,7 @@ def make_human_model_comparison_plot(ax,
     xvals = 100.0 * np.array(list_validation_metric)
     yvals = np.array(list_comparison_metric)
 #     correlation, pvalue = scipy.stats.spearmanr(xvals, yvals)
-#     label = r"Spearman's $\rho$ = {:+.2f}".format(correlation)
     correlation, pvalue = scipy.stats.pearsonr(xvals, yvals)
-#     label = r"Pearson's $r$ = {:+.2f}".format(correlation)
     label = r"$r$={:+.2f}, $p$={:.0E}".format(correlation, pvalue)
     print(correlation, pvalue)
     
@@ -881,7 +879,7 @@ def make_human_model_comparison_plot(ax,
                 'yerr': 2*yerr,
                 'color': color,
                 'markeredgecolor': color,
-                'markerfacecolor': 'w',
+                'markerfacecolor': [0,1,0],
                 'marker': 'D',
                 'ms': 6.0,
                 'mew': 1.0,
