@@ -215,7 +215,7 @@ def generate_fixed_bandpass_filter_dataset(hdf5_filename,
         for phase_mode_int in list_unique_phase:
             # Iterate over jitter_mode and define `get_jitter_pattern` function
             for jitter_mode in list_unique_jitter:
-                if (jitter_mode is None) or (jitter_mode.lower == 'harmonic'):
+                if (jitter_mode is None) or (jitter_mode.lower() == 'harmonic'):
                     def get_jitter_pattern():
                         return None
                 elif jitter_mode.lower() == 'inharmonic_fixed':
@@ -295,7 +295,6 @@ def generate_fixed_bandpass_filter_dataset(hdf5_filename,
                                               data_dict['low_harm'],
                                               data_dict['bandpass_fl'],
                                               data_dict['jitter_mode']))
-                        print(data_dict['jitter_pattern'])
                     itrN += 1
     # Close hdf5 file
     hdf5_f.close()
@@ -336,7 +335,7 @@ if __name__ == "__main__":
                                            fs=20e3,
                                            dur=2e0,
                                            phase_modes=['sine'],
-                                           jitter_modes=[None, 'inharmonic_fixed', 'inharmonic_changing'],
+                                           jitter_modes=['harmonic', 'inharmonic_fixed', 'inharmonic_changing'],
                                            bandpass_fl_min=6e1,
                                            bandpass_fl_max=6e3,
                                            bandpass_fl_num=500,
