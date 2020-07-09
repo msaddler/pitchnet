@@ -149,9 +149,11 @@ def generate_fixed_bandpass_filter_dataset(hdf5_filename,
     '''
     # Set numpy random seed
     np.random.seed(random_seed)
-    # Define encoding / decoding dictionaries for phase_mode
+    # Define encoding / decoding dictionaries for mode integers
     phase_mode_encoding = {'sine':0, 'rand':1, 'sch':2, 'cos':3, 'alt':4}
     phase_mode_decoding = {0:'sine', 1:'rand', 2:'sch', 3:'cos', 4:'alt'}
+    jitter_mode_encoding = {None:0, 'harmonic':0, 'inharmonic_fixed':1, 'inharmonic_changing':2}
+    jitter_mode_decoding = {0:'harmonic', 1:'inharmonic_fixed', 2:'inharmonic_changing'}
     # Define lists of unique phase modes and jitter modes
     list_unique_phase = np.array([phase_mode_encoding[p] for p in phase_modes])
     list_unique_jitter = np.array(jitter_modes)
@@ -213,14 +215,19 @@ def generate_fixed_bandpass_filter_dataset(hdf5_filename,
         for phase_mode_int in list_unique_phase:
             # Iterate over jitter_mode and define `get_jitter_pattern` function
             for jitter_mode in list_unique_jitter:
-                if jitter_mode is None:
-                    get_jitter_pattern = lambda: None
-                elif jitter_mode.lower() == 'fixed':
-                    jitter_pattern = np.random.uniform(low=-0.5,
-                                                       high=0.5,
-                                                       size=[max_num_harm])
+                if (jitter_mode is None) or (jitter_mode.lower == 'harmonic'):
+                    def get_jitter_pattern():
+                        return None
+                elif jitter_mode.lower() == 'inharmonic_fixed':
+                    jitter_pattern = np.random.uniform(low=-0.5, high=0.5, size=[max_num_harm])
                     jitter_pattern[0] = 0
-                    get_jitter_pattern = lambda: jitter_pattern
+                    def get_jitter_pattern():
+                        return jitter_pattern
+                elif jitter_mode.lower() == 'inharmonic_changing':
+                    def get_jitter_pattern():
+                        jitter_pattern = np.random.uniform(low=-0.5, high=0.5, size=[max_num_harm])
+                        jitter_pattern[0] = 0
+                        return jitter_pattern
                 else:
                     msg = "Unrecognized jitter_mode: `{}` (not yet implemented)"
                     raise ValueError(msg.format(jitter_mode))
@@ -260,6 +267,7 @@ def generate_fixed_bandpass_filter_dataset(hdf5_filename,
                     data_dict['max_audible_harm'] = int(np.max(audible_harmonic_numbers))
                     data_dict['bandpass_fl'] = fl
                     data_dict['bandpass_fh'] = fh
+                    data_dict['jitter_mode'] = int(jitter_mode_encoding[jitter_mode])
                     data_dict['jitter_pattern'] = jitter_pattern.astype(np.float32)
                     # Initialize the hdf5 file on the first iteration
                     if itrN == 0:
@@ -280,7 +288,14 @@ def generate_fixed_bandpass_filter_dataset(hdf5_filename,
                                           itrN,
                                           data_key_pair_list=data_key_pair_list)
                     if itrN % disp_step == 0:
-                        print('... signal {} of {}'.format(itrN, N))
+                        disp_str = '... signal {} of {} (f0={}, phase_mode={}, low_harm={}, bandpass_fl={}, jitter_mode={})'
+                        print(disp_str.format(itrN, N,
+                                              data_dict['f0'],
+                                              data_dict['phase_mode'],
+                                              data_dict['low_harm'],
+                                              data_dict['bandpass_fl'],
+                                              data_dict['jitter_mode']))
+                        print(data_dict['jitter_pattern'])
                     itrN += 1
     # Close hdf5 file
     hdf5_f.close()
@@ -321,16 +336,16 @@ if __name__ == "__main__":
                                            fs=20e3,
                                            dur=2e0,
                                            phase_modes=['sine'],
-                                           jitter_modes=[None, 'fixed'],
+                                           jitter_modes=[None, 'inharmonic_fixed', 'inharmonic_changing'],
                                            bandpass_fl_min=6e1,
                                            bandpass_fl_max=6e3,
-                                           bandpass_fl_num=100,
+                                           bandpass_fl_num=500,
                                            bandpass_fl_spacing='linear',
                                            bandpass_filter_bw=2e3,
                                            bandpass_filter_order=4,
                                            f0_min=80.0,
-                                           f0_max=320.0,
-                                           f0_step=1.001,
+                                           f0_max=640.0,
+                                           f0_step=1.005,
                                            threshold_dBSPL=33.3,
                                            component_dBSL=15.0,
                                            noise_dBHzSPL=15.0,
