@@ -156,10 +156,10 @@ def store_network_activations(output_directory,
         print('[___', hdf5_f[k])
     
     hdf5_f.close()
-    return fn_activations
+    return
 
 
-def store_network_2d_tuning(fn_input,
+def store_network_tuning_2d(fn_input,
                             fn_output,
                             key_dim0='low_harm',
                             key_dim1='f0',
@@ -571,51 +571,30 @@ def make_octave_tuning_plot(ax, results_dict_input, **kwargs):
 
 if __name__ == "__main__":
     ''' TEMPORARY COMMAND-LINE USAGE '''
-    
-    def run_network_neurophysiology(output_dict):
-        '''
-        '''
-        results_dict = {}
-        for key in sorted(output_dict.keys()):
-            if ('relu' in key):
-                print('processing {}'.format(key))
-                tuning_dict = {}
-                tuning_dict = compute_f0_tuning_re_best(output_dict,
-                                                        key_act=key,
-                                                        tuning_dict=tuning_dict)
-                if 'low_harm' in output_dict.keys():
-                    tuning_dict = compute_1d_tuning(output_dict,
-                                                    key_act=key,
-                                                    key_dim0='low_harm',
-                                                    tuning_dict=tuning_dict)
-                    tuning_dict = compute_2d_tuning(output_dict,
-                                                    key_act=key,
-                                                    key_dim0='low_harm',
-                                                    key_dim1='f0_label',
-                                                    tuning_dict=tuning_dict)
-                results_dict[key] = copy.deepcopy(tuning_dict)
-        return results_dict
-    
-    
     assert len(sys.argv) == 2, "scipt usage: python <script_name> <output_directory_regex>"
     output_directory_regex = str(sys.argv[1])
     
     tfrecords_regex = '/om/user/msaddler/data_pitchnet/neurophysiology/bernox2005_SlidingFixedFilter_lharm01to30_phase0_f0min080_f0max320/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/*.tfrecords'
     output_directory_list = sorted(glob.glob(output_directory_regex))
+    
     print('output_directory_list:')
     for output_directory in output_directory_list:
         print('<> {}'.format(output_directory))
     
     for output_directory in output_directory_list:
         print('\n\n\nSTART: {}'.format(output_directory))
-        get_network_activations(output_directory,
-                                tfrecords_regex,
-                                fn_activations='NEUROPHYSIOLOGY_v01_bernox2005_activations.hdf5')
-
         
-#         results_dict = run_network_neurophysiology(output_dict)
-#         fn_results_dict = os.path.join(output_directory, 'NEUROPHYSIOLOGY_v01_bernox2005.json')
-#         print('\n\n\nWRITING: {}'.format(fn_results_dict))
-#         with open(fn_results_dict, 'w') as f:
-#             json.dump(results_dict, f, cls=util_misc.NumpyEncoder, sort_keys=True)
-#         print('WROTE: {}\n\n\n'.format(fn_results_dict))
+        fn_activations='NEUROPHYSIOLOGY_v01_bernox2005_activations.hdf5'
+        fn_activations = os.path.join(output_directory, fn_activations)
+        fn_tuning_2d = fn_activations.replace('.hdf5', '_tuning_low_harm_f0.hdf5')
+
+        if not os.path.exists(fn_activations):
+            store_network_activations(output_directory,
+                                      tfrecords_regex,
+                                      fn_activations=fn_activations)
+        store_network_tuning_2d(fn_activations,
+                                fn_tuning_2d,
+                                key_dim0='low_harm',
+                                key_dim1='f0',
+                                key_acts='relu')
+        
