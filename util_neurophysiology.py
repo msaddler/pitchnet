@@ -25,15 +25,15 @@ sys.path.append('ibmHearingAid/multi_gpu')
 import functions_graph_assembly as fga
 
 
-def get_network_activations(output_directory,
-                            tfrecords_regex,
-                            fn_activations='ACTIVATIONS.hdf5',
-                            fn_config='config.json',
-                            fn_valid_metrics='validation_metrics.json',
-                            metadata_keys=['f0', 'low_harm', 'phase_mode', 'snr'],
-                            maindata_keyparts=['relu'],
-                            batch_size=128,
-                            display_step=50):
+def store_network_activations(output_directory,
+                              tfrecords_regex,
+                              fn_activations='ACTIVATIONS.hdf5',
+                              fn_config='config.json',
+                              fn_valid_metrics='validation_metrics.json',
+                              metadata_keys=['f0', 'low_harm', 'phase_mode', 'snr'],
+                              maindata_keyparts=['relu'],
+                              batch_size=128,
+                              display_step=50):
     '''
     Evaluate network and return dictionary of activations and stimulus metadata.
     '''
@@ -157,6 +157,58 @@ def get_network_activations(output_directory,
     
     hdf5_f.close()
     return fn_activations
+
+
+def store_network_2d_tuning(fn_input,
+                            fn_output,
+                            key_dim0='low_harm',
+                            key_dim1='f0',
+                            key_acts='relu'):
+    '''
+    Take in hdf5 file of network activations, re-organize to illustrate tuning
+    of each units to two stimulus dimensions, store 2d tuning of each layer in
+    an output hdf5 file.
+    '''
+    f = h5py.File(fn_input, 'r')
+    unique_dim0, tuning_index_dim0 = np.unique(f[key_dim0][:], return_inverse=True)
+    unique_dim1, tuning_index_dim1 = np.unique(f[key_dim1][:], return_inverse=True)
+    
+    print('[INITIALIZING] {}'.format(fn_output))
+    f_output = h5py.File(fn_output, 'w')
+    f_output.create_dataset(key_dim0, unique_dim0.shape, dtype=unique_dim0.dtype, data=unique_dim0)
+    f_output.create_dataset(key_dim1, unique_dim1.shape, dtype=unique_dim1.dtype, data=unique_dim1)
+    print(key_dim0, f_output[key_dim0])
+    print(key_dim1, f_output[key_dim1])
+    
+    if isinstance(key_acts, str):
+        dataset_key_list = util_misc.get_hdf5_dataset_key_list(f)
+        key_acts = [k for k in dataset_key_list if key_acts in k]
+    
+    for k in key_acts:
+        activations = f[k][:].reshape([tuning_index_dim0.shape[0], -1])
+        shape = [activations.shape[-1], unique_dim0.shape[0], unique_dim1.shape[0]]
+        tuning_array = np.zeros(shape, dtype=activations.dtype)
+        print('... processing {} : {} --> {} --> {}'.format(
+            k, str(f[k].shape), str(activations.shape), str(tuning_array.shape)))
+        for idx_stim, (idx0, idx1) in enumerate(zip(tuning_index_dim0, tuning_index_dim1)):
+            tuning_array[:, idx0, idx1] = activations[idx_stim, :]
+        f_output.create_dataset(k,
+                                tuning_array.shape,
+                                dtype=tuning_array.dtype,
+                                data=tuning_array)
+        
+        population_tuning_array = np.mean(tuning_array, axis=0)
+        f_output.create_dataset(k + '_population_mean',
+                                population_tuning_array.shape,
+                                dtype=population_tuning_array.dtype,
+                                data=population_tuning_array)
+    
+    print('[END] {}'.format(fn_output))
+    for k in util_misc.get_hdf5_dataset_key_list(f_output):
+        print(k, f_output[k])
+    f.close()
+    f_output.close()
+    return
 
 
 def compute_1d_tuning(output_dict,
