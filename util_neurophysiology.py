@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import h5py
 import glob
 import copy
 import pdb
@@ -26,6 +27,7 @@ import functions_graph_assembly as fga
 
 def get_network_activations(output_directory,
                             tfrecords_regex,
+                            fn_activations='ACTIVATIONS.hdf5',
                             fn_config='config.json',
                             fn_valid_metrics='validation_metrics.json',
                             metadata_keys=['f0', 'low_harm', 'phase_mode', 'snr'],
@@ -37,12 +39,19 @@ def get_network_activations(output_directory,
     '''
     tf.reset_default_graph()
     
+    if fn_activations == os.path.basename(fn_activations):
+        fn_activations = os.path.join(output_directory, fn_activations)
     if fn_config == os.path.basename(fn_config):
         fn_config = os.path.join(output_directory, fn_config)
     if fn_valid_metrics == os.path.basename(fn_valid_metrics):
         fn_valid_metrics = os.path.join(output_directory, fn_valid_metrics)    
     with open(fn_config) as f:
         CONFIG = json.load(f)
+    
+    # Compute total number of examples from the tfrecords filenames
+    fn_last_tfrecords = sorted(glob.glob(tfrecords_regex))[-1]
+    fn_last_tfrecords = os.path.basename(fn_last_tfrecords)
+    N = int(fn_last_tfrecords[fn_last_tfrecords.rfind('-')+1:fn_last_tfrecords.rfind('.')])
     
     # Build input data pipeline
     ITERATOR_PARAMS = CONFIG['ITERATOR_PARAMS']
@@ -108,30 +117,46 @@ def get_network_activations(output_directory,
                 else:
                     tensors_to_evaluate[key] = brain_container[key]
                 break
-    output_dict = {}
-    for key in sorted(tensors_to_evaluate.keys()):
-        print('[START] output_dict[`{}`]'.format(key))
-        output_dict[key] = []
     
     # Main evaluation routine
     batch_count = 0
     try:
         while True:
             evaluated_batch = sess.run(tensors_to_evaluate)
-            for key in set(output_dict.keys()).intersection(evaluated_batch.keys()):
-                key_val = np.array(evaluated_batch[key]).tolist()
-                if not isinstance(key_val, list): key_val = [key_val]
-                output_dict[key].extend(key_val)
-            batch_count += 1
+            
+            if batch_count == 0:
+                print('[INITIALIZING]: {}'.format(fn_activations))
+                data_key_pair_list = [(k, k) for k in sorted(evaluated_batch.keys())]
+                data_dict = {k: evaluated_batch[k][0] for k in sorted(evaluated_batch.keys())}
+                dataset_util.initialize_hdf5_file(fn_activations,
+                                                  N,
+                                                  data_dict,
+                                                  file_mode='w',
+                                                  data_key_pair_list=data_key_pair_list,
+                                                  config_key_pair_list=[],
+                                                  fillvalue=-1)
+                hdf5_f = h5py.File(fn_activations, 'r+')
+                for k in sorted(evaluated_batch.keys()):
+                    print('[___', hdf5_f[k])
+            
+            for k in sorted(evaluated_batch.keys()):
+                idx_start = batch_count * batch_size
+                idx_end = idx_start + evaluated_batch[k].shape[0]
+                hdf5_f[k][idx_start:idx_end] = evaluated_batch[k]
+            
             if batch_count % display_step == 0:
-                print('Evaluation step: {}'.format(batch_count))
+                print('Evaluation step: {} (indexes {}-{})'.format(
+                    batch_count, idx_start, idx_end))
+            batch_count += 1
     except tf.errors.OutOfRangeError:
         print('End of evaluation dataset reached')
     
-    for key in sorted(output_dict.keys()):
-        output_dict[key] = np.array(output_dict[key])
-        print('[END] output_dict[`{}`]'.format(key), output_dict[key].shape)
-    return output_dict
+    print('[END]: {}'.format(fn_activations))
+    for k in sorted(evaluated_batch.keys()):
+        print('[___', hdf5_f[k])
+    
+    hdf5_f.close()
+    return fn_activations
 
 
 def compute_1d_tuning(output_dict,
@@ -531,13 +556,10 @@ if __name__ == "__main__":
     
     for output_directory in output_directory_list:
         print('\n\n\nSTART: {}'.format(output_directory))
-        output_dict = get_network_activations(output_directory, tfrecords_regex)
-        fn_output_dict = os.path.join(output_directory, 'NEUROPHYSIOLOGY_v00_bernox2005_activations.json')
-        
-        print('\n\n\nWRITING: {}'.format(fn_output_dict))
-        with open(fn_output_dict, 'w') as f:
-            json.dump(output_dict, f, cls=util_misc.NumpyEncoder, sort_keys=True)
-        print('WROTE: {}\n\n\n'.format(fn_output_dict))
+        get_network_activations(output_directory,
+                                tfrecords_regex,
+                                fn_activations='NEUROPHYSIOLOGY_v01_bernox2005_activations.hdf5')
+
         
 #         results_dict = run_network_neurophysiology(output_dict)
 #         fn_results_dict = os.path.join(output_directory, 'NEUROPHYSIOLOGY_v01_bernox2005.json')
