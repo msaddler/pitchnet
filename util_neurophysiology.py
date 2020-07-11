@@ -3,6 +3,7 @@ import sys
 import json
 import glob
 import copy
+import pdb
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
@@ -102,7 +103,8 @@ def get_network_activations(output_directory,
         for keypart in maindata_keyparts:
             if keypart in key:
                 if len(brain_container[key].shape) == 4:
-                    tensors_to_evaluate[key] = tf.reduce_mean(brain_container[key], axis=(1,2))
+                    # Average activations across the time-axis when present
+                    tensors_to_evaluate[key] = tf.reduce_mean(brain_container[key], axis=(2,))
                 else:
                     tensors_to_evaluate[key] = brain_container[key]
                 break
@@ -530,8 +532,16 @@ if __name__ == "__main__":
     for output_directory in output_directory_list:
         print('\n\n\nSTART: {}'.format(output_directory))
         output_dict = get_network_activations(output_directory, tfrecords_regex)
-        results_dict = run_network_neurophysiology(output_dict)
-        fn_results_dict = os.path.join(output_directory, 'NEUROPHYSIOLOGY_bernox2005.json')
-        with open(fn_results_dict, 'w') as f:
-            json.dump(results_dict, f, cls=util_misc.NumpyEncoder, sort_keys=True)
-        print('WROTE: {}\n\n\n'.format(fn_results_dict))
+        fn_output_dict = os.path.join(output_directory, 'NEUROPHYSIOLOGY_v00_bernox2005_activations.json')
+        
+        print('\n\n\nWRITING: {}'.format(fn_output_dict))
+        with open(fn_output_dict, 'w') as f:
+            json.dump(output_dict, f, cls=util_misc.NumpyEncoder, sort_keys=True)
+        print('WROTE: {}\n\n\n'.format(fn_output_dict))
+        
+#         results_dict = run_network_neurophysiology(output_dict)
+#         fn_results_dict = os.path.join(output_directory, 'NEUROPHYSIOLOGY_v01_bernox2005.json')
+#         print('\n\n\nWRITING: {}'.format(fn_results_dict))
+#         with open(fn_results_dict, 'w') as f:
+#             json.dump(results_dict, f, cls=util_misc.NumpyEncoder, sort_keys=True)
+#         print('WROTE: {}\n\n\n'.format(fn_results_dict))
