@@ -168,29 +168,31 @@ def store_network_tuning_results(fn_input,
     '''
     Functions takes input hdf5 file of network activations, re-organizes
     activations to quantify tuning of each unit to two stimulus dimensions,
-    and stores these tuning results in output hdf5 file.
+    and stores these tuning results in output hdf5 file. If `key_dim1` is
+    "key_dim1", then octave tuning (relative to best F0) is also computed
+    and stored.
     '''
-    f = h5py.File(fn_input, 'r')
+    # Add f0_label to input hdf5 file if needed
+    f = h5py.File(fn_input, 'r+')
     input_dataset_key_list = util_misc.get_hdf5_dataset_key_list(f)
-    
     if 'f0_label' in [key_dim0, key_dim1]:
         f0_bins = dataset_util.get_f0_bins(**kwargs_f0_bins)
         f0_label_list = dataset_util.f0_to_label(f['f0'][:], f0_bins)
         if 'f0_label' in input_dataset_key_list:
             f['f0_label'][:] = f0_label_list
         else:
-            f.close()
-            f = h5py.File(fn_input, 'r+')
             f.create_dataset('f0_label',
                              f0_label_list.shape,
                              dtype=f0_label_list.dtype,
                              data=f0_label_list)
-            f.close()
-            f = h5py.File(fn_input, 'r')        
+    f.close()
+    f = h5py.File(fn_input, 'r')        
     
+    # Compute unique values of stimulus dimensions
     unique_dim0, tuning_index_dim0 = np.unique(f[key_dim0][:], return_inverse=True)
     unique_dim1, tuning_index_dim1 = np.unique(f[key_dim1][:], return_inverse=True)
     
+    # Initialize output hdf5 file
     print('[INITIALIZING] {}'.format(fn_output))
     f_output = h5py.File(fn_output, 'w')
     f_output.create_dataset(key_dim0, unique_dim0.shape, dtype=unique_dim0.dtype, data=unique_dim0)
@@ -201,9 +203,9 @@ def store_network_tuning_results(fn_input,
         f_output.create_dataset('f0_bins', f0_bins.shape, dtype=f0_bins.dtype, data=f0_bins)
         print('f0_bins', f_output['f0_bins'])
     
+    # Iterate over activation keys and compute tuning to stimulus dimensions
     if isinstance(key_acts, str):
         key_acts = [k for k in input_dataset_key_list if key_acts in k]
-    
     for k in key_acts:
         activations = f[k][:].reshape([tuning_index_dim0.shape[0], -1])
         shape = [activations.shape[-1], unique_dim0.shape[0], unique_dim1.shape[0]]
@@ -225,6 +227,41 @@ def store_network_tuning_results(fn_input,
                                 population_tuning_array.shape,
                                 dtype=population_tuning_array.dtype,
                                 data=population_tuning_array)
+        
+        # If key_dim1 == "f0_label", compute and store octave tuning
+        if key_dim1 == 'f0_label':
+            f0_label_list = f_output['f0_label'][:]
+            f0_bins_used = f_output['f0_bins'][f0_label_list.min() : f0_label_list.max()+1]
+            octave_max = np.log2(f0_bins_used[-1] / f0_bins_used[0])
+            octave_bins = np.linspace(-octave_max, octave_max, 2*f0_bins_used.shape[0]-1)
+            shape = [tuning_array.shape[0], octave_bins.shape[0]]
+            octave_tuning_array = np.zeros(shape, dtype=tuning_array.dtype)
+            octave_tuning_count = np.zeros(shape, dtype=tuning_array.dtype)
+            print('... computing octave tuning', octave_bins.shape, octave_tuning_array.shape)
+            f0_tuning_array = np.mean(tuning_array, axis=1)
+            best_f0_indexes = np.argmax(f0_tuning_array, axis=1)
+            best_octave_index = f0_bins_used.shape[0] - 1
+            for index_unit, best_f0_bin_index in enumerate(best_f0_indexes):
+                idx_start = best_octave_index - best_f0_bin_index
+                idx_end = idx_start + f0_bins_used.shape[0]
+                octave_tuning_array[index_unit, idx_start:idx_end] = f0_tuning_array[index_unit]
+                octave_tuning_count[index_unit, idx_start:idx_end] += 1
+            
+            if 'octave_bins' in f_output:
+                assert np.all(f_output['octave_bins'][:] == octave_bins)
+            else:
+                f_output.create_dataset('octave_bins',
+                                        octave_bins.shape,
+                                        dtype=octave_bins.dtype,
+                                        data=octave_bins)
+            f_output.create_dataset(k + '_octave_tuning',
+                                    octave_tuning_array.shape,
+                                    dtype=octave_tuning_array.dtype,
+                                    data=octave_tuning_array)
+            f_output.create_dataset(k + '_octave_tuning_count',
+                                    octave_tuning_count.shape,
+                                    dtype=octave_tuning_count.dtype,
+                                    data=octave_tuning_count)
     
     print('[END] {}'.format(fn_output))
     for k in util_misc.get_hdf5_dataset_key_list(f_output):
