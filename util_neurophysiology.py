@@ -159,17 +159,35 @@ def store_network_activations(output_directory,
     return
 
 
-def store_network_tuning_2d(fn_input,
-                            fn_output,
-                            key_dim0='low_harm',
-                            key_dim1='f0',
-                            key_acts='relu'):
+def store_network_tuning_results(fn_input,
+                                 fn_output,
+                                 key_dim0='low_harm',
+                                 key_dim1='f0_label',
+                                 key_acts='relu',
+                                 kwargs_f0_bins={}):
     '''
-    Take in hdf5 file of network activations, re-organize to illustrate tuning
-    of each units to two stimulus dimensions, store 2d tuning of each layer in
-    an output hdf5 file.
+    Functions takes input hdf5 file of network activations, re-organizes
+    activations to quantify tuning of each unit to two stimulus dimensions,
+    and stores these tuning results in output hdf5 file.
     '''
     f = h5py.File(fn_input, 'r')
+    input_dataset_key_list = util_misc.get_hdf5_dataset_key_list(f)
+    
+    if 'f0_label' in [key_dim0, key_dim1]:
+        f0_bins = dataset_util.get_f0_bins(**kwargs_f0_bins)
+        f0_label_list = dataset_util.f0_to_label(f['f0'][:], f0_bins)
+        if 'f0_label' in input_dataset_key_list:
+            f['f0_label'][:] = f0_label_list
+        else:
+            f.close()
+            f = h5py.File(fn_input, 'r+')
+            f.create_dataset('f0_label',
+                             f0_label_list.shape,
+                             dtype=f0_label_list.dtype,
+                             data=f0_label_list)
+            f.close()
+            f = h5py.File(fn_input, 'r')        
+    
     unique_dim0, tuning_index_dim0 = np.unique(f[key_dim0][:], return_inverse=True)
     unique_dim1, tuning_index_dim1 = np.unique(f[key_dim1][:], return_inverse=True)
     
@@ -179,19 +197,24 @@ def store_network_tuning_2d(fn_input,
     f_output.create_dataset(key_dim1, unique_dim1.shape, dtype=unique_dim1.dtype, data=unique_dim1)
     print(key_dim0, f_output[key_dim0])
     print(key_dim1, f_output[key_dim1])
+    if 'f0_label' in [key_dim0, key_dim1]:
+        f_output.create_dataset('f0_bins', f0_bins.shape, dtype=f0_bins.dtype, data=f0_bins)
+        print('f0_bins', f_output['f0_bins'])
     
     if isinstance(key_acts, str):
-        dataset_key_list = util_misc.get_hdf5_dataset_key_list(f)
-        key_acts = [k for k in dataset_key_list if key_acts in k]
+        key_acts = [k for k in input_dataset_key_list if key_acts in k]
     
     for k in key_acts:
         activations = f[k][:].reshape([tuning_index_dim0.shape[0], -1])
         shape = [activations.shape[-1], unique_dim0.shape[0], unique_dim1.shape[0]]
         tuning_array = np.zeros(shape, dtype=activations.dtype)
+        tuning_count = np.zeros(shape, dtype=activations.dtype)
         print('... processing {} : {} --> {} --> {}'.format(
             k, str(f[k].shape), str(activations.shape), str(tuning_array.shape)))
         for idx_stim, (idx0, idx1) in enumerate(zip(tuning_index_dim0, tuning_index_dim1)):
-            tuning_array[:, idx0, idx1] = activations[idx_stim, :]
+            tuning_array[:, idx0, idx1] += activations[idx_stim, :]
+            tuning_count[:, idx0, idx1] += 1
+        tuning_array = tuning_array / tuning_count
         f_output.create_dataset(k,
                                 tuning_array.shape,
                                 dtype=tuning_array.dtype,
@@ -586,15 +609,11 @@ if __name__ == "__main__":
         
         fn_activations='NEUROPHYSIOLOGY_v01_bernox2005_activations.hdf5'
         fn_activations = os.path.join(output_directory, fn_activations)
-        fn_tuning_2d = fn_activations.replace('.hdf5', '_tuning_low_harm_f0.hdf5')
+        fn_tuning_results = fn_activations.replace('.hdf5', '_tuning_low_harm_f0.hdf5')
 
         if not os.path.exists(fn_activations):
             store_network_activations(output_directory,
                                       tfrecords_regex,
                                       fn_activations=fn_activations)
-        store_network_tuning_2d(fn_activations,
-                                fn_tuning_2d,
-                                key_dim0='low_harm',
-                                key_dim1='f0',
-                                key_acts='relu')
+        store_network_tuning_results(fn_activations, fn_tuning_results)
         
