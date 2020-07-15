@@ -64,7 +64,8 @@ def get_feature_parsing_dict_from_tfrecords(eval_regex, bytesList_decoding_dict=
     return feature_parsing_dict
 
 
-def create_temporary_config(output_directory, eval_regex,
+def create_temporary_config(output_directory,
+                            eval_regex,
                             config_filename='config.json', 
                             temporary_config_filename='EVAL_config.json',
                             bytesList_keys=['signal', 'meanrates']):
@@ -118,17 +119,22 @@ if __name__ == "__main__":
     
     eval_brain_ckpt = args.eval_brain_ckpt
     if eval_brain_ckpt is None:
-        eval_brain_ckpt = get_best_checkpoint_number(validation_metrics_fn, metric_key=validation_metrics_key,
-                                                     maximize=maximize, checkpoint_number_key='step')
+        eval_brain_ckpt = get_best_checkpoint_number(validation_metrics_fn,
+                                                     metric_key=validation_metrics_key,
+                                                     maximize=maximize,
+                                                     checkpoint_number_key='step')
     eval_output_fn = args.eval_output_fn
     
     config_filename = args.configfile
     if config_filename is None:
-        config_filename = create_temporary_config(output_directory, eval_regex,
+        config_filename = create_temporary_config(output_directory,
+                                                  eval_regex,
                                                   config_filename='config.json', 
                                                   temporary_config_filename='EVAL_config.json')
     
-    run_train_or_eval(output_directory, train_regex, eval_regex,
+    run_train_or_eval(output_directory,
+                      train_regex,
+                      eval_regex,
                       config_filename=config_filename,
                       eval_only_mode=True,
                       force_overwrite=False, 
