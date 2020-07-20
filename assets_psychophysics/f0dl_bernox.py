@@ -17,9 +17,9 @@ import stimuli_f0_labels
 
 
 def load_f0_expt_dict_from_json(json_fn,
-                                f0_label_true_key='f0_label_coarse:labels_true',
-                                f0_label_pred_key='f0_label_coarse:labels_pred',
-                                f0_label_prob_key='f0_label_coarse:probs_out',
+                                f0_label_true_key='f0_label:labels_true',
+                                f0_label_pred_key='f0_label:labels_pred',
+                                f0_label_prob_key='f0_label:probs_out',
                                 metadata_key_list=['low_harm', 'phase_mode', 'f0']):
     '''
     Function loads a json file and returns a dictionary with np array keys.
@@ -70,7 +70,7 @@ def load_f0_expt_dict_from_json(json_fn,
 
 def compute_f0_pred_with_prior(expt_dict,
                                f0_bins,
-                               f0_label_prob_key='f0_label_coarse:probs_out',
+                               f0_label_prob_key='f0_label:probs_out',
                                f0_prior_ref_key='base_f0',
                                octave_range=[-1, 1],
                                use_octave_folding_prior=False):
@@ -127,9 +127,9 @@ def compute_f0_pred_with_prior(expt_dict,
 
 
 def add_f0_estimates_to_expt_dict(expt_dict,
-                                  f0_label_true_key='f0_label_coarse:labels_true',
-                                  f0_label_pred_key='f0_label_coarse:labels_pred',
-                                  kwargs_f0_bins={'f0_min':80., 'f0_max':1e3, 'binwidth_in_octaves':1/48},
+                                  f0_label_true_key='f0_label:labels_true',
+                                  f0_label_pred_key='f0_label:labels_pred',
+                                  kwargs_f0_bins={},
                                   kwargs_f0_octave={},
                                   kwargs_f0_normalization={},
                                   kwargs_f0_prior={}):
@@ -389,10 +389,10 @@ def run_f0dl_experiment(json_fn,
                         mu=0.0,
                         threshold_value=0.707,
                         use_empirical_f0dl_if_possible=False,
-                        f0_label_true_key='f0_label_coarse:labels_true',
-                        f0_label_pred_key='f0_label_coarse:labels_pred',
-                        f0_label_prob_key='f0_label_coarse:probs_out',
-                        kwargs_f0_bins={'f0_min':80., 'f0_max':1e3, 'binwidth_in_octaves':1/48},
+                        f0_label_true_key='f0_label:labels_true',
+                        f0_label_pred_key='f0_label:labels_pred',
+                        f0_label_prob_key='f0_label:probs_out',
+                        kwargs_f0_bins={},
                         kwargs_f0_octave={},
                         kwargs_f0_normalization={},
                         kwargs_f0_prior={},
@@ -494,9 +494,9 @@ def parallel_compute_confusion_matrices(par_idx, expt_dict, unique_phase_mode_li
     return par_idx, sub_results_dict
 
 
-def compute_confusion_matrices(json_fn, f0_label_true_key='f0_label_coarse:labels_true',
-                               f0_label_pred_key='f0_label_coarse:labels_pred',
-                               kwargs_f0_bins={'f0_min':80., 'f0_max':1e3, 'binwidth_in_octaves':1/48}, kwargs_f0_octave={}, kwargs_f0_normalization={},
+def compute_confusion_matrices(json_fn, f0_label_true_key='f0_label:labels_true',
+                               f0_label_pred_key='f0_label:labels_pred',
+                               kwargs_f0_bins={}, kwargs_f0_octave={}, kwargs_f0_normalization={},
                                f0_min=-np.inf, f0_max=np.inf, max_processes=60):
     '''
     '''
@@ -545,10 +545,10 @@ def main(json_eval_fn,
          max_pct_diff=100/6,
          bin_width=5e-2,
          use_empirical_f0dl_if_possible=False,
-         f0_label_true_key='f0_label_coarse:labels_true',
-         f0_label_pred_key='f0_label_coarse:labels_pred',
-         f0_label_prob_key='f0_label_coarse:probs_out',
-         kwargs_f0_bins={'f0_min':80., 'f0_max':1e3, 'binwidth_in_octaves':1/48},
+         f0_label_true_key='f0_label:labels_true',
+         f0_label_pred_key='f0_label:labels_pred',
+         f0_label_prob_key='f0_label:probs_out',
+         kwargs_f0_bins={},
          kwargs_f0_octave={},
          kwargs_f0_normalization={},
          kwargs_f0_prior={},
@@ -614,7 +614,7 @@ if __name__ == "__main__":
     
     if parsed_args_dict['prior_range_in_octaves'] > 0:
         kwargs_f0_prior = {
-            'f0_label_prob_key': 'f0_label_coarse:probs_out',
+            'f0_label_prob_key': 'f0_label:probs_out',
             'f0_prior_ref_key': 'base_f0', # Use base_f0, so prior does not bias up/down judgments
             'octave_range': [
                 -parsed_args_dict['prior_range_in_octaves'],

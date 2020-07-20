@@ -53,9 +53,9 @@ def compute_mistuning_shifts(expt_dict,
 
 
 def run_f0experiment_mistuned_harmonics(json_fn,
-                                        f0_label_pred_key='f0_label_coarse:labels_pred',
-                                        f0_label_true_key='f0_label_coarse:labels_true',
-                                        f0_label_prob_key='f0_label_coarse:probs_out',
+                                        f0_label_pred_key='f0_label:labels_pred',
+                                        f0_label_true_key='f0_label:labels_true',
+                                        f0_label_prob_key='f0_label:probs_out',
                                         kwargs_f0_prior={},
                                         f0_ref_list=[100.0, 200.0, 400.0],
                                         f0_ref_width=0.04):
@@ -87,9 +87,9 @@ def run_f0experiment_mistuned_harmonics(json_fn,
 def main(json_eval_fn,
          json_results_dict_fn=None,
          save_results_to_file=False,
-         f0_label_pred_key='f0_label_coarse:labels_pred',
-         f0_label_true_key='f0_label_coarse:labels_true',
-         f0_label_prob_key='f0_label_coarse:probs_out',
+         f0_label_pred_key='f0_label:labels_pred',
+         f0_label_true_key='f0_label:labels_true',
+         f0_label_prob_key='f0_label:probs_out',
          kwargs_f0_prior={},
          f0_ref_list=[100.0, 200.0, 400.0], f0_ref_width=0.04):
     '''
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     
     if parsed_args_dict['prior_range_in_octaves'] > 0:
         kwargs_f0_prior = {
-            'f0_label_prob_key': 'f0_label_coarse:probs_out',
+            'f0_label_prob_key': 'f0_label:probs_out',
             'f0_prior_ref_key': 'f0',
             'octave_range': [
                 -parsed_args_dict['prior_range_in_octaves'],

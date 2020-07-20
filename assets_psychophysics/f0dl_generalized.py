@@ -21,12 +21,12 @@ def run_f0dl_experiment(json_fn,
                         mu=0.0,
                         threshold_value=0.707,
                         use_empirical_f0dl_if_possible=False,
-                        f0_label_true_key='f0_label_coarse:labels_true',
-                        f0_label_pred_key='f0_label_coarse:labels_pred',
-                        f0_label_prob_key='f0_label_coarse:probs_out',
+                        f0_label_true_key='f0_label:labels_true',
+                        f0_label_pred_key='f0_label:labels_pred',
+                        f0_label_prob_key='f0_label:probs_out',
                         f0_true_key='f0',
                         f0_pred_key='f0_pred',
-                        kwargs_f0_bins={'f0_min':80., 'f0_max':1e3, 'binwidth_in_octaves':1/48},
+                        kwargs_f0_bins={},
                         kwargs_f0_octave={},
                         kwargs_f0_normalization={},
                         kwargs_f0_prior={},
@@ -151,7 +151,7 @@ if __name__ == "__main__":
     
     if parsed_args_dict['prior_range_in_octaves'] > 0:
         kwargs_f0_prior = {
-            'f0_label_prob_key': 'f0_label_coarse:probs_out',
+            'f0_label_prob_key': 'f0_label:probs_out',
             'f0_prior_ref_key': 'f0', # Note: using true F0 may slightly bias up/down judgments
             'octave_range': [
                 -parsed_args_dict['prior_range_in_octaves'],
