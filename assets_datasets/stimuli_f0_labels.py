@@ -13,12 +13,10 @@ def add_f0_label_to_hdf5(hdf5_filename,
                          source_f0_key,
                          f0_key='f0',
                          f0_label_key='f0_label',
-                         f0_label_coarse_key='f0_label_coarse',
                          f0_octave_key='f0_log2',
                          f0_normal_key='f0_lognormal',
                          f0_label_dtype=np.int64,
                          f0_bin_kwargs={},
-                         f0_bin_coarse_kwargs={'f0_min':80., 'f0_max':1e3, 'binwidth_in_octaves':1/48},
                          f0_octave_kwargs={},
                          f0_normalization_kwargs={}):
     '''
@@ -30,12 +28,10 @@ def add_f0_label_to_hdf5(hdf5_filename,
     source_f0_key (str): source path to f0 values in the hdf5 dataset
     f0_key (str): hdf5 output path for f0 values (dataset will be added or overwritten)
     f0_label_key (str): output path path for f0 labels (dataset will be added or overwritten)
-    f0_label_coarse_key (str): output path path for coarse f0 labels (dataset will be added or overwritten)
     f0_octave_key (str): output path for f0 octave values (dataset will be added or overwritten)
     f0_normal_key (str): output path for normalized f0 values (dataset will be added or overwritten)
     f0_label_dtype (np.dtype): datatype for f0 label dataset
     f0_bin_kwargs (dict): kwargs for `get_f0_bins()` (parameters for computing f0 label bins)
-    f0_bin_coarse_kwargs (dict): kwargs for `get_f0_bins()` (parameters for computing coarse f0 label bins)
     f0_octave_kwargs (dict): kwargs for `f0_to_octave()` (f0_ref for Hz to octave conversion, default is f0_ref=1.0)
     f0_normalization_kwargs (dict): kwargs for `f0_to_normalized()` (parameters for normalizing f0 values)
     '''
@@ -45,13 +41,21 @@ def add_f0_label_to_hdf5(hdf5_filename,
     hdf5_f = h5py.File(hdf5_filename, 'r+')
     
     f0_bins = get_f0_bins(**f0_bin_kwargs)
-    f0_bins_coarse = get_f0_bins(**f0_bin_coarse_kwargs)
+    f0_bins_024 = get_f0_bins(**{'f0_min':80., 'f0_max':1e3, 'binwidth_in_octaves':1/24})
+    f0_bins_048 = get_f0_bins(**{'f0_min':80., 'f0_max':1e3, 'binwidth_in_octaves':1/48})
+    f0_bins_096 = get_f0_bins(**{'f0_min':80., 'f0_max':1e3, 'binwidth_in_octaves':1/96})
+    f0_bins_192 = get_f0_bins(**{'f0_min':80., 'f0_max':1e3, 'binwidth_in_octaves':1/192})
+    f0_bins_384 = get_f0_bins(**{'f0_min':80., 'f0_max':1e3, 'binwidth_in_octaves':1/384})
     output_dict = {
         f0_key: hdf5_f[source_f0_key][:],
         f0_label_key: f0_to_label(hdf5_f[source_f0_key][:], f0_bins),
-        f0_label_coarse_key: f0_to_label(hdf5_f[source_f0_key][:], f0_bins_coarse),
         f0_octave_key: f0_to_octave(hdf5_f[source_f0_key][:], **f0_octave_kwargs),
         f0_normal_key: f0_to_normalized(hdf5_f[source_f0_key][:], **f0_normalization_kwargs),
+        'f0_label_024': f0_to_label(hdf5_f[source_f0_key][:], f0_bins_024),
+        'f0_label_048': f0_to_label(hdf5_f[source_f0_key][:], f0_bins_048),
+        'f0_label_096': f0_to_label(hdf5_f[source_f0_key][:], f0_bins_096),
+        'f0_label_192': f0_to_label(hdf5_f[source_f0_key][:], f0_bins_192),
+        'f0_label_384': f0_to_label(hdf5_f[source_f0_key][:], f0_bins_384),
     }
     
     for key in output_dict.keys():
@@ -62,7 +66,7 @@ def add_f0_label_to_hdf5(hdf5_filename,
             print('source_f0_key and f0_key are equal: {}'.format(key))
         else:
             print('initializing dataset: {}'.format(key))
-            if key in [f0_label_key, f0_label_coarse_key]:
+            if 'label' in key:
                 dtype = f0_label_dtype
             else:
                 dtype = output_dict[key].dtype
