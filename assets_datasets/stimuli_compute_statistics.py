@@ -10,6 +10,87 @@ import pdb
 
 sys.path.append('/om2/user/msaddler/python-packages/msutil')
 import util_stimuli
+import util_misc
+
+sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
+import dataset_util
+
+
+def compute_spectral_features(fn_input,
+                              fn_output,
+                              key_sr='sr',
+                              key_f0='nopad_f0_mean',
+                              key_signal_list=['stimuli/signal', 'stimuli/noise'],
+                              buffer_start_dur=0.070,
+                              buffer_end_dur=0.010,
+                              rescaled_dBSPL=60.0,
+                              kwargs_power_spectrum={},
+                              kwargs_spectral_envelope={'M':12},
+                              disp_step=100):
+    '''
+    '''
+    assert not fn_output == fn_input, "input and output hdf5 filenames must be different"
+    f_input = h5py.File(fn_input, 'r')
+    
+    sr = f_input[key_sr][0]
+    N = f_input[key_signal_list[0]].shape[0]
+    nopad_start = int(buffer_start_dur * sr)
+    nopad_end = int(f_input[key_signal_list[0]].shape[1] - buffer_end_dur * sr)
+    
+    for itrN in range(N):
+        data_dict = {key_f0: f_input[key_f0][itrN]}
+        for key_signal in key_signal_list:
+            x = f_input[key_signal][itrN, nopad_start:nopad_end]
+            if rescaled_dBSPL is not None:
+                x = util_stimuli.set_dBSPL(x, rescaled_dBSPL)
+                data_dict[key_signal + '_dBSPL'] = rescaled_dBSPL
+            else:
+                x = x - np.mean(x)
+                data_dict[key_signal + '_dBSPL'] = util_stimuli.get_dBSPL(x)
+            fxx, pxx = util_stimuli.power_spectrum(x, sr, **kwargs_power_spectrum)
+            data_dict[key_signal + '_power_spectrum'] = pxx
+            b_lp, a_lp = util_stimuli.get_spectral_envelope_lp_coefficients(x, **kwargs_spectral_envelope)
+            data_dict[key_signal + '_spectral_envelope_b_lp'] = b_lp
+            data_dict[key_signal + '_spectral_envelope_a_lp'] = a_lp
+        
+        if itrN == 0:
+            print('[INITIALIZING]: {}'.format(fn_output))
+            data_key_pair_list = [(k, k) for k in sorted(data_dict.keys())]
+            config_dict = {
+                key_sr: sr,
+                'freqs': fxx,
+                'buffer_start_dur': buffer_start_dur,
+                'buffer_end_dur': buffer_end_dur,
+                'nopad_start': nopad_start,
+                'nopad_end': nopad_end,
+            }
+            config_dict = util_misc.recursive_dict_merge(config_dict, kwargs_power_spectrum)
+            config_dict = util_misc.recursive_dict_merge(config_dict, kwargs_spectral_envelope)
+            config_key_pair_list = [(k, k) for k in sorted(config_dict.keys())]
+            data_dict = util_misc.recursive_dict_merge(data_dict, config_dict)
+            dataset_util.initialize_hdf5_file(fn_output,
+                                              N,
+                                              data_dict,
+                                              file_mode='w',
+                                              data_key_pair_list=data_key_pair_list,
+                                              config_key_pair_list=config_key_pair_list,
+                                              fillvalue=-1)
+            f_output = h5py.File(fn_output, 'r+')
+            for k in sorted(data_dict.keys()):
+                print('[___', f_output[k])
+        
+        # Write each stimulus' data_dict to output hdf5 file
+        dataset_util.write_example_to_hdf5(f_output,
+                                           data_dict,
+                                           itrN,
+                                           data_key_pair_list=data_key_pair_list)
+        if itrN % disp_step == 0:
+            print('... signal {} of {}'.format(itrN, N))
+    
+    f_input.close()
+    f_output.close()
+    print('[END]: {}'.format(fn_output))
+    return
 
 
 def compute_running_mean_power_spectrum(signal_list,
@@ -109,19 +190,11 @@ def serial_compute_mean_power_spectrum(source_fn_regex,
             }
             # Write results_dict to json_results_dict_fn
             with open(output_fn, 'w') as output_f:
-                json.dump(results_dict, output_f, cls=NumpyEncoder)
+                json.dump(results_dict, output_f, cls=util_misc.NumpyEncoder)
             save_str = 'Updated output file: {}'
             print(save_str.format(output_fn), flush=True)
     
     return running_freqs, running_mean_spectrum, running_n
-
-
-class NumpyEncoder(json.JSONEncoder):
-    ''' Helper class to JSON serialize the results_dict '''
-    def default(self, obj):
-        if isinstance(obj, np.ndarray): return obj.tolist()
-        if isinstance(obj, np.int64): return int(obj)  
-        return json.JSONEncoder.default(self, obj)
 
 
 if __name__ == "__main__":
