@@ -16,17 +16,17 @@ sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDat
 import dataset_util
 
 
-def compute_spectral_features(fn_input,
-                              fn_output,
-                              key_sr='sr',
-                              key_f0='nopad_f0_mean',
-                              key_signal_list=['stimuli/signal', 'stimuli/noise'],
-                              buffer_start_dur=0.070,
-                              buffer_end_dur=0.010,
-                              rescaled_dBSPL=60.0,
-                              kwargs_power_spectrum={},
-                              kwargs_spectral_envelope={'M':12},
-                              disp_step=100):
+def compute_spectral_statistics(fn_input,
+                                fn_output,
+                                key_sr='sr',
+                                key_f0='nopad_f0_mean',
+                                key_signal_list=['stimuli/signal', 'stimuli/noise'],
+                                buffer_start_dur=0.070,
+                                buffer_end_dur=0.010,
+                                rescaled_dBSPL=60.0,
+                                kwargs_power_spectrum={},
+                                kwargs_spectral_envelope={'M':12},
+                                disp_step=100):
     '''
     '''
     assert not fn_output == fn_input, "input and output hdf5 filenames must be different"
@@ -198,28 +198,38 @@ def serial_compute_mean_power_spectrum(source_fn_regex,
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="compute mean power spectrum of hdf5 dataset")
+    parser = argparse.ArgumentParser(description="compute spectral features of hdf5 dataset")
     parser.add_argument('-r', '--source_fn_regex', type=str, default=None)
-    parser.add_argument('-o', '--output_fn', type=str, default=None)
-    parser.add_argument('-k', '--key_signal', type=str, default='/stimuli/signal')
-    parser.add_argument('-ksr', '--key_sr', type=str, default='/sr')
+    parser.add_argument('-d', '--dest_dir', type=str, default=None)
+    parser.add_argument('-j', '--job_idx', type=int, default=None,
+                        help='index of current job')
     parsed_args_dict = vars(parser.parse_args())
     
     source_fn_regex = parsed_args_dict['source_fn_regex']
-    output_fn = parsed_args_dict['output_fn']
-    key_signal = parsed_args_dict['key_signal']
-    key_sr = parsed_args_dict['key_sr']
-    assert source_fn_regex is not None, "source_fn_regex is a required argument"
-    if output_fn is None:
-        output_fn_dirname = os.path.dirname(source_fn_regex)
-        output_fn_basename = 'TMP_mean_spectrum_KEY{}.json'.format(key_signal.replace('/', '_'))
-        output_fn = os.path.join(output_fn_dirname, output_fn_basename)
+    source_fn_list = sorted(glob.glob(source_fn_regex))
     
-    serial_compute_mean_power_spectrum(source_fn_regex,
-                                       output_fn=output_fn,
-                                       key_signal=key_signal,
-                                       key_sr=key_sr,
-                                       buffer_start_dur=0.070,
-                                       buffer_end_dur=0.010,
-                                       rescaled_dBSPL=60.0,
-                                       kwargs_power_spectrum={})
+    fn_input = source_fn_list[parsed_args_dict['job_idx']]
+    
+    dirname_input = os.path.dirname(fn_input)
+    dirname_output = parsed_args_dict['dest_dir']
+    if os.path.basename(dirname_output) == dirname_output:
+        dirname_output = os.path.join(dirname_input, dirname_output)
+    if not os.path.exists(dirname_output):
+        os.mkdir(dirname_output)
+    fn_output = os.path.join(dirname_output, os.path.basename(fn_input))
+    
+    print('job_idx = {} of {}'.format(parsed_args_dict['job_idx'], len(source_fn_list)))
+    print('fn_input = {}'.format(fn_input))
+    print('fn_output = {}'.format(fn_output))
+    
+    compute_spectral_statistics(fn_input,
+                                fn_output,
+                                key_sr='sr',
+                                key_f0='nopad_f0_mean',
+                                key_signal_list=['stimuli/signal', 'stimuli/noise'],
+                                buffer_start_dur=0.070,
+                                buffer_end_dur=0.010,
+                                rescaled_dBSPL=60.0,
+                                kwargs_power_spectrum={},
+                                kwargs_spectral_envelope={'M':12},
+                                disp_step=100)
