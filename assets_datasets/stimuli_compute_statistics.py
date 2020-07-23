@@ -1,6 +1,7 @@
 import sys
 import os
 import numpy as np
+import librosa
 import glob
 import h5py
 import json
@@ -26,6 +27,7 @@ def compute_spectral_statistics(fn_input,
                                 rescaled_dBSPL=60.0,
                                 kwargs_power_spectrum={},
                                 kwargs_spectral_envelope={'M':12},
+                                n_mels=40,
                                 disp_step=100):
     '''
     '''
@@ -36,6 +38,9 @@ def compute_spectral_statistics(fn_input,
     N = f_input[key_signal_list[0]].shape[0]
     nopad_start = int(buffer_start_dur * sr)
     nopad_end = int(f_input[key_signal_list[0]].shape[1] - buffer_end_dur * sr)
+    
+    n_fft = nopad_end - nopad_start
+    mel_filterbank = librosa.filters.mel(sr, n_fft, n_mels=n_mels)
     
     for itrN in range(N):
         data_dict = {key_f0: f_input[key_f0][itrN]}
@@ -52,6 +57,7 @@ def compute_spectral_statistics(fn_input,
             b_lp, a_lp = util_stimuli.get_spectral_envelope_lp_coefficients(x, **kwargs_spectral_envelope)
             data_dict[key_signal + '_spectral_envelope_b_lp'] = b_lp
             data_dict[key_signal + '_spectral_envelope_a_lp'] = a_lp
+            data_dict[key_signal + '_mfcc'] = util_stimuli.get_mfcc(x, mel_filterbank)
         
         if itrN == 0:
             print('[INITIALIZING]: {}'.format(fn_output))
@@ -63,6 +69,9 @@ def compute_spectral_statistics(fn_input,
                 'buffer_end_dur': buffer_end_dur,
                 'nopad_start': nopad_start,
                 'nopad_end': nopad_end,
+                'n_fft': n_fft,
+                'n_mels': n_mels,
+                'mel_filterbank': mel_filterbank,
             }
             config_dict = util_misc.recursive_dict_merge(config_dict, kwargs_power_spectrum)
             config_dict = util_misc.recursive_dict_merge(config_dict, kwargs_spectral_envelope)
