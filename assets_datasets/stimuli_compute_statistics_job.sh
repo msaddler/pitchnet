@@ -11,7 +11,7 @@
 ##SBATCH --partition=mcdermott
 #SBATCH --array=0-99
 
-source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/*.hdf5'
+source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10_filter_signalHPv00/*.hdf5'
 # source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_synthetic/noise_UMNm_snr_neg10pos10_phase01_filter_signalLPv00/*.hdf5'
 
 offset=0
