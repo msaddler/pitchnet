@@ -1,7 +1,8 @@
 import sys
 import os
-import numpy as np
 import h5py
+import json
+import numpy as np
 import scipy.signal
 import itertools
 import argparse
@@ -13,6 +14,151 @@ import util_stimuli
 sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
 from dataset_util import initialize_hdf5_file, write_example_to_hdf5
 from augment_dataset import sample_and_apply_random_filter
+
+
+def spectrally_shaped_synthetic_dataset(hdf5_filename,
+                                        N,
+                                        spectral_statistics_filename,
+                                        fs=32e3,
+                                        dur=0.150,
+                                        phase_modes=['sine'],
+                                        range_f0=[80.0, 1001.3713909809752],
+                                        range_snr=[-10., 10.],
+                                        range_dbspl=[30., 90.],
+                                        invert_signal_filter=False,
+                                        invert_noise_filter=False,
+                                        out_combined_key='stimuli/signal_in_noise',
+                                        out_signal_key='stimuli/signal',
+                                        out_noise_key='stimuli/noise',
+                                        out_snr_key='snr',
+                                        out_augmentation_prefix='augmentation/',
+                                        random_seed=858,
+                                        disp_step=1000):
+    '''
+    '''
+    # Gather mean and covariance of filter coefficient distributions
+    with open(spectral_statistics_filename, 'r') as f:
+        spectral_statistics_dict = json.load(f)
+    signal_a_lp_mean = spectral_statistics_dict[out_signal_key]['a_lp_mean']
+    signal_a_lp_cov = spectral_statistics_dict[out_signal_key]['a_lp_cov']
+    signal_b_lp = spectral_statistics_dict[out_signal_key]['b_lp']
+    noise_a_lp_mean = spectral_statistics_dict[out_noise_key]['a_lp_mean']
+    noise_a_lp_cov = spectral_statistics_dict[out_noise_key]['a_lp_cov']
+    noise_b_lp = spectral_statistics_dict[out_noise_key]['b_lp']
+    print('Loaded spectral_statistics_dict from: {}'.format(spectral_statistics_filename))
+    
+    # Set random seed
+    np.random.seed(random_seed)
+    # Randomly sample f0s and phase modes
+    list_f0 = np.exp(np.random.uniform(low=np.log(range_f0[0]),
+                                       high=np.log(range_f0[1]),
+                                       size=[N]))
+    list_phase_mode = np.random.choice(phase_modes, size=[N])
+    list_snr = np.random.uniform(low=range_snr[0],
+                                 high=range_snr[1],
+                                 size=[N])
+    list_dbspl = np.random.uniform(low=range_dbspl[0],
+                                   high=range_dbspl[1],
+                                   size=[N])
+    # Define encoding / decoding dictionaries for phase_mode
+    phase_mode_encoding = {'sine':0, 'rand':1, 'sch':2, 'cos':3, 'alt':4}
+    phase_mode_decoding = {0:'sine', 1:'rand', 2:'sch', 3:'cos', 4:'alt'}
+    # Prepare data_dict and config_key_pair_list for hdf5 filewriting
+    data_dict = {
+        'sr': fs,
+        'config_tone/fs': fs,
+        'config_tone/dur': dur,
+        'config_tone/f0_min': range_f0[0],
+        'config_tone/f0_max': range_f0[1],
+        out_augmentation_prefix + 'invert_signal_filter': int(invert_signal_filter),
+        out_augmentation_prefix + 'signal_a_lp_mean': signal_a_lp_mean,
+        out_augmentation_prefix + 'signal_a_lp_cov': signal_a_lp_cov,
+        out_augmentation_prefix + 'signal_b_lp': signal_b_lp,
+        out_augmentation_prefix + 'invert_noise_filter': int(invert_noise_filter),
+        out_augmentation_prefix + 'noise_a_lp_mean': noise_a_lp_mean,
+        out_augmentation_prefix + 'noise_a_lp_cov': noise_a_lp_cov,
+        out_augmentation_prefix + 'noise_b_lp': noise_b_lp,
+    }
+    config_key_pair_list = [(k, k) for k in data_dict.keys()]
+    data_key_pair_list = [] # Will be populated right before initializing hdf5 file
+    
+    # Main loop to generate dataset
+    for itrN in range(0, N):
+        # Generate signal and noise with desired properties
+        f0 = list_f0[itrN]
+        phase_mode = list_phase_mode[itrN]
+        snr = list_snr[itrN]
+        dbspl = list_dbspl[itrN]
+        
+        # Define equal-amplitude harmonic carrier signal
+        signal = util_stimuli.complex_tone(f0,
+                                           fs,
+                                           dur,
+                                           harmonic_numbers=None,
+                                           frequencies=np.arange(f0, fs/2, f0),
+                                           amplitudes=None,
+                                           phase_mode=phase_mode,
+                                           offset_start=True,
+                                           strict_nyquist=True)
+        signal = util_stimuli.set_dBSPL(signal, 60.0)
+        
+        # Define white noise carrier
+        noise = np.random.randn(*signal.shape)
+        noise = util_stimuli.set_dBSPL(noise, 60.0)
+        
+        # Sample and apply the signal filter (coefficients drawn from multivariate normal)
+        signal_a_lp = np.random.multivariate_normal(signal_a_lp_mean, signal_a_lp_cov)
+        if invert_signal_filter:
+            # Switch numerator and denominator coefficients if `invert_signal_filter == True`
+            signal = scipy.signal.lfilter(signal_a_lp, signal_b_lp, signal)
+        else:
+            signal = scipy.signal.lfilter(signal_b_lp, signal_a_lp, signal)
+        
+        # Sample and apply the noise filter (coefficients drawn from multivariate normal)
+        noise_a_lp = np.random.multivariate_normal(noise_a_lp_mean, noise_a_lp_cov)
+        if invert_noise_filter:
+            # Switch numerator and denominator coefficients if `invert_noise_filter == True`
+            noise = scipy.signal.lfilter(noise_a_lp, noise_b_lp, noise)
+        else:
+            noise = scipy.signal.lfilter(noise_b_lp, noise_a_lp, noise)
+        
+        # Combine signal and noise at desired SNR and dB SPL
+        signal_and_noise = util_stimuli.combine_signal_and_noise(signal, noise, snr)
+        signal_and_noise = util_stimuli.set_dBSPL(signal_and_noise, dbspl)
+        
+        # Prepare data_dict for hdf5 filewriting
+        data_dict['f0'] = f0
+        data_dict['phase_mode'] = int(phase_mode_encoding[phase_mode])
+        data_dict[out_combined_key + '_dBSPL'] = dbspl
+        data_dict[out_snr_key] = snr
+        data_dict[out_combined_key] = signal_and_noise.astype(np.float32)
+        data_dict[out_signal_key] = signal.astype(np.float32)
+        data_dict[out_noise_key] = noise.astype(np.float32)
+        data_dict[out_augmentation_prefix + 'signal_a_lp'] = signal_a_lp
+        data_dict[out_augmentation_prefix + 'noise_a_lp'] = noise_a_lp
+        
+        # Initialize the hdf5 file on the first iteration
+        if itrN == 0:
+            print('[INITIALIZING]: {}'.format(hdf5_filename))
+            for k in data_dict.keys():
+                if not (k, k) in config_key_pair_list:
+                    data_key_pair_list.append((k, k))
+            initialize_hdf5_file(hdf5_filename,
+                                 N,
+                                 data_dict,
+                                 file_mode='w',
+                                 data_key_pair_list=data_key_pair_list,
+                                 config_key_pair_list=config_key_pair_list)
+            hdf5_f = h5py.File(hdf5_filename, 'r+')
+        
+        # Write each data_dict to hdf5 file
+        write_example_to_hdf5(hdf5_f, data_dict, itrN, data_key_pair_list=data_key_pair_list)
+        if itrN % disp_step == 0:
+            print('... signal {} of {} (f0={:.2f}, dbspl={:.2f}, snr={:.2f})'.format(itrN, N, f0, dbspl, snr))
+    
+    # Close hdf5 file
+    hdf5_f.close()
+    print('[END]: {}'.format(hdf5_filename))
 
 
 def random_filtered_complex_tone(f0, fs, dur,
