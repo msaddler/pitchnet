@@ -16,6 +16,41 @@ from dataset_util import initialize_hdf5_file, write_example_to_hdf5
 from augment_dataset import sample_and_apply_random_filter
 
 
+def sample_and_apply_stable_filter(b_lp, a_lp_mean, a_lp_cov, x, invert_filter=False):
+    '''
+    Sample filter transfer function coefficients from multivariate Gaussian
+    (filter stability ensured via rejection sampling) and apply filter to
+    given signal.
+    
+    Args
+    ----
+    b_lp (array_like): numerator coefficients of filter to apply
+    a_lp_mean (array_like): denominator coef mean
+    a_lp_cov (array_like): denominator coef covariance matrix
+    x (array_like): input signal to be filterd
+    invert_filter (bool): if True, filter is inverted by switching
+        numerator and denominator coefficients before applying filter
+    
+    Returns
+    -------
+    scipy.signal.lfilter(b, a, x): filtered signal
+    b (array_like): numerator coefficients of applied filter
+    a (array_like): denominator coefficients of applied filter
+    '''
+    filter_is_unstable = True
+    while filter_is_unstable:
+        a_lp = np.random.multivariate_normal(a_lp_mean, a_lp_cov)
+        z, p, k = scipy.signal.tf2zpk(b_lp, a_lp)
+        filter_is_unstable = np.any(np.abs(p) >= 1)
+    if invert_filter:
+        b = a_lp
+        a = b_lp
+    else:
+        b = b_lp
+        a = a_lp
+    return scipy.signal.lfilter(b, a, x), b, a
+
+
 def spectrally_shaped_synthetic_dataset(hdf5_filename,
                                         N,
                                         spectral_statistics_filename,
@@ -101,26 +136,24 @@ def spectrally_shaped_synthetic_dataset(hdf5_filename,
                                            offset_start=True,
                                            strict_nyquist=True)
         signal = util_stimuli.set_dBSPL(signal, 60.0)
-        
+                
         # Define white noise carrier
         noise = np.random.randn(*signal.shape)
         noise = util_stimuli.set_dBSPL(noise, 60.0)
         
         # Sample and apply the signal filter (coefficients drawn from multivariate normal)
-        signal_a_lp = np.random.multivariate_normal(signal_a_lp_mean, signal_a_lp_cov)
-        if invert_signal_filter:
-            # Switch numerator and denominator coefficients if `invert_signal_filter == True`
-            signal = scipy.signal.lfilter(signal_a_lp, signal_b_lp, signal)
-        else:
-            signal = scipy.signal.lfilter(signal_b_lp, signal_a_lp, signal)
+        signal, signal_b, signal_a = sample_and_apply_stable_filter(signal_b_lp,
+                                                                    signal_a_lp_mean,
+                                                                    signal_a_lp_cov,
+                                                                    signal,
+                                                                    invert_filter=invert_signal_filter)
         
         # Sample and apply the noise filter (coefficients drawn from multivariate normal)
-        noise_a_lp = np.random.multivariate_normal(noise_a_lp_mean, noise_a_lp_cov)
-        if invert_noise_filter:
-            # Switch numerator and denominator coefficients if `invert_noise_filter == True`
-            noise = scipy.signal.lfilter(noise_a_lp, noise_b_lp, noise)
-        else:
-            noise = scipy.signal.lfilter(noise_b_lp, noise_a_lp, noise)
+        noise, noise_b, noise_a = sample_and_apply_stable_filter(noise_b_lp,
+                                                                 noise_a_lp_mean,
+                                                                 noise_a_lp_cov,
+                                                                 noise,
+                                                                 invert_filter=invert_noise_filter)
         
         # Combine signal and noise at desired SNR and dB SPL
         signal_and_noise = util_stimuli.combine_signal_and_noise(signal, noise, snr)
@@ -134,8 +167,10 @@ def spectrally_shaped_synthetic_dataset(hdf5_filename,
         data_dict[out_combined_key] = signal_and_noise.astype(np.float32)
         data_dict[out_signal_key] = signal.astype(np.float32)
         data_dict[out_noise_key] = noise.astype(np.float32)
-        data_dict[out_augmentation_prefix + 'signal_a_lp'] = signal_a_lp
-        data_dict[out_augmentation_prefix + 'noise_a_lp'] = noise_a_lp
+        data_dict[out_augmentation_prefix + 'signal_b'] = signal_b
+        data_dict[out_augmentation_prefix + 'signal_a'] = signal_a
+        data_dict[out_augmentation_prefix + 'noise_b'] = noise_b
+        data_dict[out_augmentation_prefix + 'noise_a'] = noise_a
         
         # Initialize the hdf5 file on the first iteration
         if itrN == 0:
