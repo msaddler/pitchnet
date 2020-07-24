@@ -87,8 +87,10 @@ def spectrally_shaped_synthetic_dataset(hdf5_filename,
     
     # Multiply mean MFCCs by -1 to invert spectral envelopes
     if invert_signal_filter:
+        print('<><><> INVERTING `signal_mfcc_mean` <><><>')
         signal_mfcc_mean = -1 * signal_mfcc_mean
     if invert_noise_filter:
+        print('<><><> INVERTING `noise_mfcc_mean` <><><>')
         noise_mfcc_mean = -1 * noise_mfcc_mean
     
     # Define inverse Mel-filterbank
@@ -130,6 +132,10 @@ def spectrally_shaped_synthetic_dataset(hdf5_filename,
     }
     config_key_pair_list = [(k, k) for k in data_dict.keys()]
     data_key_pair_list = [] # Will be populated right before initializing hdf5 file
+    print('|======================== config ========================|')
+    for k in sorted(data_dict.keys()):
+        print(k, data_dict[k])
+    print('|======================== config ========================|')
     
     # Main loop to generate dataset
     for itrN in range(0, N):
@@ -204,6 +210,7 @@ def spectrally_shaped_synthetic_dataset(hdf5_filename,
     # Close hdf5 file
     hdf5_f.close()
     print('[END]: {}'.format(hdf5_filename))
+    return
 
 
 def random_filtered_complex_tone(f0, fs, dur,
@@ -322,6 +329,7 @@ def random_filtered_complex_tone_dataset(hdf5_filename, N,
     # Close hdf5 file
     hdf5_f.close()
     print('[END]: {}'.format(hdf5_filename))
+    return
 
 
 
@@ -331,6 +339,7 @@ if __name__ == "__main__":
     parser.add_argument('-j', '--job_idx', type=int, default=0, help='job index')
     parser.add_argument('-npj', '--num_parallel_jobs', type=int, default=1, help='number of parallel jobs')
     parser.add_argument('-nts', '--num_total_stimuli', type=int, default=2100000, help='total number of stimuli')
+    parser.add_argument('-isf', '--invert_signal_filter', type=int, default=0, help='invert signal spectral envelopes')
     args = parser.parse_args()
     assert args.dest_filename is not None, "-d (--dest_filename) is a required argument"
     
@@ -346,19 +355,40 @@ if __name__ == "__main__":
     print('[START] {}'.format(dest_filename))
     print('job_idx={}, N={}'.format(args.job_idx, N))
     
-    augmentation_filter_params = {
-        'filter_signal': True, # filter_signalBPv00
-        'filter_noise': False,
-        'btype': 'bandpass',
-        'sampling_kwargs': {
-            'filter_fraction': 1.0,
-            'N_range': [1, 5],
-            'fc_range': [1e2, 5e3],
-            'bw_range': [2e3, 1e4],
-            'fc_log_scale': True,
-            'bw_log_scale': False
-        },
-    }
+    spectral_statistics_filename = '/om/scratch/Mon/msaddler/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/SPECTRAL_STATISTICS_v00/results_dict.json'
+    spectrally_shaped_synthetic_dataset(dest_filename,
+                                        N,
+                                        spectral_statistics_filename,
+                                        fs=32e3,
+                                        dur=0.150,
+                                        phase_modes=['sine'],
+                                        range_f0=[80.0, 1001.3713909809752],
+                                        range_snr=[-10., 10.],
+                                        range_dbspl=[30., 90.],
+                                        n_mfcc=12,
+                                        invert_signal_filter=bool(args.invert_signal_filter),
+                                        invert_noise_filter=False,
+                                        out_combined_key='stimuli/signal_in_noise',
+                                        out_signal_key='stimuli/signal',
+                                        out_noise_key='stimuli/noise',
+                                        out_snr_key='snr',
+                                        out_augmentation_prefix='augmentation/',
+                                        random_seed=args.job_idx,
+                                        disp_step=100)
+    
+#     augmentation_filter_params = {
+#         'filter_signal': True, # filter_signalBPv00
+#         'filter_noise': False,
+#         'btype': 'bandpass',
+#         'sampling_kwargs': {
+#             'filter_fraction': 1.0,
+#             'N_range': [1, 5],
+#             'fc_range': [1e2, 5e3],
+#             'bw_range': [2e3, 1e4],
+#             'fc_log_scale': True,
+#             'bw_log_scale': False
+#         },
+#     }
 #     augmentation_filter_params = {
 #         'filter_signal': True, # filter_signalHPv00
 #         'filter_noise': False,
@@ -382,30 +412,30 @@ if __name__ == "__main__":
 #         },
 #     }
     
-    kwargs_modified_uniform_masking_noise = {
-        'dBHzSPL': 15.0,
-        'attenuation_start': 600.0,
-        'attenuation_slope': 2.0,
-    }
+#     kwargs_modified_uniform_masking_noise = {
+#         'dBHzSPL': 15.0,
+#         'attenuation_start': 600.0,
+#         'attenuation_slope': 2.0,
+#     }
     
-    for key in sorted(augmentation_filter_params.keys()):
-        print('augmentation_filter_params/', key, augmentation_filter_params[key])
-    for key in sorted(kwargs_modified_uniform_masking_noise.keys()):
-        print('kwargs_modified_uniform_masking_noise/', key, kwargs_modified_uniform_masking_noise[key])
-    random_filtered_complex_tone_dataset(dest_filename, N,
-                                         fs=32e3,
-                                         dur=0.150,
-                                         amplitude_jitter=0.5,
-                                         phase_modes=['sine', 'rand'],
-                                         augmentation_filter_params=augmentation_filter_params,
-                                         kwargs_modified_uniform_masking_noise=kwargs_modified_uniform_masking_noise,
-                                         range_f0=[80.0, 1001.3713909809752],
-                                         range_snr=[-10., 10.],
-                                         range_dbspl=[30., 90.],
-                                         out_combined_key='stimuli/signal_in_noise',
-                                         out_signal_key='stimuli/signal',
-                                         out_noise_key='stimuli/noise',
-                                         out_snr_key='snr',
-                                         out_augmentation_prefix='augmentation/',
-                                         random_seed=args.job_idx,
-                                         disp_step=1000)
+#     for key in sorted(augmentation_filter_params.keys()):
+#         print('augmentation_filter_params/', key, augmentation_filter_params[key])
+#     for key in sorted(kwargs_modified_uniform_masking_noise.keys()):
+#         print('kwargs_modified_uniform_masking_noise/', key, kwargs_modified_uniform_masking_noise[key])
+#     random_filtered_complex_tone_dataset(dest_filename, N,
+#                                          fs=32e3,
+#                                          dur=0.150,
+#                                          amplitude_jitter=0.5,
+#                                          phase_modes=['sine', 'rand'],
+#                                          augmentation_filter_params=augmentation_filter_params,
+#                                          kwargs_modified_uniform_masking_noise=kwargs_modified_uniform_masking_noise,
+#                                          range_f0=[80.0, 1001.3713909809752],
+#                                          range_snr=[-10., 10.],
+#                                          range_dbspl=[30., 90.],
+#                                          out_combined_key='stimuli/signal_in_noise',
+#                                          out_signal_key='stimuli/signal',
+#                                          out_noise_key='stimuli/noise',
+#                                          out_snr_key='snr',
+#                                          out_augmentation_prefix='augmentation/',
+#                                          random_seed=args.job_idx,
+#                                          disp_step=1000)
