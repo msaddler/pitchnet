@@ -64,6 +64,7 @@ def spectrally_shaped_synthetic_dataset(hdf5_filename,
                                         n_mfcc=12,
                                         invert_signal_filter=False,
                                         invert_noise_filter=False,
+                                        generate_signal_in_fft_domain=True,
                                         out_combined_key='stimuli/signal_in_noise',
                                         out_signal_key='stimuli/signal',
                                         out_noise_key='stimuli/noise',
@@ -149,20 +150,30 @@ def spectrally_shaped_synthetic_dataset(hdf5_filename,
         # Generate harmonic signal with sampled spectral envelope (MFCCs drawn from multivariate normal)
         signal_mfcc = np.random.multivariate_normal(signal_mfcc_mean, signal_mfcc_cov)
         signal_mfcc[n_mfcc:] = 0
-        signal_power_spectrum = util_stimuli.get_power_spectrum_from_mfcc(signal_mfcc, Minv) 
+        signal_power_spectrum = util_stimuli.get_power_spectrum_from_mfcc(signal_mfcc, Minv)
         frequencies = np.arange(f0, fs/2, f0)
-        amplitudes = np.interp(frequencies,
-                               n_fft_freqs, 
-                               np.sqrt(signal_power_spectrum))
-        signal = util_stimuli.complex_tone(f0,
-                                           fs,
-                                           dur,
-                                           harmonic_numbers=None,
-                                           frequencies=frequencies,
-                                           amplitudes=amplitudes,
-                                           phase_mode=phase_mode,
-                                           offset_start=True,
-                                           strict_nyquist=True)
+        if generate_signal_in_fft_domain:
+            signal = util_stimuli.complex_tone(f0,
+                                               fs,
+                                               dur,
+                                               harmonic_numbers=None,
+                                               frequencies=frequencies,
+                                               amplitudes=None,
+                                               phase_mode=phase_mode,
+                                               offset_start=True,
+                                               strict_nyquist=True)
+            signal = util_stimuli.impose_power_spectrum(signal, signal_power_spectrum)
+        else:
+            amplitudes = np.interp(frequencies, n_fft_freqs, np.sqrt(signal_power_spectrum))
+            signal = util_stimuli.complex_tone(f0,
+                                               fs,
+                                               dur,
+                                               harmonic_numbers=None,
+                                               frequencies=frequencies,
+                                               amplitudes=amplitudes,
+                                               phase_mode=phase_mode,
+                                               offset_start=True,
+                                               strict_nyquist=True)
         signal = util_stimuli.set_dBSPL(signal, 60.0)
         
         # Generate white noise and impose sampled spectral envelope (MFCCs drawn from multivariate normal)
@@ -368,6 +379,7 @@ if __name__ == "__main__":
                                         n_mfcc=12,
                                         invert_signal_filter=bool(args.invert_signal_filter),
                                         invert_noise_filter=False,
+                                        generate_signal_in_fft_domain=False,
                                         out_combined_key='stimuli/signal_in_noise',
                                         out_signal_key='stimuli/signal',
                                         out_noise_key='stimuli/noise',
