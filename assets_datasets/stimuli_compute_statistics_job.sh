@@ -11,7 +11,7 @@
 ##SBATCH --partition=mcdermott
 #SBATCH --array=0-99
 
-source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08spch/noise_TLAS_snr_neg10pos10/*.hdf5'
+source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_mfcc/negatedPNDv08_snr_neg10pos10_phase0/*.hdf5'
 # source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_synthetic/noise_UMNm_snr_neg10pos10_phase01_filter_signalLPv00/*.hdf5'
 
 offset=0
@@ -32,4 +32,5 @@ singularity exec --nv \
 python -u stimuli_compute_statistics.py \
 -r "${source_fn_regex}" \
 -d "SPECTRAL_STATISTICS_v00" \
+-skf "f0" \
 -j $job_idx

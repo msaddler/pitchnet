@@ -210,6 +210,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="compute spectral features of hdf5 dataset")
     parser.add_argument('-r', '--source_fn_regex', type=str, default=None)
     parser.add_argument('-d', '--dest_dir', type=str, default=None)
+    parser.add_argument('-skf', '--source_f0_key', type=str, help='source path for f0 values')
     parser.add_argument('-j', '--job_idx', type=int, default=None,
                         help='index of current job')
     parsed_args_dict = vars(parser.parse_args())
@@ -234,7 +235,7 @@ if __name__ == "__main__":
     compute_spectral_statistics(fn_input,
                                 fn_output,
                                 key_sr='sr',
-                                key_f0='nopad_f0_mean',
+                                key_f0=parsed_args_dict['source_f0_key'],
                                 key_signal_list=['stimuli/signal', 'stimuli/noise'],
                                 buffer_start_dur=0.070,
                                 buffer_end_dur=0.010,
