@@ -98,6 +98,7 @@ def spectrally_shaped_synthetic_dataset(hdf5_filename,
     n_mels = len(signal_mfcc_mean)
     M = librosa.filters.mel(fs, n_fft, n_mels=n_mels)
     Minv = np.linalg.pinv(M)
+    n_fft_freqs = np.fft.rfftfreq(n_fft, d=1/fs)
     
     # Set random seed
     np.random.seed(random_seed)
@@ -145,28 +146,27 @@ def spectrally_shaped_synthetic_dataset(hdf5_filename,
         snr = list_snr[itrN]
         dbspl = list_dbspl[itrN]
         
-        # Define equal-amplitude harmonic carrier signal
+        # Generate harmonic signal with sampled spectral envelope (MFCCs drawn from multivariate normal)
+        signal_mfcc = np.random.multivariate_normal(signal_mfcc_mean, signal_mfcc_cov)
+        signal_mfcc[n_mfcc:] = 0
+        signal_power_spectrum = util_stimuli.get_power_spectrum_from_mfcc(signal_mfcc, Minv) 
+        frequencies = np.arange(f0, fs/2, f0)
+        amplitudes = np.interp(frequencies,
+                               n_fft_freqs, 
+                               np.sqrt(signal_power_spectrum))
         signal = util_stimuli.complex_tone(f0,
                                            fs,
                                            dur,
                                            harmonic_numbers=None,
-                                           frequencies=np.arange(f0, fs/2, f0),
-                                           amplitudes=None,
+                                           frequencies=frequencies,
+                                           amplitudes=amplitudes,
                                            phase_mode=phase_mode,
                                            offset_start=True,
                                            strict_nyquist=True)
-        
-        # Define white noise carrier
-        noise = np.random.randn(*signal.shape)
-        
-        # Sample and impose the signal spectral envelope (MFCCs drawn from multivariate normal)
-        signal_mfcc = np.random.multivariate_normal(signal_mfcc_mean, signal_mfcc_cov)
-        signal_mfcc[n_mfcc:] = 0
-        signal_power_spectrum = util_stimuli.get_power_spectrum_from_mfcc(signal_mfcc, Minv) 
-        signal = util_stimuli.impose_power_spectrum(signal, signal_power_spectrum)
         signal = util_stimuli.set_dBSPL(signal, 60.0)
         
-        # Sample and impose the noise spectral envelope (MFCCs drawn from multivariate normal)
+        # Generate white noise and impose sampled spectral envelope (MFCCs drawn from multivariate normal)
+        noise = np.random.randn(n_fft)
         noise_mfcc = np.random.multivariate_normal(noise_mfcc_mean, noise_mfcc_cov)
         noise_mfcc[n_mfcc:] = 0
         noise_power_spectrum = util_stimuli.get_power_spectrum_from_mfcc(noise_mfcc, Minv) 
@@ -361,7 +361,7 @@ if __name__ == "__main__":
                                         spectral_statistics_filename,
                                         fs=32e3,
                                         dur=0.150,
-                                        phase_modes=['sine'],
+                                        phase_modes=['cos'],
                                         range_f0=[80.0, 1001.3713909809752],
                                         range_snr=[-10., 10.],
                                         range_dbspl=[30., 90.],
@@ -374,7 +374,7 @@ if __name__ == "__main__":
                                         out_snr_key='snr',
                                         out_augmentation_prefix='augmentation/',
                                         random_seed=args.job_idx,
-                                        disp_step=100)
+                                        disp_step=50)
     
 #     augmentation_filter_params = {
 #         'filter_signal': True, # filter_signalBPv00
