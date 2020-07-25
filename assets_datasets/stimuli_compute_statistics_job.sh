@@ -9,10 +9,10 @@
 #SBATCH --time-min=0-8:00:00
 #SBATCH --exclude=node[001-030]
 ##SBATCH --partition=mcdermott
-#SBATCH --array=0-99
+#SBATCH --array=0-199
 #SBATCH --dependency=afterok:17395165
 
-source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_mfcc/debug/*.hdf5'
+source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_mfcc/PNDv08*/*.hdf5'
 # source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_synthetic/noise_UMNm_snr_neg10pos10_phase01_filter_signalLPv00/*.hdf5'
 
 offset=0
