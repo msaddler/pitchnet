@@ -11,9 +11,9 @@
 #SBATCH --array=0-99
 ##SBATCH --partition=mcdermott
 
-dest_filename="$SCRATCH_PATH/data_pitchnet/PND_mfcc/PNDv08negated12_TLASmatched12_snr_neg10pos10_phase3/stim.hdf5"
+dest_filename="$SCRATCH_PATH/data_pitchnet/PND_mfcc/debug/stim.hdf5"
 num_parallel_jobs=100
-num_total_stimuli=2100000
+num_total_stimuli=210000
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
 
@@ -33,4 +33,5 @@ python -u stimuli_generate_random_synthetic_tones.py \
 -j ${job_idx} \
 -npj ${num_parallel_jobs} \
 -nts ${num_total_stimuli} \
--isf 1
+-isf 1 \
+-n_mfcc 0

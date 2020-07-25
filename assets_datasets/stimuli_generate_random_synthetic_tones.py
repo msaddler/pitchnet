@@ -351,6 +351,7 @@ if __name__ == "__main__":
     parser.add_argument('-npj', '--num_parallel_jobs', type=int, default=1, help='number of parallel jobs')
     parser.add_argument('-nts', '--num_total_stimuli', type=int, default=2100000, help='total number of stimuli')
     parser.add_argument('-isf', '--invert_signal_filter', type=int, default=0, help='invert signal spectral envelopes')
+    parser.add_argument('-n_mfcc', '--n_mfcc', type=int, default=12, help='number of MFCCs to use for spectral envelopes')
     args = parser.parse_args()
     assert args.dest_filename is not None, "-d (--dest_filename) is a required argument"
     
@@ -376,7 +377,7 @@ if __name__ == "__main__":
                                         range_f0=[80.0, 1001.3713909809752],
                                         range_snr=[-10., 10.],
                                         range_dbspl=[30., 90.],
-                                        n_mfcc=12,
+                                        n_mfcc=args.n_mfcc,
                                         invert_signal_filter=bool(args.invert_signal_filter),
                                         invert_noise_filter=False,
                                         generate_signal_in_fft_domain=False,
