@@ -20,8 +20,16 @@ def get_best_checkpoint_number(validation_metrics_fn,
                                checkpoint_number_key='step'):
     '''
     '''
-    with open(validation_metrics_fn) as f: validation_metrics_dict = json.load(f)
+    with open(validation_metrics_fn) as f:
+        validation_metrics_dict = json.load(f)
     valid_step = validation_metrics_dict[checkpoint_number_key]
+    if metric_key not in validation_metrics_dict.keys():
+        # If metric_key does not exist in validation_metrics_dict, look for a similarly named key
+        for available_key in validation_metrics_dict.keys():
+            if all([mkp in available_key for mkp in metric_key.split(':')]):
+                print('Did not find key `{}`; using `{}` instead'.format(metric_key, available_key))
+                metric_key = available_key
+                break
     metric_values = validation_metrics_dict[metric_key]
     ### START: WORK AROUND FOR BUG CAUSED BY PREEMPTING AND RESTARTING TRAINING (valid step is reset)
     checkpoint_numbers = [valid_step[0]]
