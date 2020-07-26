@@ -40,7 +40,7 @@ def run_pystraight_analysis(hdf5_filename_input,
     continuation_flag, itrN_start = dataset_util.check_hdf5_continuation(hdf5_filename_output,
                                                                         **kwargs_continuation)
     if itrN_start is None:
-        print('>>> [EXITING] No indexes remain in {}'.format(hdf5_filename_output))
+        print('>>> [END] No indexes remain in {}'.format(hdf5_filename_output))
         return
     
     # Open input hdf5 file
@@ -60,11 +60,13 @@ def run_pystraight_analysis(hdf5_filename_input,
     
     # Main loop: iterate over all signals that have not been processed yet
     t_start = time.time()
-    data_key_pair_list = None
+    first_success = False
     count_failure = 0
     for itrN in range(itrN_start, N):
         # Run pystraight analysis
         data_dict = {'pystraight_did_fail': np.array(0)}
+        if key_f0 is not None:
+            data_dict[key_f0] = f_input[key_f0][itrN]
         for key_signal in key_signal_list:
             try:
                 y = f_input[key_signal][itrN, nopad_start:nopad_end]
@@ -83,27 +85,25 @@ def run_pystraight_analysis(hdf5_filename_input,
                     interp_params[k] = np.array(interp_params[k])
                     if np.issubdtype(interp_params[k].dtype, np.number):
                         data_dict['{}_{}_{}'.format(key_signal, 'INTERP', k)] = interp_params[k]
-                if key_f0 is not None:
-                    data_dict[key_f0] = f_input[key_f0][itrN]
                 data_dict['{}_{}'.format(key_signal, 'pystraight_did_fail')] = np.array(int(did_fail))
+                if not did_fail:
+                    first_success = True
+                    data_key_pair_list = [(k, k) for k in sorted(data_dict.keys())]
             except (KeyboardInterrupt, SystemExit):
                 raise
             except:
                 count_failure += 1
                 data_dict['pystraight_did_fail'] = np.array(1)
                 print('------> pystraight failed with itrN={} <------'.format(itrN))
-#             if (itrN == 0) and data_dict['pystraight_did_fail']:
-#                 raise ValueError("pystraight failed with itrN=0 (cannot initialize output file)")
         
         for k in sorted(data_dict.keys()):
             if np.issubdtype(data_dict[k].dtype, np.floating):
                 data_dict[k] = data_dict[k].astype(np.float32)
         
         # If output hdf5 file dataset has not been initialized, do so on first successful iteration
-        if (not continuation_flag) and (not data_dict['pystraight_did_fail']):
+        if first_success and (not continuation_flag):
             print('>>> [INITIALIZING] {}'.format(hdf5_filename_output))
-            if data_key_pair_list is None:
-                data_key_pair_list = [(k, k) for k in sorted(data_dict.keys())]
+            
             config_dict = {
                 key_sr: sr,
                 'buffer_start_dur': buffer_start_dur,
@@ -113,7 +113,6 @@ def run_pystraight_analysis(hdf5_filename_input,
             }
             config_key_pair_list = [(k, k) for k in sorted(config_dict.keys())]
             data_dict = util_misc.recursive_dict_merge(data_dict, config_dict)
-#             assert itrN == 0, "hdf5_filename_output can only be initialized when itrN=0"
             dataset_util.initialize_hdf5_file(hdf5_filename_output,
                                               N,
                                               data_dict,
@@ -126,7 +125,7 @@ def run_pystraight_analysis(hdf5_filename_input,
                 print('[___', k, f_output[k].shape, f_output[k].dtype)
         
         # Write each stimulus' data_dict to output hdf5 file
-        if continuation_flag:
+        if first_success and continuation_flag:
             dataset_util.write_example_to_hdf5(f_output,
                                                data_dict,
                                                itrN,
