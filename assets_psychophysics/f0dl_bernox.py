@@ -38,6 +38,25 @@ def load_f0_expt_dict_from_json(json_fn,
     '''
     # Load the entire json file as a dictionary
     with open(json_fn, 'r') as f: json_dict = json.load(f)
+    # QUICK HACK to find appropriate f0 label keys if provided ones do not exist in json_dict
+    if f0_label_true_key not in json_dict.keys():
+        for available_key in json_dict.keys():
+            if all([keypart in available_key for keypart in f0_label_true_key.split(':')]):
+                print('WARNING: `{}` -!-!-!-> `{}`'.format(f0_label_true_key, available_key))
+                f0_label_true_key = available_key
+                break
+    if f0_label_pred_key not in json_dict.keys():
+        for available_key in json_dict.keys():
+            if all([keypart in available_key for keypart in f0_label_pred_key.split(':')]):
+                print('WARNING: `{}` -!-!-!-> `{}`'.format(f0_label_pred_key, available_key))
+                f0_label_pred_key = available_key
+                break
+    if f0_label_prob_key not in json_dict.keys():
+        for available_key in json_dict.keys():
+            if all([keypart in available_key for keypart in f0_label_prob_key.split(':')]):
+                print('WARNING: `{}` -!-!-!-> `{}`'.format(f0_label_prob_key, available_key))
+                f0_label_prob_key = available_key
+                break
     # Return dictionary (expt_dict) with only specified fields
     expt_dict = {}
     assert f0_label_true_key in json_dict.keys(), "f0_label_true_key not found in json file"
@@ -92,6 +111,13 @@ def compute_f0_pred_with_prior(expt_dict,
     -------
     f0_pred (np array): predicted f0 values in Hz
     '''
+    # QUICK HACK to find appropriate f0 label keys if provided ones do not exist in expt_dict
+    if f0_label_prob_key not in expt_dict.keys():
+        for available_key in expt_dict.keys():
+            if all([keypart in available_key for keypart in f0_label_prob_key.split(':')]):
+                print('WARNING: `{}` -!-!-!-> `{}`'.format(f0_label_prob_key, available_key))
+                f0_label_prob_key = available_key
+                break
     assert f0_label_prob_key in expt_dict.keys(), "f0_label_prob_key not found in expt_dict"
     assert f0_prior_ref_key in expt_dict.keys(), "f0_prior_ref_key not found in expt_dict"
     f0_pred_prob = expt_dict[f0_label_prob_key]
@@ -150,6 +176,20 @@ def add_f0_estimates_to_expt_dict(expt_dict,
     -------
     expt_dict (dict): F0 experiment data dict (includes f0 and f0_pred keys)
     '''
+    # QUICK HACK to find appropriate f0 label keys if provided ones do not exist in expt_dict
+    if f0_label_true_key not in expt_dict.keys():
+        for available_key in expt_dict.keys():
+            if all([keypart in available_key for keypart in f0_label_true_key.split(':')]):
+                print('WARNING: `{}` -!-!-!-> `{}`'.format(f0_label_true_key, available_key))
+                f0_label_true_key = available_key
+                break
+    if f0_label_pred_key not in expt_dict.keys():
+        for available_key in expt_dict.keys():
+            if all([keypart in available_key for keypart in f0_label_pred_key.split(':')]):
+                print('WARNING: `{}` -!-!-!-> `{}`'.format(f0_label_pred_key, available_key))
+                f0_label_pred_key = available_key
+                break
+    # Convert predicted labels to F0 estimates
     if 'log2' in f0_label_pred_key:
         if 'f0' not in expt_dict.keys():
             expt_dict['f0'] = stimuli_f0_labels.octave_to_f0(expt_dict[f0_label_true_key],
@@ -165,6 +205,18 @@ def add_f0_estimates_to_expt_dict(expt_dict,
             expt_dict['f0_pred'] = stimuli_f0_labels.normalized_to_f0(expt_dict[f0_label_pred_key],
                                                                       **kwargs_f0_normalization)
     else:
+        # [START] Monkey-patch kwargs_f0_bins if details are provided in the key name
+        if 'f0_label_024' in f0_label_pred_key:
+            kwargs_f0_bins = {'f0_min':80., 'f0_max':1e3, 'binwidth_in_octaves':1/24}
+        if 'f0_label_048' in f0_label_pred_key:
+            kwargs_f0_bins = {'f0_min':80., 'f0_max':1e3, 'binwidth_in_octaves':1/48}
+        if 'f0_label_096' in f0_label_pred_key:
+            kwargs_f0_bins = {'f0_min':80., 'f0_max':1e3, 'binwidth_in_octaves':1/96}
+        if 'f0_label_192' in f0_label_pred_key:
+            kwargs_f0_bins = {'f0_min':80., 'f0_max':1e3, 'binwidth_in_octaves':1/192}
+        if 'f0_label_384' in f0_label_pred_key:
+            kwargs_f0_bins = {'f0_min':80., 'f0_max':1e3, 'binwidth_in_octaves':1/384}
+        # [END] Monkey-patch kwargs_f0_bins if details are provided in the key name
         f0_bins = stimuli_f0_labels.get_f0_bins(**kwargs_f0_bins)
         if not 'f0' in expt_dict.keys():
             expt_dict['f0'] = stimuli_f0_labels.label_to_f0(expt_dict[f0_label_true_key], f0_bins)
