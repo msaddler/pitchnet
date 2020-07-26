@@ -17,6 +17,94 @@ sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDat
 import dataset_util
 
 
+def summarize_spectral_statistics(regex_fn,
+                                  fn_results='results_dict_v00.json',
+                                  key_sr='sr',
+                                  key_f0=None,
+                                  key_signal_list=['stimuli/signal', 'stimuli/noise']):
+    '''
+    '''
+    list_fn = sorted(glob.glob(regex_fn))
+    dict_mfcc = {key: [] for key in key_signal_list}
+    dict_mean_spectra = {}
+    dict_mean_spectral_envelopes = {}
+    
+    for itr_fn, fn in enumerate(list_fn):
+        with h5py.File(fn, 'r') as f:
+            if key_f0 is None:
+                if 'f0' in f:
+                    key_f0 = 'f0'
+                elif 'nopad_f0_mean' in f:
+                    key_f0 = 'nopad_f0_mean'
+                else:
+                    raise ValueError("`key_f0` must be specified")
+            sr = f[key_sr][0]
+            freqs = f['freqs'][0]
+            n_fft = f['nopad_end'][0] - f['nopad_start'][0]
+            for key in key_signal_list:
+                dict_mfcc[key].append(f[key + '_mfcc'][:])
+                
+                if itr_fn == 0:
+                    dict_mean_spectra[key] = {
+                        'freqs': freqs,
+                        'summed_power_spectrum': np.zeros_like(freqs),
+                        'count': 0,
+                        'n_fft': n_fft,
+                    }
+                    dict_mean_spectral_envelopes[key] = {
+                        'freqs': freqs,
+                        'summed_power_spectrum': np.zeros_like(freqs),
+                        'count': 0,
+                        'n_fft': n_fft,
+                    }
+                all_f0 = f[key_f0][:]
+                all_spectra = f[key + '_power_spectrum'][:]
+                
+                for itr_stim in range(all_f0.shape[0]):
+                    spectrum = all_spectra[itr_stim]
+                    f0 = all_f0[itr_stim]
+                    if np.isfinite(np.sum(spectrum)):
+                        dict_mean_spectra[key]['summed_power_spectrum'] += spectrum
+                        dict_mean_spectra[key]['count'] += 1
+                        harmonic_frequencies = np.arange(f0, sr/2, f0)
+                        IDX = np.digitize(harmonic_frequencies, freqs)
+                        harmonic_freq_bins = freqs[IDX]
+                        spectrum_freq_bins = spectrum[IDX]
+                        envelope_spectrum = np.interp(freqs, harmonic_freq_bins, spectrum_freq_bins)
+                        dict_mean_spectral_envelopes[key]['summed_power_spectrum'] += envelope_spectrum
+                        dict_mean_spectral_envelopes[key]['count'] += 1
+            
+            print('Processed file {} of {} ({} stim)'.format(itr_fn, len(list_fn), dict_mean_spectra[key]['count']))
+    
+    for key in key_signal_list:
+        print('concatenating {} mfcc arrays'.format(key))
+        dict_mfcc[key] = np.concatenate(dict_mfcc[key], axis=0)
+    
+    results_dict = {}
+    for key in sorted(dict_mfcc.keys()):
+        mfcc_cov = np.cov(dict_mfcc[key], rowvar=False)
+        mfcc_mean = np.mean(dict_mfcc[key], axis=0)
+        results_dict[key] = {
+            'mfcc_mean': mfcc_mean,
+            'mfcc_cov': mfcc_cov,
+            'sr': sr,
+            'mean_power_spectrum_envelope': dict_mean_spectral_envelopes[key]['summed_power_spectrum'],
+            'mean_power_spectrum': dict_mean_spectra[key]['summed_power_spectrum'],
+            'mean_power_spectrum_freqs': dict_mean_spectra[key]['freqs'],
+            'mean_power_spectrum_count': dict_mean_spectra[key]['count'],
+            'mean_power_spectrum_n_fft': dict_mean_spectra[key]['n_fft'],
+        }
+        results_dict[key]['mean_power_spectrum_envelope'] /= dict_mean_spectral_envelopes[key]['count']
+        results_dict[key]['mean_power_spectrum'] /= dict_mean_spectra[key]['count']
+    
+    if os.path.basename(fn_results) == fn_results:
+        fn_results = os.path.join(os.path.dirname(fn), fn_results)
+    with open(fn_results, 'w') as f:
+        json.dump(results_dict, f, sort_keys=True, cls=util_misc.NumpyEncoder)
+    print('[END]: {}'.format(fn_results))
+    return
+
+
 def compute_spectral_statistics(fn_input,
                                 fn_output,
                                 key_sr='sr',
