@@ -16,10 +16,10 @@
 ##SBATCH --partition=use-everything
 #SBATCH --requeue
 
-OUTDIR='/saved_models/models_sr20000/arch_0302/PND_v08_TLAS_snr_neg10pos10_filter_signalLPv01_AN_BW10eN1_IHC3000Hz_classification'$SLURM_ARRAY_TASK_ID
+OUTDIR='/saved_models/models_sr20000/arch_0302/f0_label_048_PND_v08_TLAS_snr_neg10pos10_AN_sr2000_cf1000_species002_spont070_BW10eN1_IHC0050Hz_IHC7order_classification'$SLURM_ARRAY_TASK_ID
 OUTPUT_LOG_FN='/om2/user/msaddler/pitchnet'$OUTDIR'/output_train.log'
-DATA_TRAIN='/data/PND_v08/noise_TLAS_snr_neg10pos10_filter_signalLPv01/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_0[0-7]*.tfrecords'
-DATA_EVAL='/data/PND_v08/noise_TLAS_snr_neg10pos10_filter_signalLPv01/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_0[8-9]*.tfrecords'
+DATA_TRAIN='/data/PND_v08/noise_TLAS_snr_neg10pos10/sr2000_cf1000_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates_0[0-7]*.tfrecords'
+DATA_EVAL='/data/PND_v08/noise_TLAS_snr_neg10pos10/sr2000_cf1000_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/bez2018meanrates_0[8-9]*.tfrecords'
 
 echo $OUTDIR
 echo $OUTPUT_LOG_FN
