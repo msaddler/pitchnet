@@ -92,18 +92,18 @@ def run_pystraight_analysis(hdf5_filename_input,
                 count_failure += 1
                 data_dict['pystraight_did_fail'] = np.array(1)
                 print('------> pystraight failed with itrN={} <------'.format(itrN))
-            if (itrN == 0) and data_dict['pystraight_did_fail']:
-                raise ValueError("pystraight failed with itrN=0 (cannot initialize output file)")
+#             if (itrN == 0) and data_dict['pystraight_did_fail']:
+#                 raise ValueError("pystraight failed with itrN=0 (cannot initialize output file)")
         
-        if data_key_pair_list is None:
-            data_key_pair_list = [(k, k) for k in sorted(data_dict.keys())]
         for k in sorted(data_dict.keys()):
             if np.issubdtype(data_dict[k].dtype, np.floating):
                 data_dict[k] = data_dict[k].astype(np.float32)
         
-        # If output hdf5 file dataset has not been initialized, do so on first iteration
-        if not continuation_flag:
+        # If output hdf5 file dataset has not been initialized, do so on first successful iteration
+        if (not continuation_flag) and (not data_dict['pystraight_did_fail']):
             print('>>> [INITIALIZING] {}'.format(hdf5_filename_output))
+            if data_key_pair_list is None:
+                data_key_pair_list = [(k, k) for k in sorted(data_dict.keys())]
             config_dict = {
                 key_sr: sr,
                 'buffer_start_dur': buffer_start_dur,
@@ -113,7 +113,7 @@ def run_pystraight_analysis(hdf5_filename_input,
             }
             config_key_pair_list = [(k, k) for k in sorted(config_dict.keys())]
             data_dict = util_misc.recursive_dict_merge(data_dict, config_dict)
-            assert itrN == 0, "hdf5_filename_output can only be initialized when itrN=0"
+#             assert itrN == 0, "hdf5_filename_output can only be initialized when itrN=0"
             dataset_util.initialize_hdf5_file(hdf5_filename_output,
                                               N,
                                               data_dict,
@@ -126,10 +126,11 @@ def run_pystraight_analysis(hdf5_filename_input,
                 print('[___', k, f_output[k].shape, f_output[k].dtype)
         
         # Write each stimulus' data_dict to output hdf5 file
-        dataset_util.write_example_to_hdf5(f_output,
-                                           data_dict,
-                                           itrN,
-                                           data_key_pair_list=data_key_pair_list)
+        if continuation_flag:
+            dataset_util.write_example_to_hdf5(f_output,
+                                               data_dict,
+                                               itrN,
+                                               data_key_pair_list=data_key_pair_list)
         if itrN % disp_step == 0:
             t_mean_per_signal = (time.time() - t_start) / (itrN - itrN_start + 1) # Seconds per signal
             t_est_remaining = (N - itrN - 1) * t_mean_per_signal / 60.0 # Estimated minutes remaining
