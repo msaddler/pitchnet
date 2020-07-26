@@ -1,10 +1,9 @@
 import sys
 import os
-import io
-import contextlib
 import numpy as np
 import h5py
 import glob
+import time
 import pdb
 import argparse
 import warnings
@@ -60,7 +59,9 @@ def run_pystraight_analysis(hdf5_filename_input,
     eng = pystraight.setup_default_engine(**kwargs_matlab_engine)
     
     # Main loop: iterate over all signals that have not been processed yet
+    t_start = time.time()
     data_key_pair_list = None
+    count_failure = 0
     for itrN in range(itrN_start, N):
         # Run pystraight analysis
         data_dict = {'pystraight_did_fail': np.array(0)}
@@ -84,9 +85,11 @@ def run_pystraight_analysis(hdf5_filename_input,
                         data_dict['{}_{}_{}'.format(key_signal, 'INTERP', k)] = interp_params[k]
                 if key_f0 is not None:
                     data_dict[key_f0] = f_input[key_f0][itrN]
+                data_dict['{}_{}'.format(key_signal, 'pystraight_did_fail')] = np.array(int(did_fail))
             except (KeyboardInterrupt, SystemExit):
                 raise
             except:
+                count_failure += 1
                 data_dict['pystraight_did_fail'] = np.array(1)
                 print('------> pystraight failed with itrN={} <------'.format(itrN))
             if (itrN == 0) and data_dict['pystraight_did_fail']:
@@ -128,7 +131,11 @@ def run_pystraight_analysis(hdf5_filename_input,
                                            itrN,
                                            data_key_pair_list=data_key_pair_list)
         if itrN % disp_step == 0:
-            print('... signal {} of {}'.format(itrN, N))
+            t_mean_per_signal = (time.time() - t_start) / (itrN - itrN_start + 1) # Seconds per signal
+            t_est_remaining = (N - itrN - 1) * t_mean_per_signal / 60.0 # Estimated minutes remaining
+            disp_str = ('### signal {:06d} of {:06d} | {:06d} failures |'
+                        'time_per_signal: {:02.2f} sec | time_est_remaining: {:06.0f} min ###')
+            print(disp_str.format(itrN, N, count_failure, t_mean_per_signal, t_est_remaining))
     
     f_input.close()
     f_output.close()
@@ -137,11 +144,41 @@ def run_pystraight_analysis(hdf5_filename_input,
 
 
 if __name__ == "__main__":
-    regex_hdf5_filename_input = '/om/scratch/*/msaddler/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/*.hdf5'
-    list_hdf5_filename_input = sorted(glob.glob(regex_hdf5_filename_input))
-    hdf5_filename_input = list_hdf5_filename_input[0]
+    parser = argparse.ArgumentParser(description="run pystraight analysis on stimuli")
+    parser.add_argument('-r', '--source_fn_regex', type=str, default=None)
+    parser.add_argument('-d', '--dest_dir', type=str, default=None)
+    parser.add_argument('-sks', '--source_key_signal', type=str, help='source path for signals')
+    parser.add_argument('-skf', '--source_key_f0', type=str, help='source path for f0 values')
+    parser.add_argument('-j', '--job_idx', type=int, default=None, help='index of current job')
+    parsed_args_dict = vars(parser.parse_args())
     
-    hdf5_filename_output = 'tmp.hdf5'
+    source_fn_regex = parsed_args_dict['source_fn_regex']
+    source_fn_list = sorted(glob.glob(source_fn_regex))
     
-    run_pystraight_analysis(hdf5_filename_input,
-                            hdf5_filename_output)
+    fn_input = source_fn_list[parsed_args_dict['job_idx']]
+    
+    dirname_input = os.path.dirname(fn_input)
+    dirname_output = parsed_args_dict['dest_dir']
+    if os.path.basename(dirname_output) == dirname_output:
+        dirname_output = os.path.join(dirname_input, dirname_output)
+    if not os.path.exists(dirname_output):
+        os.mkdir(dirname_output)
+    fn_output = os.path.join(dirname_output, os.path.basename(fn_input))
+    
+    print('job_idx = {} of {}'.format(parsed_args_dict['job_idx'], len(source_fn_list)))
+    print('fn_input = {}'.format(fn_input))
+    print('fn_output = {}'.format(fn_output))
+    
+    run_pystraight_analysis(fn_input,
+                            fn_output,
+                            key_sr='sr',
+                            key_f0=parsed_args_dict['source_key_f0'],
+                            key_signal_list=[parsed_args_dict['source_key_signal']],
+                            signal_dBSPL=60.0,
+                            buffer_start_dur=0.070,
+                            buffer_end_dur=0.010,
+                            disp_step=10,
+                            kwargs_continuation={'check_key':'pystraight_did_fail', 'check_key_fill_value':-1},
+                            kwargs_initialization={},
+                            kwargs_matlab_engine={'verbose':0},
+                            kwargs_pystraight={'verbose':0})

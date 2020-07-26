@@ -299,8 +299,7 @@ if __name__ == "__main__":
     parser.add_argument('-r', '--source_fn_regex', type=str, default=None)
     parser.add_argument('-d', '--dest_dir', type=str, default=None)
     parser.add_argument('-skf', '--source_f0_key', type=str, help='source path for f0 values')
-    parser.add_argument('-j', '--job_idx', type=int, default=None,
-                        help='index of current job')
+    parser.add_argument('-j', '--job_idx', type=int, default=None, help='index of current job')
     parsed_args_dict = vars(parser.parse_args())
     
     source_fn_regex = parsed_args_dict['source_fn_regex']
