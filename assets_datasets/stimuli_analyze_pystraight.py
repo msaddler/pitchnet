@@ -1,17 +1,27 @@
 import sys
 import os
-import numpy as np
 import h5py
 import json
 import glob
 import time
-import pdb
+import numpy as np
+import scipy.fftpack
 import argparse
+import pdb
 import warnings
 warnings.filterwarnings('ignore')
 
+# Import pystraight and librosa for `run_pystraight_analysis`
+try:
+    sys.path.append('/om2/user/msaddler/python-packages/')
+    import matlab.engine # matlab.engine MUST BE IMPORTED BEFORE librosa
+    import pystraight # pystraight MUST BE IMPORTED BEFORE librosa
+    import librosa
+except ImportError as e:
+    print('[FAILED] `import pystraight; import matlab.engine; import librosa`')
+
 sys.path.append('/om2/user/msaddler/python-packages/msutil')
-import util_stimuli
+import util_stimuli # note this package also imports librosa
 import util_misc
 
 sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
@@ -78,25 +88,22 @@ def summarize_pystraight_statistics(regex_fn,
 def run_pystraight_analysis(hdf5_filename_input,
                             hdf5_filename_output,
                             key_sr='sr',
-                            key_f0='nopad_f0_mean',
-                            key_signal_list=['stimuli/signal'],
+                            key_f0=None,
+                            key_signal='stimuli/signal',
+                            n_mels=40,
                             signal_dBSPL=60.0,
                             buffer_start_dur=0.070,
                             buffer_end_dur=0.010,
                             disp_step=10,
-                            kwargs_continuation={'check_key':'pystraight_did_fail', 'check_key_fill_value':-1},
+                            kwargs_continuation={'check_key':'pystraight_success', 'check_key_fill_value':-1},
                             kwargs_initialization={},
                             kwargs_matlab_engine={'verbose':0},
                             kwargs_pystraight={'verbose':0}):
     '''
     '''
-    sys.path.append('/om2/user/msaddler/python-packages/')
-    import pystraight
-    import matlab.engine
-    
     # Check if the hdf5 output dataset can be continued and get correct itrN_start
     continuation_flag, itrN_start = dataset_util.check_hdf5_continuation(hdf5_filename_output,
-                                                                        **kwargs_continuation)
+                                                                         **kwargs_continuation)
     if itrN_start is None:
         print('>>> [END] No indexes remain in {}'.format(hdf5_filename_output))
         return
@@ -104,10 +111,30 @@ def run_pystraight_analysis(hdf5_filename_input,
     # Open input hdf5 file
     f_input = h5py.File(hdf5_filename_input, 'r+')
     sr = f_input[key_sr][0]
-    N = f_input[key_signal_list[0]].shape[0]
+    N = f_input[key_signal].shape[0]
     nopad_start = int(buffer_start_dur * sr)
-    nopad_end = int(f_input[key_signal_list[0]].shape[1] - buffer_end_dur * sr)
+    nopad_end = int(f_input[key_signal].shape[1] - buffer_end_dur * sr)
+    if key_f0 is None:
+        if 'f0' in f_input:
+            key_f0 = 'f0'
+        elif 'nopad_f0_mean' in f_input:
+            key_f0 = 'nopad_f0_mean'
+        else:
+            raise ValueError("`key_f0` must be specified")
     assert key_f0 in f_input, "`key_f0` not found in input hdf5 file"
+    
+    # Compute n_fft used by PYSTRAIGHT
+    n_fft_tmp = nopad_end - nopad_start
+    pwr_of_two = 0
+    while n_fft_tmp > 2:
+        n_fft_tmp /= 2
+        pwr_of_two += 1
+    n_fft = int(2 ** pwr_of_two)
+    freqs = np.fft.rfftfreq(n_fft, d=1/sr)
+    
+    # Define Mel-scale filterbank and inverse filterbank
+    M = librosa.filters.mel(sr, n_fft, n_mels=n_mels)
+    Minv = np.linalg.pinv(M)
     
     # Open output hdf5 file if continuing existing dataset
     if continuation_flag:
@@ -123,52 +150,59 @@ def run_pystraight_analysis(hdf5_filename_input,
     count_failure = 0
     for itrN in range(itrN_start, N):
         # Run pystraight analysis
-        data_dict = {'pystraight_did_fail': np.array(0)}
-        if key_f0 is not None:
-            data_dict[key_f0] = f_input[key_f0][itrN]
-        for key_signal in key_signal_list:
-            try:
-                y = f_input[key_signal][itrN, nopad_start:nopad_end]
-                y = util_stimuli.set_dBSPL(y, signal_dBSPL)
-                source_params, filter_params, interp_params, did_fail = pystraight.backend_straight_analysis(
-                    y, sr, matlab_engine=eng, straight_params=kwargs_pystraight)
-#                 for k in sorted(source_params.keys()):
-#                     source_params[k] = np.array(source_params[k])
-#                     if np.issubdtype(source_params[k].dtype, np.number):
-#                         data_dict['{}_{}_{}'.format(key_signal, 'SOURCE', k)] = source_params[k]
-                for k in sorted(filter_params.keys()):
-                    filter_params[k] = np.array(filter_params[k])
-                    if np.issubdtype(filter_params[k].dtype, np.number):
-                        data_dict['{}_{}_{}'.format(key_signal, 'FILTER', k)] = filter_params[k]
-                for k in sorted(interp_params.keys()):
-                    interp_params[k] = np.array(interp_params[k])
-                    if np.issubdtype(interp_params[k].dtype, np.number):
-                        data_dict['{}_{}_{}'.format(key_signal, 'INTERP', k)] = interp_params[k]
-                data_dict['{}_{}'.format(key_signal, 'pystraight_did_fail')] = np.array(int(did_fail))
-                if not did_fail:
-                    first_success = True
-                    data_key_pair_list = [(k, k) for k in sorted(data_dict.keys())]
-            except (KeyboardInterrupt, SystemExit):
-                raise
-            except:
-                count_failure += 1
-                data_dict['pystraight_did_fail'] = np.array(1)
-                print('------> pystraight failed with itrN={} <------'.format(itrN))
+        data_dict = {
+            'pystraight_success': 1,
+            key_f0: f_input[key_f0][itrN]
+        }
         
-        for k in sorted(data_dict.keys()):
-            if np.issubdtype(data_dict[k].dtype, np.floating):
-                data_dict[k] = data_dict[k].astype(np.float32)
+        try:
+            y = f_input[key_signal][itrN, nopad_start:nopad_end]
+            y = util_stimuli.set_dBSPL(y, signal_dBSPL)
+            source_params, filter_params, interp_params, did_fail = pystraight.backend_straight_analysis(
+                y, sr, matlab_engine=eng, straight_params=kwargs_pystraight)
+            
+            for k in sorted(filter_params.keys()):
+                value = np.array(filter_params[k])
+                if np.issubdtype(value.dtype, np.number):
+                    # Down-cast floats to np.float32
+                    if np.issubdtype(value.dtype, np.floating):
+                        value = value.astype(np.float32)
+                    output_k = '{}_{}_{}'.format(key_signal, 'FILTER', k)
+                    if 'spectrogram' in output_k:
+                        output_k = output_k.replace('spectrogram', 'spectrum')
+                        value = np.mean(value, axis=-1)
+                        mfcc = scipy.fftpack.dct(np.log(np.matmul(M, value)), norm='ortho')
+                        data_dict['{}_mfcc'.format(output_k)] = mfcc
+                    data_dict[output_k] = value
+            for k in sorted(interp_params.keys()):
+                value = np.array(interp_params[k])
+                if np.issubdtype(value.dtype, np.number):
+                    output_k = '{}_{}_{}'.format(key_signal, 'INTERP', k)
+                    if np.issubdtype(value.dtype, np.floating):
+                        value = value.astype(np.float32)
+                    data_dict[output_k] = value
+            if did_fail:
+                data_dict['pystraight_success'] = 0
+                count_failure += 1
+            else:
+                first_success = True
+                data_key_pair_list = [(k, k) for k in sorted(data_dict.keys())]
+        except matlab.engine.MatlabExecutionError as e:
+            data_dict['pystraight_success'] = 0
+            count_failure += 1
+            pass
         
         # If output hdf5 file dataset has not been initialized, do so on first successful iteration
         if first_success and (not continuation_flag):
             print('>>> [INITIALIZING] {}'.format(hdf5_filename_output))
-            
             config_dict = {
                 key_sr: sr,
                 'buffer_start_dur': buffer_start_dur,
                 'buffer_end_dur': buffer_end_dur,
                 'nopad_start': nopad_start,
                 'nopad_end': nopad_end,
+                'n_fft': n_fft,
+                'freqs': freqs,
             }
             config_key_pair_list = [(k, k) for k in sorted(config_dict.keys())]
             data_dict = util_misc.recursive_dict_merge(data_dict, config_dict)
@@ -207,7 +241,6 @@ if __name__ == "__main__":
     parser.add_argument('-r', '--source_fn_regex', type=str, default=None)
     parser.add_argument('-d', '--dest_dir', type=str, default=None)
     parser.add_argument('-sks', '--source_key_signal', type=str, help='source path for signals')
-    parser.add_argument('-skf', '--source_key_f0', type=str, help='source path for f0 values')
     parser.add_argument('-j', '--job_idx', type=int, default=None, help='index of current job')
     parsed_args_dict = vars(parser.parse_args())
     
@@ -231,13 +264,4 @@ if __name__ == "__main__":
     run_pystraight_analysis(fn_input,
                             fn_output,
                             key_sr='sr',
-                            key_f0=parsed_args_dict['source_key_f0'],
-                            key_signal_list=[parsed_args_dict['source_key_signal']],
-                            signal_dBSPL=60.0,
-                            buffer_start_dur=0.070,
-                            buffer_end_dur=0.010,
-                            disp_step=10,
-                            kwargs_continuation={'check_key':'pystraight_did_fail', 'check_key_fill_value':-1},
-                            kwargs_initialization={},
-                            kwargs_matlab_engine={'verbose':0},
-                            kwargs_pystraight={'verbose':0})
+                            key_signal=parsed_args_dict['source_key_signal'])

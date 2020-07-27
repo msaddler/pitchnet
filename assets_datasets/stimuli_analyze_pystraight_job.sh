@@ -9,11 +9,11 @@
 #SBATCH --time-min=0-8:00:00
 #SBATCH --exclude=node[001-030]
 ##SBATCH --partition=mcdermott
-#SBATCH --array=0-99
+#SBATCH --array=20,31,32,78-80,85
 #SBATCH --dependency=afterok:17395165
 
-#source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/*.hdf5'
-source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_mfcc/PNDv08negated12_TLASmatched12_snr_neg10pos10_phase0/*.hdf5'
+source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/*.hdf5'
+# source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_mfcc/PNDv08negated12_TLASmatched12_snr_neg10pos10_phase0/*.hdf5'
 
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
@@ -24,7 +24,6 @@ echo $(hostname)
 
 python -u stimuli_analyze_pystraight.py \
 -r "${source_fn_regex}" \
--d "PYSTRAIGHT_v00_foreground" \
+-d "PYSTRAIGHT_v01_foreground" \
 -sks "stimuli/signal" \
--skf "f0" \
 -j $job_idx
