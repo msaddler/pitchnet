@@ -46,10 +46,10 @@ def summarize_pystraight_statistics(regex_fn,
                         'n_fft': n_fft,
                     }
                 all_filter_spectrograms = f[key_signal_list[0] + '_FILTER_spectrogramSTRAIGHT'][:]
-                for itr_stim in range(all_filter_spectrograms.shape[0]):
-                    filter_spectrum = np.mean(all_filter_spectrograms[itr_stim], axis=-1)
-                    filter_spectrum = 10*np.log10(filter_spectrum)
-                    if not f['pystraight_did_fail'][itr_stim]:
+                all_filter_spectra = 10*np.log10(np.mean(all_filter_spectrograms, axis=-1))
+                for itr_stim in range(all_filter_spectra.shape[0]):
+                    filter_spectrum = all_filter_spectra[itr_stim]
+                    if np.isfinite(np.sum(filter_spectrum)):
                         dict_mean_filter_spectrum[key]['summed_power_spectrum'] += filter_spectrum
                         dict_mean_filter_spectrum[key]['count'] += 1
             
@@ -61,8 +61,9 @@ def summarize_pystraight_statistics(regex_fn,
         results_dict[key] = {
             'sr': sr,
             'mean_filter_spectrum': dict_mean_filter_spectrum[key]['summed_power_spectrum'],
+            'mean_filter_spectrum_freqs': dict_mean_filter_spectrum[key]['freqs'],
             'mean_filter_spectrum_count': dict_mean_filter_spectrum[key]['count'],
-            'mean_filter_spectrum_nfft': dict_mean_filter_spectrum[key]['n_fft'],
+            'mean_filter_spectrum_n_fft': dict_mean_filter_spectrum[key]['n_fft'],
         }
         results_dict[key]['mean_filter_spectrum'] /= results_dict[key]['mean_filter_spectrum_count']
     
