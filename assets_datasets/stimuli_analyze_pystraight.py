@@ -2,6 +2,7 @@ import sys
 import os
 import numpy as np
 import h5py
+import json
 import glob
 import time
 import pdb
@@ -9,16 +10,68 @@ import argparse
 import warnings
 warnings.filterwarnings('ignore')
 
-sys.path.append('/om2/user/msaddler/python-packages/')
-import pystraight
-import matlab.engine
-
 sys.path.append('/om2/user/msaddler/python-packages/msutil')
 import util_stimuli
 import util_misc
 
 sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
 import dataset_util
+
+
+def summarize_pystraight_statistics(regex_fn,
+                                    fn_results='results_dict_v00.json',
+                                    key_sr='sr',
+                                    key_signal_list=['stimuli/signal']):
+    '''
+    '''
+    list_fn = sorted(glob.glob(regex_fn))
+    dict_mean_filter_spectrum = {}
+    
+    for itr_fn, fn in enumerate(list_fn):
+        with h5py.File(fn, 'r') as f:
+            sr = f[key_sr][0]
+            NTMP = f[key_signal_list[0] + '_INTERP_interp_signal'].shape[1]
+            power = 0
+            while NTMP > 2:
+                NTMP /= 2
+                power += 1
+            n_fft = int(2 ** power)
+            freqs = np.fft.rfftfreq(n_fft, d=1/sr)
+            for key in key_signal_list:
+                if itr_fn == 0:
+                    dict_mean_filter_spectrum[key] = {
+                        'freqs': freqs,
+                        'summed_power_spectrum': np.zeros_like(freqs),
+                        'count': 0,
+                        'n_fft': n_fft,
+                    }
+                all_filter_spectrograms = f[key_signal_list[0] + '_FILTER_spectrogramSTRAIGHT'][:]
+                for itr_stim in range(all_filter_spectrograms.shape[0]):
+                    filter_spectrum = np.mean(all_filter_spectrograms[itr_stim], axis=-1)
+                    filter_spectrum = 10*np.log10(filter_spectrum)
+                    if not f['pystraight_did_fail'][itr_stim]:
+                        dict_mean_filter_spectrum[key]['summed_power_spectrum'] += filter_spectrum
+                        dict_mean_filter_spectrum[key]['count'] += 1
+            
+            print('Processed file {} of {} ({} stim)'.format(
+                itr_fn, len(list_fn), dict_mean_filter_spectrum[key]['count']))
+    
+    results_dict = {}
+    for key in sorted(dict_mean_filter_spectrum.keys()):
+        results_dict[key] = {
+            'sr': sr,
+            'mean_filter_spectrum': dict_mean_filter_spectrum[key]['summed_power_spectrum'],
+            'mean_filter_spectrum_count': dict_mean_filter_spectrum[key]['count'],
+            'mean_filter_spectrum_nfft': dict_mean_filter_spectrum[key]['n_fft'],
+        }
+        results_dict[key]['mean_filter_spectrum'] /= results_dict[key]['mean_filter_spectrum_count']
+    
+    if os.path.basename(fn_results) == fn_results:
+        fn_results = os.path.join(os.path.dirname(fn), fn_results)
+    with open(fn_results, 'w') as f:
+        json.dump(results_dict, f, sort_keys=True, cls=util_misc.NumpyEncoder)
+    print('[END]: {}'.format(fn_results))
+    return
 
 
 def run_pystraight_analysis(hdf5_filename_input,
@@ -36,6 +89,10 @@ def run_pystraight_analysis(hdf5_filename_input,
                             kwargs_pystraight={'verbose':0}):
     '''
     '''
+    sys.path.append('/om2/user/msaddler/python-packages/')
+    import pystraight
+    import matlab.engine
+    
     # Check if the hdf5 output dataset can be continued and get correct itrN_start
     continuation_flag, itrN_start = dataset_util.check_hdf5_continuation(hdf5_filename_output,
                                                                         **kwargs_continuation)
@@ -49,6 +106,7 @@ def run_pystraight_analysis(hdf5_filename_input,
     N = f_input[key_signal_list[0]].shape[0]
     nopad_start = int(buffer_start_dur * sr)
     nopad_end = int(f_input[key_signal_list[0]].shape[1] - buffer_end_dur * sr)
+    assert key_f0 in f_input, "`key_f0` not found in input hdf5 file"
     
     # Open output hdf5 file if continuing existing dataset
     if continuation_flag:
