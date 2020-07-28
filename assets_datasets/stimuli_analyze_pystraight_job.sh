@@ -9,10 +9,10 @@
 #SBATCH --time-min=0-8:00:00
 #SBATCH --exclude=node[001-030]
 ##SBATCH --partition=mcdermott
-#SBATCH --array=20,31,32,78-80,85
+#SBATCH --array=0-99
 #SBATCH --dependency=afterok:17395165
 
-source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/*.hdf5'
+source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08inst/noise_TLAS_snr_neg10pos10/*.hdf5'
 # source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_mfcc/PNDv08negated12_TLASmatched12_snr_neg10pos10_phase0/*.hdf5'
 
 offset=0

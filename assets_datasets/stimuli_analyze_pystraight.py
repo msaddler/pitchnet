@@ -29,34 +29,32 @@ import dataset_util
 
 
 def summarize_pystraight_statistics(regex_fn,
-                                    fn_results='results_dict_v00.json',
+                                    fn_results='results_dict.json',
                                     key_sr='sr',
                                     key_signal_list=['stimuli/signal']):
     '''
     '''
     list_fn = sorted(glob.glob(regex_fn))
     dict_mean_filter_spectrum = {}
+    dict_mfcc = {key: [] for key in key_signal_list}
     
     for itr_fn, fn in enumerate(list_fn):
         with h5py.File(fn, 'r') as f:
-            sr = f[key_sr][0]
-            NTMP = f[key_signal_list[0] + '_INTERP_interp_signal'].shape[1]
-            power = 0
-            while NTMP > 2:
-                NTMP /= 2
-                power += 1
-            n_fft = int(2 ** power)
-            freqs = np.fft.rfftfreq(n_fft, d=1/sr)
             for key in key_signal_list:
+                dict_mfcc[key].append(f[key + '_FILTER_spectrumSTRAIGHT_mfcc'][:])
+                
                 if itr_fn == 0:
+                    sr = f[key_sr][0]
+                    n_fft = f['n_fft'][0]
+                    freqs = f['freqs'][0]
                     dict_mean_filter_spectrum[key] = {
                         'freqs': freqs,
                         'summed_power_spectrum': np.zeros_like(freqs),
                         'count': 0,
                         'n_fft': n_fft,
                     }
-                all_filter_spectrograms = f[key_signal_list[0] + '_FILTER_spectrogramSTRAIGHT'][:]
-                all_filter_spectra = 10*np.log10(np.mean(all_filter_spectrograms, axis=-1))
+                all_filter_spectra = f[key_signal_list[0] + '_FILTER_spectrumSTRAIGHT'][:]
+                all_filter_spectra = 10*np.log10(all_filter_spectra)
                 for itr_stim in range(all_filter_spectra.shape[0]):
                     filter_spectrum = all_filter_spectra[itr_stim]
                     if np.isfinite(np.sum(filter_spectrum)):
@@ -66,9 +64,17 @@ def summarize_pystraight_statistics(regex_fn,
             print('Processed file {} of {} ({} stim)'.format(
                 itr_fn, len(list_fn), dict_mean_filter_spectrum[key]['count']))
     
+    for key in key_signal_list:
+        print('concatenating {} mfcc arrays'.format(key))
+        dict_mfcc[key] = np.concatenate(dict_mfcc[key], axis=0)
+    
     results_dict = {}
     for key in sorted(dict_mean_filter_spectrum.keys()):
+        mfcc_cov = np.cov(dict_mfcc[key], rowvar=False)
+        mfcc_mean = np.mean(dict_mfcc[key], axis=0)
         results_dict[key] = {
+            'mfcc_mean': mfcc_mean,
+            'mfcc_cov': mfcc_cov,
             'sr': sr,
             'mean_filter_spectrum': dict_mean_filter_spectrum[key]['summed_power_spectrum'],
             'mean_filter_spectrum_freqs': dict_mean_filter_spectrum[key]['freqs'],
