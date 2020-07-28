@@ -52,16 +52,18 @@ def sample_and_apply_stable_filter(b_lp, a_lp_mean, a_lp_cov, x, invert_filter=F
     return scipy.signal.lfilter(b, a, x), b, a
 
 
-def spectrally_shaped_synthetic_dataset(hdf5_filename,
+def spectrally_shaped_synthetic_dataset(hdf5_fn,
                                         N,
-                                        spectral_statistics_filename,
+                                        statistics_fn_signal,
+                                        statistics_fn_noise=None,
                                         fs=32e3,
                                         dur=0.150,
                                         phase_modes=['sine'],
                                         range_f0=[80.0, 1001.3713909809752],
                                         range_snr=[-10., 10.],
                                         range_dbspl=[30., 90.],
-                                        n_mfcc=12,
+                                        n_mfcc_signal=12,
+                                        n_mfcc_noise=12,
                                         invert_signal_filter=False,
                                         invert_noise_filter=False,
                                         generate_signal_in_fft_domain=True,
@@ -75,16 +77,23 @@ def spectrally_shaped_synthetic_dataset(hdf5_filename,
     '''
     '''
     # Gather mean and covariance of signal and noise MFCCs
-    with open(spectral_statistics_filename, 'r') as f:
-        spectral_statistics_dict = json.load(f)
-    signal_mfcc_mean = np.array(spectral_statistics_dict[out_signal_key]['mfcc_mean'])
-    signal_mfcc_cov = np.array(spectral_statistics_dict[out_signal_key]['mfcc_cov'])
-    noise_mfcc_mean = np.array(spectral_statistics_dict[out_noise_key]['mfcc_mean'])
-    noise_mfcc_cov = np.array(spectral_statistics_dict[out_noise_key]['mfcc_cov'])
-    assert fs == spectral_statistics_dict[out_signal_key]['sr']
-    assert fs == spectral_statistics_dict[out_noise_key]['sr']
+    with open(statistics_fn_signal, 'r') as f:
+        dict_statistics_signal = json.load(f)
+    print('Loaded dict_statistics_signal: {}'.format(statistics_fn_signal))
+    if statistics_fn_noise is None:
+        dict_statistics_noise = dict_statistics_signal
+        print('Loaded dict_statistics_noise: {}'.format(statistics_fn_signal))
+    else:
+        with open(statistics_fn_noise, 'r') as f:
+            dict_statistics_noise = json.load(f)
+        print('Loaded dict_statistics_noise: {}'.format(statistics_fn_noise))
+    signal_mfcc_mean = np.array(dict_statistics_signal[out_signal_key]['mfcc_mean'])
+    signal_mfcc_cov = np.array(dict_statistics_signal[out_signal_key]['mfcc_cov'])
+    noise_mfcc_mean = np.array(dict_statistics_noise[out_noise_key]['mfcc_mean'])
+    noise_mfcc_cov = np.array(dict_statistics_noise[out_noise_key]['mfcc_cov'])
+    assert fs == dict_statistics_signal[out_signal_key]['sr']
+    assert fs == dict_statistics_noise[out_noise_key]['sr']
     assert np.all(noise_mfcc_mean.shape == signal_mfcc_mean.shape)
-    print('Loaded spectral_statistics_dict from: {}'.format(spectral_statistics_filename))
     
     # Multiply mean MFCCs by -1 to invert spectral envelopes
     if invert_signal_filter:
@@ -130,7 +139,8 @@ def spectrally_shaped_synthetic_dataset(hdf5_filename,
         out_augmentation_prefix + 'noise_mfcc_cov': noise_mfcc_cov,
         out_augmentation_prefix + 'n_fft': n_fft,
         out_augmentation_prefix + 'n_mels': n_mels,
-        out_augmentation_prefix + 'n_mfcc': n_mfcc,
+        out_augmentation_prefix + 'signal_n_mfcc': n_mfcc_signal,
+        out_augmentation_prefix + 'noise_n_mfcc': n_mfcc_noise,
     }
     config_key_pair_list = [(k, k) for k in data_dict.keys()]
     data_key_pair_list = [] # Will be populated right before initializing hdf5 file
@@ -149,7 +159,7 @@ def spectrally_shaped_synthetic_dataset(hdf5_filename,
         
         # Generate harmonic signal with sampled spectral envelope (MFCCs drawn from multivariate normal)
         signal_mfcc = np.random.multivariate_normal(signal_mfcc_mean, signal_mfcc_cov)
-        signal_mfcc[n_mfcc:] = 0
+        signal_mfcc[n_mfcc_signal:] = 0
         signal_power_spectrum = util_stimuli.get_power_spectrum_from_mfcc(signal_mfcc, Minv)
         frequencies = np.arange(f0, fs/2, f0)
         if generate_signal_in_fft_domain:
@@ -179,7 +189,7 @@ def spectrally_shaped_synthetic_dataset(hdf5_filename,
         # Generate white noise and impose sampled spectral envelope (MFCCs drawn from multivariate normal)
         noise = np.random.randn(n_fft)
         noise_mfcc = np.random.multivariate_normal(noise_mfcc_mean, noise_mfcc_cov)
-        noise_mfcc[n_mfcc:] = 0
+        noise_mfcc[n_mfcc_noise:] = 0
         noise_power_spectrum = util_stimuli.get_power_spectrum_from_mfcc(noise_mfcc, Minv) 
         noise = util_stimuli.impose_power_spectrum(noise, noise_power_spectrum)
         noise = util_stimuli.set_dBSPL(noise, 60.0)
@@ -201,17 +211,17 @@ def spectrally_shaped_synthetic_dataset(hdf5_filename,
         
         # Initialize the hdf5 file on the first iteration
         if itrN == 0:
-            print('[INITIALIZING]: {}'.format(hdf5_filename))
+            print('[INITIALIZING]: {}'.format(hdf5_fn))
             for k in data_dict.keys():
                 if not (k, k) in config_key_pair_list:
                     data_key_pair_list.append((k, k))
-            initialize_hdf5_file(hdf5_filename,
+            initialize_hdf5_file(hdf5_fn,
                                  N,
                                  data_dict,
                                  file_mode='w',
                                  data_key_pair_list=data_key_pair_list,
                                  config_key_pair_list=config_key_pair_list)
-            hdf5_f = h5py.File(hdf5_filename, 'r+')
+            hdf5_f = h5py.File(hdf5_fn, 'r+')
         
         # Write each data_dict to hdf5 file
         write_example_to_hdf5(hdf5_f, data_dict, itrN, data_key_pair_list=data_key_pair_list)
@@ -220,7 +230,7 @@ def spectrally_shaped_synthetic_dataset(hdf5_filename,
     
     # Close hdf5 file
     hdf5_f.close()
-    print('[END]: {}'.format(hdf5_filename))
+    print('[END]: {}'.format(hdf5_fn))
     return
 
 
@@ -351,7 +361,6 @@ if __name__ == "__main__":
     parser.add_argument('-npj', '--num_parallel_jobs', type=int, default=1, help='number of parallel jobs')
     parser.add_argument('-nts', '--num_total_stimuli', type=int, default=2100000, help='total number of stimuli')
     parser.add_argument('-isf', '--invert_signal_filter', type=int, default=0, help='invert signal spectral envelopes')
-    parser.add_argument('-n_mfcc', '--n_mfcc', type=int, default=12, help='number of MFCCs to use for spectral envelopes')
     args = parser.parse_args()
     assert args.dest_filename is not None, "-d (--dest_filename) is a required argument"
     
@@ -367,20 +376,23 @@ if __name__ == "__main__":
     print('[START] {}'.format(dest_filename))
     print('job_idx={}, N={}'.format(args.job_idx, N))
     
-    spectral_statistics_filename = '/om/scratch/Mon/msaddler/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/SPECTRAL_STATISTICS_v00/results_dict.json'
+    statistics_fn_signal = '/om/scratch/Fri/msaddler/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/PYSTRAIGHT_v01_foreground/results_dict.json'
+    statistics_fn_noise = '/om/scratch/Fri/msaddler/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/SPECTRAL_STATISTICS_v00/results_dict.json'
     spectrally_shaped_synthetic_dataset(dest_filename,
                                         N,
-                                        spectral_statistics_filename,
+                                        statistics_fn_signal,
+                                        statistics_fn_noise=statistics_fn_noise,
                                         fs=32e3,
                                         dur=0.150,
                                         phase_modes=['cos'],
                                         range_f0=[80.0, 1001.3713909809752],
                                         range_snr=[-10., 10.],
                                         range_dbspl=[30., 90.],
-                                        n_mfcc=args.n_mfcc,
+                                        n_mfcc_signal=12,
+                                        n_mfcc_noise=12,
                                         invert_signal_filter=bool(args.invert_signal_filter),
                                         invert_noise_filter=False,
-                                        generate_signal_in_fft_domain=False,
+                                        generate_signal_in_fft_domain=True,
                                         out_combined_key='stimuli/signal_in_noise',
                                         out_signal_key='stimuli/signal',
                                         out_noise_key='stimuli/noise',

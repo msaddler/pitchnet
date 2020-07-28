@@ -18,7 +18,7 @@ import dataset_util
 
 
 def summarize_spectral_statistics(regex_fn,
-                                  fn_results='results_dict_v00.json',
+                                  fn_results='results_dict.json',
                                   key_sr='sr',
                                   key_f0=None,
                                   key_signal_list=['stimuli/signal', 'stimuli/noise']):
