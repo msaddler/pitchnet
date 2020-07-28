@@ -12,8 +12,9 @@
 #SBATCH --array=0-99
 #SBATCH --dependency=afterok:17395165
 
-source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08inst/noise_TLAS_snr_neg10pos10/*.hdf5'
-# source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_mfcc/PNDv08negated12_TLASmatched12_snr_neg10pos10_phase0/*.hdf5'
+# source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08inst/noise_TLAS_snr_neg10pos10/*.hdf5'
+# source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_mfcc/PNDv08matched12_TLASmatched12_snr_neg10pos10_phase0/*.hdf5'
+source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_mfcc/PNDv08negated12_TLASmatched12_snr_neg10pos10_phase0/*.hdf5'
 
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
