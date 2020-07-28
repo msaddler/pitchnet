@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #SBATCH --job-name=synthetic_tones
-#SBATCH --out="slurm-%A_%a.out"
+#SBATCH --out="rstslurm-%A_%a.out"
 #SBATCH --cpus-per-task=2
 #SBATCH --mem-per-cpu=2000
 #SBATCH --nodes=1
@@ -13,7 +13,7 @@
 
 dest_filename="$SCRATCH_PATH/data_pitchnet/PND_mfcc/PNDv08PYSmatched12_TLASmatched12_snr_neg10pos10_phase3/stim.hdf5"
 num_parallel_jobs=100
-num_total_stimuli=210000
+num_total_stimuli=2100000
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
 
