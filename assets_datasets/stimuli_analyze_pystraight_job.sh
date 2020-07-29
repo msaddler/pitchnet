@@ -6,7 +6,7 @@
 #SBATCH --mem-per-cpu=2000
 #SBATCH --nodes=1
 #SBATCH --time=0-24:00:00
-#SBATCH --time-min=0-8:00:00
+##SBATCH --time-min=0-8:00:00
 #SBATCH --exclude=node[001-030]
 ##SBATCH --partition=mcdermott
 #SBATCH --array=0-99
@@ -14,7 +14,7 @@
 
 # source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08inst/noise_TLAS_snr_neg10pos10/*.hdf5'
 # source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_mfcc/PNDv08matched12_TLASmatched12_snr_neg10pos10_phase0/*.hdf5'
-source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_mfcc/PNDv08PYSmatched12_TLASmatched12_snr_neg10pos10_phase3/*.hdf5'
+source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_mfcc/PNDv08PYSnegated12_TLASmatched12_snr_neg10pos10_phase3/*.hdf5'
 
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))

@@ -12,7 +12,7 @@
 #SBATCH --array=0-99
 #SBATCH --dependency=afterok:17437178
 
-source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_mfcc/PNDv08PYSmatched12_TLASmatched12_snr_neg10pos10_phase3/*.hdf5'
+source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_mfcc/PNDv08PYSnegated12_TLASmatched12_snr_neg10pos10_phase3/*.hdf5'
 # source_fn_regex="$SCRATCH_PATH"'/data_pitchnet/PND_synthetic/noise_UMNm_snr_neg10pos10_phase01_filter_signalLPv00/*.hdf5'
 
 offset=0
