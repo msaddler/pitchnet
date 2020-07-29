@@ -16,8 +16,8 @@
 
 ## Define source_regex and dest_filename here (use single quotes to prevent regex from expanding)
 
-source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10_filter_signalLPv01/*.hdf5'
-dest_filename="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10_filter_signalLPv01/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
+source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_mfcc/PNDv08PYSmatched12_TLASmatched12_snr_neg10pos10_phase3/*.hdf5'
+dest_filename="$SCRATCH_PATH"'/data_pitchnet/PND_mfcc/PNDv08PYSmatched12_TLASmatched12_snr_neg10pos10_phase3/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
 jobs_per_source_file=3
 
 # source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_synthetic/noise_UMNm_snr_neg10pos10_phase01_filter_signalBPv00/PND_sr32000*.hdf5'
