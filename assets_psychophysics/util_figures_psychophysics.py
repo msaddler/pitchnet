@@ -433,7 +433,7 @@ def make_freqshiftedcomplexes_plot(ax, results_dict_input,
     xval = np.array(results_dict[expt_key]['5']['f0_shift'])
     ax = util_figures.format_axes(ax,
                                   str_xlabel='Component shift (%F0)',
-                                  str_ylabel='Shift in predicted\nF0 (%F0)',
+                                  str_ylabel='Shift in reported F0\n(%F0)',
                                   fontsize_labels=fontsize_labels,
                                   fontsize_ticks=fontsize_ticks,
                                   fontweight_labels=None,
@@ -562,7 +562,7 @@ def make_mistuned_harmonics_bar_graph(ax, results_dict_input,
     ]
     ax = util_figures.format_axes(ax,
                                   str_xlabel='F0 (Hz)',
-                                  str_ylabel='Shift in predicted\nF0 (%F0)',
+                                  str_ylabel='Shift in reported F0\n(%F0)',
                                   fontsize_labels=fontsize_labels,
                                   fontsize_ticks=fontsize_ticks,
                                   fontweight_labels=None,
@@ -713,7 +713,7 @@ def make_mistuned_harmonics_line_graph(ax, results_dict_input,
         xlimits = [list_harmonic_numbers[0]-0.5, list_harmonic_numbers[-1]+0.5]
     ax = util_figures.format_axes(ax,
                                   str_xlabel='Mistuned harmonic ({:+.0f}%)'.format(mistuned_pct),
-                                  str_ylabel='Shift in predicted\nF0 (%F0)',
+                                  str_ylabel='Shift in reported F0\n(%F0)',
                                   fontsize_labels=fontsize_labels,
                                   fontsize_ticks=fontsize_ticks,
                                   fontweight_labels=None,
@@ -845,7 +845,7 @@ def make_mistuned_harmonics_line_plot(ax, results_dict_input,
     yticks_minor = yticks_minor[np.logical_and(yticks_minor>=ylimits[0], yticks_minor<=ylimits[1])]
     ax = util_figures.format_axes(ax,
                                   str_xlabel='Harmonic mistuning (%)',
-                                  str_ylabel='Shift in predicted\nF0 (%F0)',
+                                  str_ylabel='Shift in reported F0\n(%F0)',
                                   fontsize_labels=fontsize_labels,
                                   fontsize_ticks=fontsize_ticks,
                                   fontweight_labels=None,
@@ -1017,7 +1017,7 @@ def make_altphase_histograms(results_dict_input,
                              condition_plot_labels={}):
     '''
     Function for plotting alternating phase experiment results:
-    histograms of ratio between predicted F0s and target F0s
+    histograms of ratio between reported F0s and target F0s
     for different F0 and filter conditions.
     '''
     if isinstance(results_dict_input, dict):
@@ -1080,7 +1080,7 @@ def make_altphase_histograms(results_dict_input,
         ax.tick_params(axis='x', which='minor', length=5,
                        direction='inout', top=True, bottom=True)
     
-    ax_arr[xlabel_idx].set_xlabel('Ratio of predicted F0 to target F0',
+    ax_arr[xlabel_idx].set_xlabel('Ratio of reported F0 to target F0',
                                   fontsize=fontsize_labels)
     ax_arr[ylabel_idx].set_ylabel('Pitch matches in {:.0f}% wide bins (%)'.format(bin_step*100.0),
                                   fontsize=fontsize_labels)
@@ -1108,7 +1108,7 @@ def make_altphase_histogram_plot(ax, results_dict_input,
                                  kwargs_legend={}):
     '''
     Function for plotting alternating phase experiment results:
-    histograms of ratio between predicted F0s and target F0s
+    histograms of ratio between reported F0s and target F0s
     for limited number of F0 and spectral conditions.
     '''
     if isinstance(results_dict_input, dict):
@@ -1161,8 +1161,8 @@ def make_altphase_histogram_plot(ax, results_dict_input,
             ax.plot(bin_xvals, bin_yvals, label=label, **plot_kwargs)
     
     ax = util_figures.format_axes(ax,
-                                  str_xlabel='Predicted F0 / stimulus F0',
-                                  str_ylabel='% of F0 predictions',
+                                  str_xlabel='Reported F0 / stimulus F0',
+                                  str_ylabel='Percentage of stimuli',
                                   fontsize_labels=fontsize_labels,
                                   fontsize_ticks=fontsize_ticks,
                                   fontweight_labels=None,
