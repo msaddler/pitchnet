@@ -23,8 +23,8 @@
 # OUTDIR='/saved_models/arch_search_v01/arch_'$ZERO_PADDED_JOBID
 # SAVED_MODELS_PATH="$SCRATCH_PATH/pitchnet/saved_models"
 
-OUTDIR='/saved_models/models_metamer/arch_0302_PND_v08_TLAS_snr_neg10pos10_AN_RSB_noise0000_classification'$SLURM_ARRAY_TASK_ID
-# OUTDIR='/saved_models/models_sr20000/arch_0302/f0_label_024_PND_v08_TLAS_snr_neg10pos10_AN_sr2000_cf1000_species002_spont070_BW10eN1_IHC0050Hz_IHC7order_classification'$SLURM_ARRAY_TASK_ID
+# OUTDIR='/saved_models/models_metamer/arch_0302_PND_v08_TLAS_snr_neg10pos10_AN_RSB_noise0000_classification'$SLURM_ARRAY_TASK_ID
+OUTDIR='/saved_models/models_sr20000/arch_0302/PNDv08PYSmatched12_TLASmatched12_snr_neg10pos10_phase3_AN_BW10eN1_IHC3000Hz_classification'$SLURM_ARRAY_TASK_ID
 SAVED_MODELS_PATH="/om2/user/msaddler/pitchnet/saved_models"
 
 TFRECORDS_REGEX='sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/*.tfrecords'
