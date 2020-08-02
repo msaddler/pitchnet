@@ -1255,7 +1255,7 @@ def make_f0dl_threshold_plot(ax, results_dict_input,
     log10_yerr = np.array(results_dict['log10_f0dl_err'])
     
     if xlimits is not None:
-        IDX = np.logical_and(xval >= xlimits[0], xval <= xlimits[1])
+        IDX = np.logical_and(xval > xlimits[0], xval < xlimits[1])
         xval = xval[IDX]
         log10_yval = log10_yval[IDX]
         log10_yerr = log10_yerr[IDX]
@@ -1270,17 +1270,17 @@ def make_f0dl_threshold_plot(ax, results_dict_input,
     if not legend_on:
         plot_kwargs['label'] = None
     if include_yerr:
-        errorbar_kwargs = {
-            'yerr': [
-                np.power(10.0, log10_yval) - np.power(10.0, log10_yval-2*log10_yerr),
-                np.power(10.0, log10_yval+2*log10_yerr) - np.power(10.0, log10_yval)
-            ],
-            'fmt': 'none',
-            'ecolor': plot_kwargs.get('color', 'k'),
-            'elinewidth': plot_kwargs.get('lw', 2),
-            'capsize': 1.2*plot_kwargs.get('lw', 2),
-        }
-        ax.errorbar(xval, np.power(10.0, log10_yval), **errorbar_kwargs)
+#         errorbar_kwargs = {
+#             'yerr': [
+#                 np.power(10.0, log10_yval) - np.power(10.0, log10_yval-2*log10_yerr),
+#                 np.power(10.0, log10_yval+2*log10_yerr) - np.power(10.0, log10_yval)
+#             ],
+#             'fmt': 'none',
+#             'ecolor': plot_kwargs.get('color', 'k'),
+#             'elinewidth': plot_kwargs.get('lw', 2),
+#             'capsize': 1.2*plot_kwargs.get('lw', 2),
+#         }
+#         ax.errorbar(xval, np.power(10.0, log10_yval), **errorbar_kwargs)
         
         ax.fill_between(xval,
                         np.power(10.0, log10_yval-2*log10_yerr),
