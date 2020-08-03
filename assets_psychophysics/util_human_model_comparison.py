@@ -839,7 +839,7 @@ def make_human_model_comparison_plot(ax,
                 m*np.array(xlimits)+b,
                 marker='',
                 lw=2.0,
-                color=[0.75]*3)
+                color=[0.8]*3)
         ax.plot(xvals, yvals, label=label, **kwargs_plot)
         ax.legend(loc='lower right',
                   borderpad=0.4,
@@ -849,9 +849,9 @@ def make_human_model_comparison_plot(ax,
                   handlelength=0,
                   frameon=True,
                   fontsize=fontsize_legend,
-                  framealpha=0.75,
-                  facecolor=[0.75]*3,
-                  edgecolor=[0.75]*3)
+                  framealpha=0.6,
+                  facecolor=[0.8]*3,
+                  edgecolor=[0.8]*3)
     else:
         if not isinstance(list_accent_indexes, list):
             list_accent_indexes = [list_accent_indexes]
@@ -899,9 +899,9 @@ def make_human_model_comparison_plot(ax,
                   handlelength=1.0,
                   frameon=True,
                   fontsize=fontsize_legend,
-                  framealpha=0.75,
-                  facecolor=[0.75]*3,
-                  edgecolor=[0.75]*3)
+                  framealpha=0.6,
+                  facecolor=[0.8]*3,
+                  edgecolor=[0.8]*3)
     
     ax = util_figures.format_axes(ax,
                                   str_xlabel='Model performance (valid acc.)',
