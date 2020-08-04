@@ -271,6 +271,41 @@ def store_network_tuning_results(fn_input,
     return
 
 
+def get_results_dict_bendor_and_wang_2005():
+    '''
+    Results scanned from Bendor and Wang (2005, Nature), Figure 4C.
+        n=50 pitch-selective neurons in marmoset auditory cortex
+        Error bars indicate SEM
+    '''
+    results_dict = {
+        'low_harm': np.array([1, 2, 3, 4, 5, 6, 8, 10, 12]),
+        'yval': np.array([0.633677, 0.49193, 0.565334, 0.478132, 0.508102, 0.540082, 0.377799, 0.275124, 0.263335]),
+        'yerr_max': np.array([0.700344, 0.556566, 0.639072, 0.528637, 0.580819, 0.597668, 0.440426, 0.331678, 0.324962]),
+        'yerr_min': np.array([0.570041, 0.424253, 0.494627, 0.426617, 0.436385, 0.485536, 0.315184, 0.218536, 0.20072]),
+    }
+    yerr_estimate_min = np.abs(results_dict['yval'] - results_dict['yerr_min'])
+    yerr_estimate_max = np.abs(results_dict['yval'] - results_dict['yerr_max'])
+    results_dict['yerr'] = (yerr_estimate_min + yerr_estimate_max) / 2
+    return results_dict
+
+
+def get_results_dict_norman_haignere_2013():
+    '''
+    Results scanned from Norman-Haignere et al. (2013, JNeurosci), Figure 4C.
+        n=12 human fMRI participants
+        Error bars indicate one within-subject SEM
+    '''
+    results_dict = {
+        'low_harm': np.array([3, 4, 5, 6, 8, 10, 12, 15]),
+        'yval': np.array([0.89688, 0.95208, 0.89896, 0.89862, 0.81493, 0.75347, 0.64202, 0.58056]),
+        'yerr_max': np.array([0.93021, 0.98542, 0.94063, 0.91806, 0.8566, 0.78958, 0.68091, 0.61944]),
+        'noise_yval': np.array([0.45771]),
+        'noise_yerr': np.array([0.49938-0.45771]),
+    }
+    results_dict['yerr'] = np.abs(results_dict['yval'] - results_dict['yerr_max'])
+    return results_dict
+
+
 def make_1d_tuning_plot(ax,
                         results_dict_input,
                         key_dim0='low_harm',
