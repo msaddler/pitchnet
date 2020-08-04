@@ -274,10 +274,9 @@ def store_network_tuning_results(fn_input,
 def make_1d_tuning_plot(ax,
                         results_dict_input,
                         key_dim0='low_harm',
-                        restrict_conditions=None,
+                        key_resp_list='relu_4_low_harm',
+                        color_list=None,
                         include_yerr=True,
-                        n_subsample=None,
-                        random_seed=32,
                         kwargs_plot_update={},
                         kwargs_legend_update={},
                         kwargs_bootstrap={'bootstrap_repeats': 1000, 'metric_function': 'mean'},
@@ -286,34 +285,28 @@ def make_1d_tuning_plot(ax,
     '''
     if not isinstance(results_dict_input, list):
         results_dict_input = [results_dict_input]
-    
-    if restrict_conditions is None:
-        restrict_conditions = sorted(results_dict_input[0].keys())
-    
-    color_list = util_figures.get_color_list(len(restrict_conditions), 'copper')
+    if not isinstance(key_resp_list, list):
+        key_resp_list = [key_resp_list]
+    if color_list is None:
+        color_list = util_figures.get_color_list(len(key_resp_list), 'copper')
+    if not isinstance(color_list, list):
+        color_list = [color_list]
     DATA = {}
-    for cidx, key_condition in enumerate(restrict_conditions):
+    for cidx, key_resp in enumerate(key_resp_list):
         yval_list = []
         for results_dict in results_dict_input:
-            tuning_dict = results_dict[key_condition]
-            xval = np.array(tuning_dict['{}_bins'.format(key_dim0)])
-            yval_tmp = np.array(tuning_dict['{}_tuning_mean'.format(key_dim0)])
-            if n_subsample is not None:
-                assert n_subsample <= yval_tmp.shape[1], "n_subsample exceeds number of units"
-                IDX = np.arange(0, yval_tmp.shape[1], 1, dtype=int)
-                np.random.seed(random_seed)
-                np.random.shuffle(IDX)
-                yval_tmp = yval_tmp[:, IDX[:n_subsample]]
-            yval_list.append(np.mean(yval_tmp, axis=1))
+            xval = np.array(results_dict[key_dim0])
+            yval_tmp = np.array(results_dict[key_resp])
+            yval_tmp /= yval_tmp.max()
+            assert np.all(yval_tmp.shape == xval.shape)
+            yval_list.append(yval_tmp)
         yval_list = np.stack(yval_list, axis=0)
-        DATA[key_condition] = {
-            '{}_bins'.format(key_dim0): xval,
-            '{}_tuning_mean'.format(key_dim0): yval_list,
-        }
+        DATA[key_dim0] = xval
+        DATA[key_resp] = yval_list
         yval, yerr = util_figures_psychophysics.combine_subjects(yval_list,
                                                                  kwargs_bootstrap=kwargs_bootstrap)
         kwargs_plot = {
-            'label': key_condition,
+            'label': key_resp,
             'color': color_list[cidx],
             'ls': '-',
             'lw': 2,
@@ -329,7 +322,7 @@ def make_1d_tuning_plot(ax,
         ax.plot(xval, yval, **kwargs_plot)
     
     kwargs_legend = {
-        'loc': 'upper center',
+        'loc': 'upper right',
         'ncol': 1,
         'frameon': False,
         'fontsize': 12,
@@ -351,8 +344,8 @@ def make_2d_tuning_plot(ax,
                         key_act='relu_4',
                         key_dim0='low_harm',
                         key_dim1='f0_label',
-                        key_dim0_label='low_harm',
-                        key_dim1_label='f0',
+                        key_dim0_label=None,
+                        key_dim1_label='f0_bins',
                         unit_idx=None,
                         num_ticks_dim0=5,
                         num_ticks_dim1=5,
@@ -364,31 +357,38 @@ def make_2d_tuning_plot(ax,
     if isinstance(results_dict, list):
         print('Expected non-list input (using only first entry)')
         results_dict = results_dict[0]
-    dim0_bins = np.array(results_dict[key_act]['{}_bins'.format(key_dim0)])
-    dim1_bins = np.array(results_dict[key_act]['{}_bins'.format(key_dim1)])
+    
+    dim0_vals = results_dict[key_dim0][:]
+    dim1_vals = results_dict[key_dim1][:]
     if key_dim0_label is not None:
-        dim0_labels = np.array(results_dict[key_act]['{}_bins'.format(key_dim0_label)])
+        dim0_labels = results_dict[key_dim0_label][:]
+        dim0_labels = dim0_labels[dim0_vals.astype(int)]
     else:
-        dim0_labels = dim0_bins
+        dim0_labels = dim0_vals
     if key_dim1_label is not None:
-        dim1_labels = np.array(results_dict[key_act]['{}_bins'.format(key_dim1_label)])
+        dim1_labels = results_dict[key_dim1_label][:]
+        dim1_labels = dim1_labels[dim1_vals.astype(int)]
     else:
-        dim1_labels = dim1_bins
-    tuning_mean = np.array(results_dict[key_act]['{}_{}_tuning_mean'.format(key_dim0, key_dim1)])
+        dim1_labels = dim1_vals
+    
+    tuning_array = results_dict[key_act]
     if unit_idx is None:
-        unit_idx = np.random.randint(0, tuning_mean.shape[-1], dtype=int)
+        unit_idx = np.random.randint(0, tuning_array.shape[0], dtype=int)
         print('Randomly selected unit_idx={}'.format(unit_idx))
+    
     # Plot 2d tuning array for a single unit
-    im_data = tuning_mean[:, :, unit_idx].T
+    im_data = tuning_array[unit_idx].T
+    if im_data.max() > 0:
+        im_data = im_data / im_data.max()
     IMG = ax.imshow(im_data,
                     origin=(0,0),
                     aspect='auto',
                     extent=[0, im_data.shape[1], 0, im_data.shape[0]],
                     cmap=plt.cm.gray)
     # Format axes
-    dim0_ticks = np.linspace(0, dim0_bins.shape[0]-1, num=num_ticks_dim0, dtype=int)
+    dim0_ticks = np.linspace(0, dim0_vals.shape[0]-1, num=num_ticks_dim0, dtype=int)
     dim0_ticklabels = ['{:.0f}'.format(dim0_labels[tick]) for tick in dim0_ticks]
-    dim1_ticks = np.linspace(0, dim1_bins.shape[0]-1, num=num_ticks_dim1, dtype=int)
+    dim1_ticks = np.linspace(0, dim1_vals.shape[0]-1, num=num_ticks_dim1, dtype=int)
     dim1_ticklabels = ['{:.0f}'.format(dim1_labels[tick]) for tick in dim1_ticks]
     kwargs = {
         'xticks': dim0_ticks,
@@ -398,6 +398,8 @@ def make_2d_tuning_plot(ax,
 
     }
     kwargs.update(kwargs_format_axes)
+    if 'str_title' not in kwargs.keys():
+        kwargs['str_title'] = 'unit {:04d}'.format(unit_idx)
     ax = util_figures.format_axes(ax, **kwargs)
     return ax, IMG
 
