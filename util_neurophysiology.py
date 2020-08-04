@@ -297,7 +297,6 @@ def make_1d_tuning_plot(ax,
         for results_dict in results_dict_input:
             xval = np.array(results_dict[key_dim0])
             yval_tmp = np.array(results_dict[key_resp])
-            yval_tmp /= yval_tmp.max()
             assert np.all(yval_tmp.shape == xval.shape)
             yval_list.append(yval_tmp)
         yval_list = np.stack(yval_list, axis=0)
@@ -404,15 +403,24 @@ def make_2d_tuning_plot(ax,
     return ax, IMG
 
 
-def make_low_harm_tuning_plot(ax, results_dict_input, **kwargs):
+def make_low_harm_tuning_plot(ax, results_dict_input, key_resp_list=['relu_4'], **kwargs):
     '''
     '''
+    if not isinstance(key_resp_list, list):
+        key_resp_list = [key_resp_list]
+    low_harm_key_resp_list = []
+    for key in key_resp_list:
+        if '_low_harm' in key:
+            low_harm_key_resp_list.append(key)
+        else:
+            low_harm_key_resp_list.append(key + '_low_harm')
+    
     kwargs_make_1d_tuning_plot = {
         'key_dim0': 'low_harm',
+        'key_resp_list': low_harm_key_resp_list,
         'str_xlabel': 'Lowest harmonic number',
         'str_ylabel': 'Mean activation\n(normalized)',
         'xlimits': [0, 31],
-        'ylimits': [0, 1],
         'xticks': np.arange(0, 31, 5),
         'xticks_minor': np.arange(0, 31, 1),
     }
@@ -421,25 +429,32 @@ def make_low_harm_tuning_plot(ax, results_dict_input, **kwargs):
     return ax, DATA
 
 
-def make_f0_tuning_plot(ax, results_dict_input, **kwargs):
+def make_f0_tuning_plot(ax, results_dict_input, key_resp_list=['relu_4'], **kwargs):
     '''
     '''
-    if isinstance(results_dict_input, list):
-        rd0 = results_dict_input[0]
-    else:
-        rd0 = results_dict_input
-    td0 = rd0[sorted(rd0.keys())[0]]
-    xval = np.array(td0['f0_label_bins'])
-    xval_labels = np.array(td0['f0_bins'])
+    if not isinstance(key_resp_list, list):
+        key_resp_list = [key_resp_list]
+    f0_key_resp_list = []
+    for key in key_resp_list:
+        if '_f0_label' in key:
+            f0_key_resp_list.append(key)
+        else:
+            f0_key_resp_list.append(key + '_f0_label')
+    
+    rd0 = results_dict_input
+    if isinstance(rd0, list):
+        rd0 = rd0[0]
+    xval = rd0['f0_label']
+    xval_labels = rd0['f0_bins']
     xtick_indexes = np.linspace(xval[0], xval[-1], 7, dtype=int)
     xticks = [xval[xti] for xti in xtick_indexes]
     xticklabels = ['{:.0f}'.format(xval_labels[xti]) for xti in xtick_indexes]
     kwargs_make_1d_tuning_plot = {
         'key_dim0': 'f0_label',
+        'key_resp_list': f0_key_resp_list,
         'str_xlabel': 'F0 (Hz)',
         'str_ylabel': 'Mean activation\n(normalized)',
         'xlimits': [xval[0], xval[-1]],
-        'ylimits': [0, 1],
         'xticks': xticks,
         'xticklabels': xticklabels,
     }
@@ -448,16 +463,22 @@ def make_f0_tuning_plot(ax, results_dict_input, **kwargs):
     return ax, DATA
 
 
-def make_octave_tuning_plot(ax, results_dict_input, **kwargs):
+def make_octave_tuning_plot(ax, results_dict_input, key_resp_list=['relu_4'], **kwargs):
     '''
     '''
+    if not isinstance(key_resp_list, list):
+        key_resp_list = [key_resp_list]
+    octave_tuning_key_resp_list = []
+    for key in key_resp_list:
+        if '_octave_tuning' in key:
+            octave_tuning_key_resp_list.append(key)
+        else:
+            octave_tuning_key_resp_list.append(key + '_octave_tuning')
     kwargs_make_1d_tuning_plot = {
-        'key_dim0': 'octave',
-        'n_subsample': 32,
+        'key_dim0': 'octave_bins',
+        'key_resp_list': octave_tuning_key_resp_list,
         'str_xlabel': 'Octaves above best F0',
         'str_ylabel': 'Mean activation\n(normalized)',
-        'xlimits': [-2, 2],
-        'ylimits': [0, 1],
     }
     kwargs_make_1d_tuning_plot.update(kwargs)
     ax, DATA = make_1d_tuning_plot(ax, results_dict_input, **kwargs_make_1d_tuning_plot)
