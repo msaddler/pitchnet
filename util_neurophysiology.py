@@ -278,6 +278,7 @@ def get_results_dict_bendor_and_wang_2005():
         Error bars indicate SEM
     '''
     results_dict = {
+        'is_neural_data': True,
         'low_harm': np.array([1, 2, 3, 4, 5, 6, 8, 10, 12]),
         'yval': np.array([0.633677, 0.49193, 0.565334, 0.478132, 0.508102, 0.540082, 0.377799, 0.275124, 0.263335]),
         'yerr_max': np.array([0.700344, 0.556566, 0.639072, 0.528637, 0.580819, 0.597668, 0.440426, 0.331678, 0.324962]),
@@ -296,6 +297,7 @@ def get_results_dict_norman_haignere_2013():
         Error bars indicate one within-subject SEM
     '''
     results_dict = {
+        'is_neural_data': True,
         'low_harm': np.array([3, 4, 5, 6, 8, 10, 12, 15]),
         'yval': np.array([0.89688, 0.95208, 0.89896, 0.89862, 0.81493, 0.75347, 0.64202, 0.58056]),
         'yerr_max': np.array([0.93021, 0.98542, 0.94063, 0.91806, 0.8566, 0.78958, 0.68091, 0.61944]),
@@ -318,42 +320,89 @@ def make_1d_tuning_plot(ax,
                         **kwargs_format_axes):
     '''
     '''
-    if not isinstance(results_dict_input, list):
-        results_dict_input = [results_dict_input]
-    if not isinstance(key_resp_list, list):
-        key_resp_list = [key_resp_list]
-    if color_list is None:
-        color_list = util_figures.get_color_list(len(key_resp_list), 'copper')
-    if not isinstance(color_list, list):
-        color_list = [color_list]
+    if isinstance(results_dict_input, dict) and results_dict_input.get('is_neural_data', False):
+        is_neural_data = True
+        xval = results_dict_input[key_dim0]
+        yval = results_dict_input['yval']
+        yerr = results_dict_input['yerr']
+    else:
+        is_neural_data = False
+    
     DATA = {}
-    for cidx, key_resp in enumerate(key_resp_list):
-        yval_list = []
-        for results_dict in results_dict_input:
-            xval = np.array(results_dict[key_dim0])
-            yval_tmp = np.array(results_dict[key_resp])
-            assert np.all(yval_tmp.shape == xval.shape)
-            yval_list.append(yval_tmp)
-        yval_list = np.stack(yval_list, axis=0)
-        DATA[key_dim0] = xval
-        DATA[key_resp] = yval_list
-        yval, yerr = util_figures_psychophysics.combine_subjects(yval_list,
-                                                                 kwargs_bootstrap=kwargs_bootstrap)
+    if is_neural_data:
         kwargs_plot = {
-            'label': key_resp,
-            'color': color_list[cidx],
+            'label': results_dict_input.get('label', None),
+            'color': 'k',
             'ls': '-',
-            'lw': 2,
             'marker': '',
+            'lw': 1,
         }
         kwargs_plot.update(kwargs_plot_update)
         if include_yerr:
-            ax.fill_between(xval,
-                            yval-2*yerr,
-                            yval+2*yerr,
-                            alpha=0.15,
-                            facecolor=kwargs_plot.get('color', 'k'))
+            errorbar_kwargs = {
+                'yerr': yerr,
+                'fmt': 'none',
+                'ecolor': 'k',
+                'elinewidth': kwargs_plot.get('lw', 1),
+                'capsize': 1.5 * kwargs_plot.get('lw', 1),
+            }
+            ax.errorbar(xval, yval, **errorbar_kwargs)
         ax.plot(xval, yval, **kwargs_plot)
+        
+        noise_xval = results_dict_input.get('noise_xval', np.array([0, 31]))
+        noise_yval = results_dict_input.get('noise_yval', None)
+        noise_yerr = results_dict_input.get('noise_yerr', None)
+        if noise_yval is not None:
+            if (noise_yerr is not None) and include_yerr:
+                ax.fill_between(noise_xval,
+                                noise_yval-1*noise_yerr,
+                                noise_yval+1*noise_yerr,
+                                alpha=0.15,
+                                facecolor=kwargs_plot.get('color', 'k'))
+            kwargs_plot['ls'] = '--'
+            kwargs_plot['dashes'] = (2,2)
+            kwargs_plot['marker'] = ''
+            kwargs_plot['label'] = results_dict_input.get('noise_label', 'Response\n to noise')
+            ax.plot(noise_xval * np.ones_like(noise_xval),
+                    noise_yval * np.ones_like(noise_xval),
+                    **kwargs_plot)
+
+    else:
+        if not isinstance(results_dict_input, list):
+            results_dict_input = [results_dict_input]
+        if not isinstance(key_resp_list, list):
+            key_resp_list = [key_resp_list]
+        if color_list is None:
+            color_list = util_figures.get_color_list(len(key_resp_list), 'copper')
+        if not isinstance(color_list, list):
+            color_list = [color_list]
+        for cidx, key_resp in enumerate(key_resp_list):
+            yval_list = []
+            for results_dict in results_dict_input:
+                xval = np.array(results_dict[key_dim0])
+                yval_tmp = np.array(results_dict[key_resp])
+                assert np.all(yval_tmp.shape == xval.shape)
+                yval_list.append(yval_tmp)
+            yval_list = np.stack(yval_list, axis=0)
+            DATA[key_dim0] = xval
+            DATA[key_resp] = yval_list
+            yval, yerr = util_figures_psychophysics.combine_subjects(
+                yval_list, kwargs_bootstrap=kwargs_bootstrap)
+            kwargs_plot = {
+                'label': key_resp,
+                'color': color_list[cidx],
+                'ls': '-',
+                'lw': 1,
+                'marker': '',
+            }
+            kwargs_plot.update(kwargs_plot_update)
+            if include_yerr:
+                ax.fill_between(xval,
+                                yval-2*yerr,
+                                yval+2*yerr,
+                                alpha=0.15,
+                                facecolor=kwargs_plot.get('color', 'k'))
+            ax.plot(xval, yval, **kwargs_plot)
     
     kwargs_legend = {
         'loc': 'upper right',
@@ -367,7 +416,7 @@ def make_1d_tuning_plot(ax,
     kwargs_legend.update(kwargs_legend_update)
     leg = ax.legend(**kwargs_legend)
     for legobj in leg.legendHandles:
-        legobj.set_linewidth(8.0)
+        legobj.set_linewidth(6.0)
     
     ax = util_figures.format_axes(ax, **kwargs_format_axes)
     return ax, DATA
@@ -458,6 +507,8 @@ def make_low_harm_tuning_plot(ax, results_dict_input, key_resp_list=['relu_4'], 
         'xlimits': [0, 31],
         'xticks': np.arange(0, 31, 5),
         'xticks_minor': np.arange(0, 31, 1),
+        'ylimits': [0, 1],
+        'yticks': np.arange(0, 1.1, 0.2),
     }
     kwargs_make_1d_tuning_plot.update(kwargs)
     ax, DATA = make_1d_tuning_plot(ax, results_dict_input, **kwargs_make_1d_tuning_plot)
