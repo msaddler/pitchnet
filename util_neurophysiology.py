@@ -362,7 +362,7 @@ def make_1d_tuning_plot(ax,
             kwargs_plot['ls'] = '--'
             kwargs_plot['dashes'] = (2,2)
             kwargs_plot['marker'] = ''
-            kwargs_plot['label'] = results_dict_input.get('noise_label', 'Response\n to noise')
+            kwargs_plot['label'] = results_dict_input.get('noise_label', 'Response to noise')
             ax.plot(noise_xval * np.ones_like(noise_xval),
                     noise_yval * np.ones_like(noise_xval),
                     **kwargs_plot)
