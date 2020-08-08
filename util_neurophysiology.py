@@ -349,23 +349,23 @@ def make_1d_tuning_plot(ax,
             ax.errorbar(xval, yval, **errorbar_kwargs)
         ax.plot(xval, yval, **kwargs_plot)
         
-        noise_xval = results_dict_input.get('noise_xval', np.array([0, 31]))
-        noise_yval = results_dict_input.get('noise_yval', None)
-        noise_yerr = results_dict_input.get('noise_yerr', None)
-        if noise_yval is not None:
-            if (noise_yerr is not None) and include_yerr:
-                ax.fill_between(noise_xval,
-                                noise_yval-1*noise_yerr,
-                                noise_yval+1*noise_yerr,
-                                alpha=0.15,
-                                facecolor=kwargs_plot.get('color', 'k'))
-            kwargs_plot['ls'] = '--'
-            kwargs_plot['dashes'] = (2,2)
-            kwargs_plot['marker'] = ''
-            kwargs_plot['label'] = results_dict_input.get('noise_label', 'Response to noise')
-            ax.plot(noise_xval * np.ones_like(noise_xval),
-                    noise_yval * np.ones_like(noise_xval),
-                    **kwargs_plot)
+#         noise_xval = results_dict_input.get('noise_xval', np.array([0, 31]))
+#         noise_yval = results_dict_input.get('noise_yval', None)
+#         noise_yerr = results_dict_input.get('noise_yerr', None)
+#         if noise_yval is not None:
+#             if (noise_yerr is not None) and include_yerr:
+#                 ax.fill_between(noise_xval,
+#                                 noise_yval-1*noise_yerr,
+#                                 noise_yval+1*noise_yerr,
+#                                 alpha=0.15,
+#                                 facecolor=kwargs_plot.get('color', 'k'))
+#             kwargs_plot['ls'] = '--'
+#             kwargs_plot['dashes'] = (2,2)
+#             kwargs_plot['marker'] = ''
+#             kwargs_plot['label'] = results_dict_input.get('noise_label', 'Response to noise')
+#             ax.plot(noise_xval * np.ones_like(noise_xval),
+#                     noise_yval * np.ones_like(noise_xval),
+#                     **kwargs_plot)
 
     else:
         if not isinstance(results_dict_input, list):
