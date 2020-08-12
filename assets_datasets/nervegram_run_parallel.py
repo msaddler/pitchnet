@@ -41,6 +41,10 @@ def get_source_keys_to_copy():
         'mistuned_pct',
         'snr_per_component',
         'dbspl',
+        'bandpass_fl',
+        'bandpass_fh',
+        'jitter_mode',
+        'jitter_pattern',
     ]
     return source_keys_to_copy
 

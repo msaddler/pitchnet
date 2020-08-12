@@ -355,8 +355,10 @@ if __name__ == "__main__":
     
     # pitchrepnet_eval2afc_bernox2005 (sine-phase + rand-phase harmonic tones)
     generate_fixed_bandpass_filter_dataset(hdf5_filename,
-                                           fs=20e3,
-                                           dur=2e0,
+#                                            fs=20e3,
+#                                            dur=2e0,
+                                           fs=32e3,
+                                           dur=0.150,
                                            phase_modes=['sine', 'rand'],
                                            jitter_modes=[None],
                                            bandpass_fl_min=6e1,
