@@ -43,14 +43,6 @@ mmANOVA(DATA,...
     'bernox2005', 'f0dl', 'low_harm', [2,5]);
 
 
-
-% anova2_neurophysiology(DATA, {'natural/relu_4'}, 'low_harm')
-% anova2_neurophysiology(DATA, {'natural/relu_4', 'synthetic_hp/relu_4'}, 'low_harm')
-% anova2_neurophysiology(DATA, {'natural/relu_4', 'synthetic_hp/relu_4'}, 'f0_label')
-% anova2_neurophysiology(DATA, {'natural/relu_4'}, 'f0_label')
-% anova2_neurophysiology(DATA, {'synthetic_hp/relu_4'}, 'f0_label')
-
-
 % twosample_f0dl_bernox(DATA, 'spch_only', 'inst_only', 0, 1);
 % twosample_f0dl_bernox(DATA, 'IHC9000Hz', 'IHC3000Hz', 0, 1);
 % twosample_f0dl_bernox(DATA, 'IHC6000Hz', 'IHC3000Hz', 0, 1);
@@ -94,7 +86,6 @@ mmANOVA(DATA,...
 % twosample_human_model_similarity_combined(DATA, 'IHC1000Hz', 'IHC3000Hz');
 % twosample_human_model_similarity_combined(DATA, 'IHC6000Hz', 'IHC3000Hz');
 % twosample_human_model_similarity_combined(DATA, 'IHC9000Hz', 'IHC3000Hz');
-
 
 % twosample_human_model_similarity(DATA, 'BW05eN1', 'BW10eN1', 'bernox2005');
 % twosample_human_model_similarity(DATA, 'BW05eN1', 'BW10eN1', 'altphasecomplexes');
@@ -355,87 +346,6 @@ end
 
 
 
-function anova2_f0dl(DATA, list_model_tag, cond_tag, expt_tag, low_harm_range)
-%{
-Run 2-way ANOVA (not repeated-measures) on F0DL data. Columns are specified
-by list_model_tag (model condition) and rows are specified by cond_tag 
-(stimulus manipulation).
-%}
-if nargin == 4
-    low_harm_range = [1, 30];
-end
-
-for itr1 = 1:length(list_model_tag)
-    data_tag = [list_model_tag{itr1}, '_', expt_tag];
-
-    if contains(expt_tag, 'bernox2005')
-        filt_idx = (DATA.(data_tag).phase_mode == 0) &...
-            (DATA.(data_tag).low_harm >= low_harm_range(1)) &...
-            (DATA.(data_tag).low_harm <= low_harm_range(2));
-        f0dl = DATA.(data_tag).f0dl(:, filt_idx);
-        cond = DATA.(data_tag).(cond_tag)(filt_idx);
-    elseif contains(expt_tag, 'spl')
-        filt_idx = (DATA.(data_tag).dbspl >= 20.0) &...
-            (DATA.(data_tag).dbspl <= 110.0);
-        f0dl = DATA.(data_tag).f0dl(:, filt_idx);
-        cond = DATA.(data_tag).(cond_tag)(filt_idx);
-    else
-        f0dl = DATA.(data_tag).f0dl;
-        cond = DATA.(data_tag).(cond_tag);
-    end
-    
-    if itr1 == 1
-        y = zeros(length(f0dl(:)), length(list_model_tag));
-    end
-    
-    y(:, itr1) = f0dl(:);
-end
-reps = size(f0dl, 1);
-y(y > 100.0) = 100.0; % F0DLs capped at 100%F0
-y = log10(y); % Stats performed on log-transformed F0DLs
-[p, tbl, stats] = anova2(y, reps);
-fig = gcf;
-for itr1 = 1:length(list_model_tag)
-    fig.Name = [fig.Name, ' : ', list_model_tag{itr1}];
-end
-fig.Name = [fig.Name, ' | ', cond_tag, ' | ', expt_tag];
-end
-
-
-
-function anova2_neurophysiology(DATA, list_model_tag, cond_tag)
-%{
-Run 2-way ANOVA (not repeated-measures) on F0DL data. Columns are specified
-by list_model_tag (model condition) and rows are specified by cond_tag 
-(stimulus manipulation).
-%}
-
-for itr1 = 1:length(list_model_tag)
-    split_model_tag = split(list_model_tag{itr1}, '/');
-    model_tag = split_model_tag{1};
-    layer_tag = split_model_tag{2};
-    SUBDATA = DATA.(model_tag).(layer_tag);
-    cond_bins = SUBDATA.([cond_tag, '_bins']);
-    cond_tuning_mean = SUBDATA.([cond_tag, '_tuning_mean']);
-    
-    if itr1 == 1
-        y = zeros(length(cond_tuning_mean(:)), length(list_model_tag));
-    end
-    y(:, itr1) = cond_tuning_mean(:);
-    
-end
-reps = size(cond_tuning_mean, 1);
-anova1(cond_tuning_mean);
-[p, tbl, stats] = anova2(y, reps);
-fig = gcf;
-for itr1 = 1:length(list_model_tag)
-    fig.Name = [fig.Name, ' : ', list_model_tag{itr1}];
-end
-fig.Name = [fig.Name, ' | ', cond_tag];
-end
-
-
-
 function transposedtones_ttest(DATA, list_model_tag)
 %
 global ALPHA
@@ -468,8 +378,11 @@ end
 end
 
 
+
 function [tbl, rm] = mmANOVA(DATA, list_model_tag, varargin)
 %{
+Wrapper function around `simple_mixed_anova_partialeta.m` from Malinda.
+Prints out mmANOVA results with Greenhouse-Geisser correction.
 %}
 expt_tag = 'bernox2005';
 resp_tag = 'f0dl';
