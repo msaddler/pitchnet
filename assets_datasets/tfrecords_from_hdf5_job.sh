@@ -6,14 +6,15 @@
 #SBATCH --mem=2500
 #SBATCH --nodes=1
 #SBATCH --time=0-6:00:00
-#SBATCH --array=0-599
+#SBATCH --array=0-49
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 ##SBATCH --dependency=afterok:14990544
 #SBATCH --exclude=node[001-030]
 
 ### Define source_regex and dest_filename here (use single quotes to prevent regex from expanding)
-source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_mfcc/PNDv08PYS*_TLASmatched12_snr_neg10pos10_phase3/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates*.hdf5'
+# source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_mfcc/PNDv08PYS*_TLASmatched12_snr_neg10pos10_phase3/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates*.hdf5'
+source_regex="$SCRATCH_PATH"'/data_hearinglossnet/pitchrepnet_eval2afc_bernox2005_sr32000_dur150ms/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates*.hdf5'
 # source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_synthetic/noise_UMNm_snr_neg10pos10_phase01_filter_signalBPv00/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates*.hdf5'
 # source_regex='/om/user/msaddler/data_pitchnet/bernox2005/FixedFilter_f0min100_f0max300/*/*.hdf5'
 
