@@ -55,6 +55,14 @@ def create_tfrecords(output_fn, source_file, feature_paths={}, idx_start=0, idx_
                     feature_data = feature_data.T
                     if idx == idx_start:
                         print('\n\n>>> TRANSPOSING feature_data ({}, {}) <<<\n\n'.format(key_path, feature_data.shape))
+                if ('flat_exc' in output_fn) and (feature_data.shape == (100, 1000)):
+                    # Quick, temporary hack to eliminate place cues in exc pattern (2020-08-27 msaddler)
+                    mean_exc = np.mean(feature_data, axis=1)
+                    NZIDX = mean_exc > 0
+                    feature_data[NZIDX] = feature_data[NZIDX] / np.expand_dims(mean_exc[NZIDX], axis=1)
+                    if idx == idx_start:
+                        print('\n\n>>> FLATTENING excitation pattern ({}, {}) <<<\n\n'.format(key_path, feature_data.shape))
+                        print(np.mean(feature_data, axis=1))
                 feature[key_path] = _bytes_feature(tf.compat.as_bytes(feature_data.tostring()))
             elif idx == idx_start: print('IGNORING `{}` (not found in source_file)'.format(key_path))
         for key_path in feature_paths.get('int_list', []):
