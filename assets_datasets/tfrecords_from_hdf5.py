@@ -58,8 +58,12 @@ def create_tfrecords(output_fn, source_file, feature_paths={}, idx_start=0, idx_
                 if ('flat_exc' in output_fn) and (feature_data.shape == (100, 1000)):
                     # Quick, temporary hack to eliminate place cues in exc pattern (2020-08-27 msaddler)
                     mean_exc = np.mean(feature_data, axis=1)
+                    mean_nervegram = np.mean(feature_data)
                     NZIDX = mean_exc > 0
                     feature_data[NZIDX] = feature_data[NZIDX] / np.expand_dims(mean_exc[NZIDX], axis=1)
+                    if ('flat_exc_mean' in output_fn):
+                        # Re-scaling nervegrams to have same mean as original stimuli (2020-09-07 msaddler)
+                        feature_data[NZIDX] = mean_nervegram * feature_data[NZIDX]
                     if idx == idx_start:
                         print('\n\n>>> FLATTENING excitation pattern ({}, {}) <<<\n\n'.format(key_path, feature_data.shape))
                         print(np.mean(feature_data, axis=1))
