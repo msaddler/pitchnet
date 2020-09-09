@@ -103,7 +103,7 @@ if __name__ == "__main__":
         'num_spike_trains': args.num_spike_trains,
         'cohc': 1.0,
         'cihc': 1.0,
-        'IhcLowPass_cutoff': args.bandwidth_scale_factor,
+        'IhcLowPass_cutoff': args.lowpass_filter_cutoff,
         'IhcLowPass_order': args.lowpass_filter_order,
         'spont': args.spont_rate,
         'noiseType': 1,
@@ -124,6 +124,24 @@ if __name__ == "__main__":
         else:
             print('#', key, kwargs_nervegram[key])
     print("### bez2018model nervegram parameters ###")
+    
+    # Quick check to ensure nervegram parameters match those advertised in dest_filename
+    if kwargs_nervegram['spont'] > 1:
+        spont_str = '{:03d}'.format(int(kwargs_nervegram['spont']))
+    else:
+        spont_str = '{:d}eN1'.format(int(kwargs_nervegram['spont'] * 10))
+    fn_check = 'sr{:d}_cf{:03d}_species{:03d}_spont{}_BW{:02d}eN1_IHC{:04d}Hz_IHC{:d}order'.format(
+        int(kwargs_nervegram['nervegram_fs']),
+        int(kwargs_nervegram['num_cf']),
+        int(kwargs_nervegram['species']),
+        spont_str,
+        int(kwargs_nervegram['bandwidth_scale_factor'] * 10),
+        int(kwargs_nervegram['IhcLowPass_cutoff']),
+        int(kwargs_nervegram['IhcLowPass_order']),
+    )
+    print(fn_check)
+    assert fn_check in args.dest_filename, "FAILED DEST FILENAME CHECK"
+    
     # Run bez2018 model
     parallel_run_dataset_generation(args.source_regex,
                                     args.dest_filename,
@@ -133,4 +151,3 @@ if __name__ == "__main__":
                                     source_key_signal_fs=args.source_key_sr,
                                     source_keys_to_copy=get_source_keys_to_copy(),
                                     kwargs_nervegram=kwargs_nervegram)
-    
