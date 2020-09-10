@@ -76,7 +76,7 @@ def create_temporary_config(output_directory,
                             eval_regex,
                             config_filename='config.json', 
                             temporary_config_filename='EVAL_config.json',
-                            bytesList_keys=['signal', 'meanrates']):
+                            bytesList_keys=['signal', 'meanrates', 'nervegram_meanrates', 'nervegram_spike_times']):
     '''
     '''
     with open(os.path.join(output_directory, config_filename)) as f: CONFIG = json.load(f)
