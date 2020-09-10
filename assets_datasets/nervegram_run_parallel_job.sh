@@ -3,7 +3,7 @@
 #SBATCH --job-name=bez2018model
 #SBATCH --out="trash/slurm-%A_%a.out"
 #SBATCH --cpus-per-task=2
-#SBATCH --mem=2000
+#SBATCH --mem=5000
 #SBATCH --nodes=1
 #SBATCH --time=24:00:00
 ##SBATCH --time-min=0-24:00:00
@@ -27,7 +27,7 @@
 # jobs_per_source_file=3
 
 source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/PND_*.hdf5'
-dest_filename="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont1eN1_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
+dest_filename="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
 jobs_per_source_file=3
 
 # source_regex='/om/user/msaddler/data_pitchnet/mcpherson2020/testSPL_v01_f0min080_f0max320_dBSPLmin000_dBSPLmax120/*.hdf5'
@@ -84,7 +84,7 @@ python -u nervegram_run_parallel.py \
 -sks 'stimuli/signal_in_noise' \
 -sksr 'sr' \
 -mrsr '20000.0' \
--spont '0.1' \
+-spont '70' \
 -ncf 100 \
 -nst 1
 
