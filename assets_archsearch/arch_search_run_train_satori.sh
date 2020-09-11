@@ -17,6 +17,13 @@ OUTPUT_LOG_FN=$(printf "/nobackup/users/msaddler/pitchnet/saved_models/arch_sear
 echo $OUTPUT_LOG_FN
 echo $(hostname)
 
+if [[ "$(tail -1 $OUTPUT_LOG_FN)" == "Training stopped." ]]; then
+    echo "[Training stopped.] $OUTPUT_LOG_FN" &> $(printf "satori_slurm_arch_%04d.out" ${job_idx})
+    exit 1
+else
+    echo "$OUTPUT_LOG_FN" &> $(printf "satori_slurm_arch_%04d.out" ${job_idx})
+fi
+
 singularity exec --nv \
 -B /nobackup/users/msaddler/ \
 -B /nobackup/users/msaddler/data_pitchnet:/data \
