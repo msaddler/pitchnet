@@ -117,9 +117,9 @@ if __name__ == "__main__":
         'return_spike_tensor': False,
     }
     print("### bez2018model nervegram parameters ###")
-    for key in kwargs_nervegram.keys():
+    for key in sorted(kwargs_nervegram.keys()):
         if isinstance(kwargs_nervegram[key], dict):
-            for sub_key in kwargs_nervegram[key].keys():
+            for sub_key in sorted(kwargs_nervegram[key].keys()):
                 print('#', key, sub_key, kwargs_nervegram[key][sub_key])
         else:
             print('#', key, kwargs_nervegram[key])
