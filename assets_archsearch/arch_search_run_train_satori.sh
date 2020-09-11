@@ -2,16 +2,16 @@
 #SBATCH --job-name=pitchnet_train
 #SBATCH --out="slurm-%A_%a.out"
 ##SBATCH --error="slurm-%A_%a.err"
-#SBATCH --mail-user=msaddler@mit.edu
-#SBATCH --mail-type=ALL
+##SBATCH --mail-user=msaddler@mit.edu
+##SBATCH --mail-type=ALL
 #SBATCH --gres=gpu:1
 #SBATCH --gpus-per-node=1
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem=18000
 #SBATCH --cpus-per-task=18
-#SBATCH --time=12:00:00
-#SBATCH --array=0-1
+#SBATCH --time=24:00:00
+#SBATCH --array=0-399
 
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
@@ -19,8 +19,8 @@ SOURCE_CONFIG_FN='config_arch_search_v02.json'
 OUTPUT_DIR_PATTERN="/saved_models/arch_search_v02/arch_{:04d}"
 OUTPUT_LOG_FN=$(printf "/nobackup/users/msaddler/pitchnet/saved_models/arch_search_v02/logs_train/arch_%04d.log" ${job_idx})
 
-DATA_TRAIN='/data/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_0[0-2]*.tfrecords'
-DATA_EVAL='/data/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_0[3-4]*.tfrecords'
+DATA_TRAIN='/data/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_0[0-7]*.tfrecords'
+DATA_EVAL='/data/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_0[8-9]*.tfrecords'
 
 echo $OUTPUT_LOG_FN
 echo $(hostname)
