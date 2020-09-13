@@ -1,6 +1,7 @@
 import os
 import sys
 import numpy as np
+import glob
 import argparse
 
 sys.path.append('/om2/user/msaddler/python-packages/bez2018model')
@@ -60,7 +61,7 @@ if __name__ == "__main__":
                         help='index of current job')
     parser.add_argument('-jps', '--jobs_per_source_file', type=int, default=None, 
                         help='number of jobs per source dataset file')
-    parser.add_argument('-sks', '--source_key_signal', type=str, default='stimuli/signal_in_noise',
+    parser.add_argument('-sks', '--source_key_signal', type=str, default='auto',
                         help='key for signal in source dataset')
     parser.add_argument('-sksr', '--source_key_sr', type=str, default='sr',
                         help='key for signal sampling rate in source dataset')
@@ -116,6 +117,8 @@ if __name__ == "__main__":
         'return_spike_times': False,
         'return_spike_tensor': False,
     }
+    print(args.dest_filename)
+    print(args.source_regex)
     print("### bez2018model nervegram parameters ###")
     for key in sorted(kwargs_nervegram.keys()):
         if isinstance(kwargs_nervegram[key], dict):
@@ -142,12 +145,43 @@ if __name__ == "__main__":
     print(fn_check)
     assert fn_check in args.dest_filename, "FAILED DEST FILENAME CHECK"
     
+    # Automating selection of source keys
+    source_key_signal = args.source_key_signal
+    source_key_signal_fs = args.source_key_sr
+    if source_key_signal.lower() == 'auto':
+        source_fn_list = sorted(glob.glob(source_regex))
+        source_fn = source_fn_list[args.job_idx // args.jobs_per_source_file]
+        if 'bernox2005' in source_fn:
+            source_key_signal = 'tone_in_noise'
+            source_key_signal_fs = 'config_tone/fs'
+        elif 'moore1985' in source_fn:
+            source_key_signal = 'stimuli/signal'
+            source_key_signal_fs = 'config_tone/fs'
+        elif 'mooremoore2003' in source_fn:
+            source_key_signal = 'stimuli/signal'
+            source_key_signal_fs = 'config_tone/fs'
+        elif 'oxenham2004' in source_fn:
+            source_key_signal = 'stimuli/signal_in_noise'
+            source_key_signal_fs = 'config_tone/fs'
+        elif 'shackcarl1994' in source_fn:
+            source_key_signal = 'tone_in_noise'
+            source_key_signal_fs = 'config_tone/fs'
+        elif 'mcpherson2020' in source_fn:
+            source_key_signal = 'tone_in_noise'
+            source_key_signal_fs = 'config_tone/fs'
+        else:
+            source_key_signal = 'stimuli/signal_in_noise'
+            source_key_signal_fs = 'sr'
+        print('AUTO-SELECTED source keys for source_fn={}'.format(source_fn))
+        print('\t source_key_signal={}'.format(source_key_signal))
+        print('\t source_key_signal_fs={}'.format(source_key_signal_fs))
+    
     # Run bez2018 model
     parallel_run_dataset_generation(args.source_regex,
                                     args.dest_filename,
                                     job_idx=args.job_idx,
                                     jobs_per_source_file=args.jobs_per_source_file,
-                                    source_key_signal=args.source_key_signal,
-                                    source_key_signal_fs=args.source_key_sr,
+                                    source_key_signal=source_key_signal,
+                                    source_key_signal_fs=source_key_signal_fs,
                                     source_keys_to_copy=get_source_keys_to_copy(),
                                     kwargs_nervegram=kwargs_nervegram)
