@@ -146,11 +146,11 @@ if __name__ == "__main__":
     assert fn_check in args.dest_filename, "FAILED DEST FILENAME CHECK"
     
     # Automating selection of source keys
+    source_fn_list = sorted(glob.glob(source_regex))
+    source_fn = source_fn_list[args.job_idx // args.jobs_per_source_file]
     source_key_signal = args.source_key_signal
     source_key_signal_fs = args.source_key_sr
     if source_key_signal.lower() == 'auto':
-        source_fn_list = sorted(glob.glob(source_regex))
-        source_fn = source_fn_list[args.job_idx // args.jobs_per_source_file]
         if 'bernox2005' in source_fn:
             source_key_signal = 'tone_in_noise'
             source_key_signal_fs = 'config_tone/fs'
@@ -176,9 +176,15 @@ if __name__ == "__main__":
         print('\t source_key_signal={}'.format(source_key_signal))
         print('\t source_key_signal_fs={}'.format(source_key_signal_fs))
     
+    # Automating generation of destination filename
+    dest_filename = args.dest_filename
+    if not os.path.dirname(dest_filename):
+        dest_filename = os.path.join(os.path.dirname(source_fn), dest_filename, 'bez2018meanrates.hdf5')
+        print('AUTO-GENERATED dest_filename={}'.format(dest_filename))
+    
     # Run bez2018 model
     parallel_run_dataset_generation(args.source_regex,
-                                    args.dest_filename,
+                                    dest_filename,
                                     job_idx=args.job_idx,
                                     jobs_per_source_file=args.jobs_per_source_file,
                                     source_key_signal=source_key_signal,
