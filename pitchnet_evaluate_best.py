@@ -111,6 +111,8 @@ if __name__ == "__main__":
                         help='key in validation_metrics_fn to use when selecting best checkpoint')
     parser.add_argument('-wpo', '--write_probs_out', type=int, default=0,
                         help='if specified, final activations will be included in output file (eval_only_mode)')
+    parser.add_argument('-f', '--force_overwrite', action='store_true', default=False,
+                        help='if specified, force overwrite eval_output_fn')
     args = parser.parse_args()
     
     assert args.outputdir is not None
@@ -119,6 +121,14 @@ if __name__ == "__main__":
     eval_only_mode = True
     train_regex = None
     eval_regex = args.tfrecordsregexeval
+    
+    eval_output_fn = args.eval_output_fn
+    tmp_eval_output_fn = eval_output_fn
+    if os.path.basename(tmp_eval_output_fn) == tmp_eval_output_fn:
+        tmp_eval_output_fn = os.path.join(output_directory, eval_output_fn)
+    if os.path.exists(tmp_eval_output_fn):
+        if not args.force_overwrite:
+            raise SystemExit("eval_output_fn={} already exists".format(tmp_eval_output_fn))
     
     validation_metrics_fn = os.path.join(output_directory, args.validation_metrics_fn)
     validation_metrics_key = args.validation_metrics_key
@@ -131,7 +141,6 @@ if __name__ == "__main__":
                                                      metric_key=validation_metrics_key,
                                                      maximize=maximize,
                                                      checkpoint_number_key='step')
-    eval_output_fn = args.eval_output_fn
     
     config_filename = args.configfile
     if config_filename is None:
