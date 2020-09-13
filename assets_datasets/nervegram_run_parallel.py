@@ -146,7 +146,7 @@ if __name__ == "__main__":
     assert fn_check in args.dest_filename, "FAILED DEST FILENAME CHECK"
     
     # Automating selection of source keys
-    source_fn_list = sorted(glob.glob(source_regex))
+    source_fn_list = sorted(glob.glob(args.source_regex))
     source_fn = source_fn_list[args.job_idx // args.jobs_per_source_file]
     source_key_signal = args.source_key_signal
     source_key_signal_fs = args.source_key_sr
