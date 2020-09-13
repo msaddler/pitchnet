@@ -8,7 +8,7 @@
 #SBATCH --time=24:00:00
 ##SBATCH --time-min=0-24:00:00
 #SBATCH --exclude=node[001-030]
-#SBATCH --array=0-104
+#SBATCH --array=0-299
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --requeue
@@ -26,13 +26,12 @@
 # dest_filename="$SCRATCH_PATH"'/data_pitchnet/PND_mfcc/PNDv08PYSnegated12_TLASmatched12_snr_neg10pos10_phase3/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
 # jobs_per_source_file=3
 
-# source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/PND_*.hdf5'
-# dest_filename="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont070_BW10eN1_IHC0250Hz_IHC7order/bez2018meanrates.hdf5'
-# jobs_per_source_file=3
+source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/PND_*.hdf5'
+jobs_per_source_file=3
 
-source_regex='/om/user/msaddler/data_pitchnet/*/*v01*/stim.hdf5'
-dest_filename='sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order'
-jobs_per_source_file=15
+# source_regex='/om/user/msaddler/data_pitchnet/*/*v01*/stim.hdf5'
+# dest_filename='sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order'
+# jobs_per_source_file=15
 
 
 offset=0
@@ -42,12 +41,28 @@ export HDF5_USE_FILE_LOCKING=FALSE
 source activate mdlab # Activate conda environment with "cython_bez2018" module installed
 echo $(hostname)
 
+# python -u nervegram_run_parallel.py \
+# -s "${source_regex}" \
+# -d "${dest_filename}" \
+# -j ${job_idx} \
+# -jps ${jobs_per_source_file} \
+# -bwsf '1.0' \
+# -lpf '3000.0' \
+# -lpfo '7' \
+# -sks 'auto' \
+# -sksr 'sr' \
+# -mrsr '20000.0' \
+# -spont '70' \
+# -ncf 100 \
+# -nst 1
+
+dest_filename='sr20000_cf100_species002_spont070_BW20eN1_IHC3000Hz_IHC7order'
 python -u nervegram_run_parallel.py \
 -s "${source_regex}" \
 -d "${dest_filename}" \
 -j ${job_idx} \
 -jps ${jobs_per_source_file} \
--bwsf '1.0' \
+-bwsf '2.0' \
 -lpf '3000.0' \
 -lpfo '7' \
 -sks 'auto' \
@@ -56,18 +71,3 @@ python -u nervegram_run_parallel.py \
 -spont '70' \
 -ncf 100 \
 -nst 1
-
-# python -u nervegram_run_parallel.py \
-# -s "${source_regex}" \
-# -d "${dest_filename}" \
-# -j ${job_idx} \
-# -jps ${jobs_per_source_file} \
-# -bwsf '1.0' \
-# -lpf '250.0' \
-# -lpfo '7' \
-# -sks 'stimuli/signal_in_noise' \
-# -sksr 'sr' \
-# -mrsr '20000.0' \
-# -spont '70.0' \
-# -ncf 100 \
-# -nst 1
