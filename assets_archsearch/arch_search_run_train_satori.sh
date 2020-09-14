@@ -1,16 +1,11 @@
-job_idx=$(( $1 - 0 ))
-CUDA_VISIBLE_DEVICES=$(( $2 - 0 ))
-PARALLEL_JOB_COUNTER=$(( $3 - 0 ))
-PARALLEL_SLOT_NUMBER=$(( $4 - 0 ))
+job_idx=$1
+CUDA_VISIBLE_DEVICES=$(( $2 - 1 ))
+PARALLEL_JOB_COUNTER=$(( $3 - 1 ))
 
-export PATH=$HOME/opt/bin:$PATH
-
-echo "=============================="
 echo "job_idx=$job_idx"
-echo "HOSTNAME::CUDA_VISIBLE_DEVICES=$HOSTNAME::GPU-$CUDA_VISIBLE_DEVICES"
+echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 echo "PARALLEL_JOB_COUNTER=$PARALLEL_JOB_COUNTER"
-echo "PARALLEL_SLOT_NUMBER=$PARALLEL_SLOT_NUMBER"
-echo "=============================="
+echo " "
 
 DATA_TRAIN='/data/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_0[0-7]*.tfrecords'
 DATA_EVAL='/data/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_0[8-9]*.tfrecords'
@@ -24,7 +19,6 @@ echo $(hostname)
 
 if [[ "$(tail -1 $OUTPUT_LOG_FN)" == "Training stopped." ]]; then
     echo "[Training stopped.] $OUTPUT_LOG_FN" &> $(printf "satori_slurm_arch_%04d.out" ${job_idx})
-    sleep 10s
     exit 1
 else
     echo "$OUTPUT_LOG_FN" &> $(printf "satori_slurm_arch_%04d.out" ${job_idx})

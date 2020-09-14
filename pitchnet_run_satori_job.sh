@@ -12,15 +12,16 @@
 #SBATCH --time=24:00:00
 #SBATCH --exclusive
 
-SLURM_JOB_NUM_NODES=2
-SLURM_JOB_NODELIST="service0001,service0002"
-SLURM_NTASKS_PER_NODE=4
-SLURM_JOB_ID='IMAGINARYTESTJOB123'
+# SLURM_JOB_NUM_NODES=2
+# SLURM_JOB_NODELIST="service0001,service0002"
+# SLURM_NTASKS_PER_NODE=4
+# SLURM_JOB_ID='IMAGINARYTESTJOB123'
 
 ## Create file containing SLURM node list
 SLURM_TASK_LOG_FILENAME="slurm-tasklist-${SLURM_JOB_ID}.out"
 SLURM_JOB_NODELIST_FILENAME="slurm-nodelist-${SLURM_JOB_ID}.out" 
-echo $SLURM_JOB_NODELIST | sed s/\,/\\n/g > $SLURM_JOB_NODELIST_FILENAME
+# echo $SLURM_JOB_NODELIST | sed s/\,/\\n/g > $SLURM_JOB_NODELIST_FILENAME
+srun -l bash -c 'hostname' |  sort -k 2 -u | awk -vORS=, '{print $2}' | sed 's/,$//' > $SLURM_JOB_NODELIST_FILENAME
 
 echo "==========================================================="
 echo "wd=$(pwd)"
@@ -36,7 +37,7 @@ export PATH=$HOME/opt/bin:$PATH
 
 ## Define argument string for running `pitchnet_run_satori.sh` via parallel
 PARALLEL_ARGUMENT_STRING='{1} $((({%}-1) / '$SLURM_JOB_NUM_NODES')) {#} {%}'
-echo "PARALLEL_ARGUMENT_STRING=PARALLEL_ARGUMENT_STRING"
+echo "PARALLEL_ARGUMENT_STRING=$PARALLEL_ARGUMENT_STRING"
 
 ## Execute `pitchnet_run_satori.sh` script with parallel arguments
 parallel \
@@ -45,4 +46,4 @@ parallel \
 --slf $SLURM_JOB_NODELIST_FILENAME \
 --joblog $SLURM_TASK_LOG_FILENAME \
 --wd $(pwd) \
-./pitchnet_run_satori.sh $PARALLEL_ARGUMENT_STRING ::: $(seq 0 8)
+./pitchnet_run_satori.sh $PARALLEL_ARGUMENT_STRING ::: $(seq 0 25)
