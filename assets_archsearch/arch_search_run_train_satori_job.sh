@@ -15,4 +15,4 @@
 ## Ensure `parallel` can be found
 export PATH=$HOME/opt/bin:$PATH
 
-parallel -j4 ./arch_search_run_train_satori.sh {1} {%} {#} ::: $(seq 275 299)
+parallel -j4 ./arch_search_run_train_satori.sh {1} {%} {#} ::: $(seq 145 149; seq 275 299)
