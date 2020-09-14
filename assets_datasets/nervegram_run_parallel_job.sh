@@ -30,9 +30,7 @@ source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/PN
 jobs_per_source_file=3
 
 # source_regex='/om/user/msaddler/data_pitchnet/*/*v01*/stim.hdf5'
-# dest_filename='sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order'
 # jobs_per_source_file=15
-
 
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
@@ -41,33 +39,18 @@ export HDF5_USE_FILE_LOCKING=FALSE
 source activate mdlab # Activate conda environment with "cython_bez2018" module installed
 echo $(hostname)
 
-# python -u nervegram_run_parallel.py \
-# -s "${source_regex}" \
-# -d "${dest_filename}" \
-# -j ${job_idx} \
-# -jps ${jobs_per_source_file} \
-# -bwsf '1.0' \
-# -lpf '3000.0' \
-# -lpfo '7' \
-# -sks 'auto' \
-# -sksr 'sr' \
-# -mrsr '20000.0' \
-# -spont '70' \
-# -ncf 100 \
-# -nst 1
-
-dest_filename='sr20000_cf100_species002_spont070_BW20eN1_IHC3000Hz_IHC7order'
+dest_filename='sr20000_cf100_species002_spont070_BW10eN1_IHC9000Hz_IHC7order'
 python -u nervegram_run_parallel.py \
 -s "${source_regex}" \
 -d "${dest_filename}" \
 -j ${job_idx} \
 -jps ${jobs_per_source_file} \
--bwsf '2.0' \
--lpf '3000.0' \
+-bwsf '1.0' \
+-lpf '9000.0' \
 -lpfo '7' \
 -sks 'auto' \
 -sksr 'sr' \
 -mrsr '20000.0' \
--spont '70' \
+-spont '70.0' \
 -ncf 100 \
 -nst 1
