@@ -1,7 +1,14 @@
+#!/bin/bash
+
 OUTDIR=$1
 DATA_TRAIN=$2
 DATA_EVAL=$3
 OUTPUT_LOG_FN=$4
+
+if [[ "$(tail -1 $OUTPUT_LOG_FN)" == "Training stopped." ]]; then
+    echo "[SKIPPING]: $OUTDIR"
+    exit 1
+fi
 
 echo "------------------------------------------------" > $OUTPUT_LOG_FN
 echo "| (host::gpu)=$(hostname)::GPU-$CUDA_VISIBLE_DEVICES" >> $OUTPUT_LOG_FN

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 OUTDIR=$1
 TFRECORDS_REGEX=$2
 EFN_PREFIX=$3
