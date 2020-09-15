@@ -69,6 +69,7 @@ echo "[END TRAINING] $OUTPUT_LOG_FN" >> $(printf "slurm_run_satori-%04d.out" ${j
 # TFRECORDS_REGEX='sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/*.tfrecords'
 # EFN_PREFIX='EVAL_SOFTMAX_'
 # WRITE_PROBS_OUT=1
+# OUTPUT_LOG_FN=$OUTDIR'/output_eval.log'
 
 # export SINGULARITYENV_CUDA_VISIBLE_DEVICES
 # singularity exec --nv \
