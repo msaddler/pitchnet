@@ -39,6 +39,26 @@ declare -a outdir_list=(
     "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont1eN1_BW10eN1_IHC3000Hz_IHC7order/arch_0302_seed7"
     "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont1eN1_BW10eN1_IHC3000Hz_IHC7order/arch_0302_seed8"
     "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont1eN1_BW10eN1_IHC3000Hz_IHC7order/arch_0302_seed9"
+    "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW05eN1_IHC3000Hz_IHC7order/arch_0302_seed0"
+    "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW05eN1_IHC3000Hz_IHC7order/arch_0302_seed1"
+    "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW05eN1_IHC3000Hz_IHC7order/arch_0302_seed2"
+    "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW05eN1_IHC3000Hz_IHC7order/arch_0302_seed3"
+    "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW05eN1_IHC3000Hz_IHC7order/arch_0302_seed4"
+    "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW05eN1_IHC3000Hz_IHC7order/arch_0302_seed5"
+    "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW05eN1_IHC3000Hz_IHC7order/arch_0302_seed6"
+    "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW05eN1_IHC3000Hz_IHC7order/arch_0302_seed7"
+    "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW05eN1_IHC3000Hz_IHC7order/arch_0302_seed8"
+    "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW05eN1_IHC3000Hz_IHC7order/arch_0302_seed9"
+    "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW20eN1_IHC3000Hz_IHC7order/arch_0302_seed0"
+    "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW20eN1_IHC3000Hz_IHC7order/arch_0302_seed1"
+    "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW20eN1_IHC3000Hz_IHC7order/arch_0302_seed2"
+    "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW20eN1_IHC3000Hz_IHC7order/arch_0302_seed3"
+    "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW20eN1_IHC3000Hz_IHC7order/arch_0302_seed4"
+    "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW20eN1_IHC3000Hz_IHC7order/arch_0302_seed5"
+    "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW20eN1_IHC3000Hz_IHC7order/arch_0302_seed6"
+    "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW20eN1_IHC3000Hz_IHC7order/arch_0302_seed7"
+    "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW20eN1_IHC3000Hz_IHC7order/arch_0302_seed8"
+    "/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW20eN1_IHC3000Hz_IHC7order/arch_0302_seed9"
 )
 OUTDIR=${outdir_list[$job_idx]}
 
@@ -48,6 +68,12 @@ if [[ "$OUTDIR" == *"sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7ord
 fi
 if [[ "$OUTDIR" == *"sr20000_cf100_species002_spont1eN1_BW10eN1_IHC3000Hz_IHC7order"* ]]; then
   DATA_TAG="sr20000_cf100_species002_spont1eN1_BW10eN1_IHC3000Hz_IHC7order"
+fi
+if [[ "$OUTDIR" == *"sr20000_cf100_species002_spont070_BW05eN1_IHC3000Hz_IHC7order"* ]]; then
+  DATA_TAG="sr20000_cf100_species002_spont070_BW05eN1_IHC3000Hz_IHC7order"
+fi
+if [[ "$OUTDIR" == *"sr20000_cf100_species002_spont070_BW20eN1_IHC3000Hz_IHC7order"* ]]; then
+  DATA_TAG="sr20000_cf100_species002_spont070_BW20eN1_IHC3000Hz_IHC7order"
 fi
 
 DATA_TRAIN='/data/PND_v08/noise_TLAS_snr_neg10pos10/'$DATA_TAG'/bez2018meanrates_0[0-7]*.tfrecords'
