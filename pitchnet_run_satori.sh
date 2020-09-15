@@ -52,6 +52,13 @@ DATA_TRAIN='/data/PND_v08/noise_TLAS_snr_neg10pos10/'$DATA_TAG'/bez2018meanrates
 DATA_EVAL='/data/PND_v08/noise_TLAS_snr_neg10pos10/'$DATA_TAG'/bez2018meanrates_0[8-9]*.tfrecords'
 OUTPUT_LOG_FN=$OUTDIR'/output_train.log'
 
+if [[ "$(tail -1 $OUTPUT_LOG_FN)" == "Training stopped." ]]; then
+    echo "[Training stopped.] $OUTPUT_LOG_FN" &> $(printf "slurm_run_satori-%04d.out" ${job_idx})
+    exit 1
+else
+    echo "[Training started.] $OUTPUT_LOG_FN" &> $(printf "slurm_run_satori-%04d.out" ${job_idx})
+fi
+
 export SINGULARITYENV_CUDA_VISIBLE_DEVICES
 singularity exec --nv \
 -B $PATH_DATA:/data \
@@ -60,6 +67,7 @@ singularity exec --nv \
 docker://afrancl/ibm-hearing-aid-satori:tensorflow \
 ./pitchnet_run_train.sh $OUTDIR $DATA_TRAIN $DATA_EVAL $OUTPUT_LOG_FN
 
+echo "[Training stopped.] $OUTPUT_LOG_FN" &> $(printf "satori_slurm-%04d.out" ${job_idx})
 
 
 # OUTDIR=$(printf "/saved_models/arch_search_v02/arch_%04d" ${job_idx})
