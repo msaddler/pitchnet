@@ -2,7 +2,7 @@
 #
 #SBATCH --job-name=pitchnet_train
 #SBATCH --out="slurm-%A_%a.out"
-#SBATCH --cpus-per-task=18
+#SBATCH --cpus-per-task=6
 #SBATCH --mem=18000
 ##SBATCH --gres=gpu:tesla-v100:1
 #SBATCH --gres=gpu:QUADRORTX6000:1
@@ -14,7 +14,7 @@
 ##SBATCH --exclude=node063
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
-#SBATCH --dependency=afterok:17884143
+##SBATCH --dependency=afterok:17887282
 #SBATCH --requeue
 
 OUTDIR='/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW10eN1_IHC0250Hz_IHC7order/arch_0302_seed'$SLURM_ARRAY_TASK_ID
