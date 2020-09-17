@@ -142,6 +142,11 @@ def parallel_run_tfrecords(source_regex, job_idx=0, jobs_per_source_file=1, grou
         (argument for `get_feature_paths_from_source_file()`)
     """
     # Determine the source_hdf5_filename using source_regex, job_idx, and jobs_per_source_file
+    SPOOF_DIRNAME = False
+    if ('_flat_exc_mean' in source_regex) and (len(glob.glob(source_regex)) == 0):
+        # Quick, temporary hack to spoof `_flat_exc_mean` hdf5 files without symlinks (2020-09-17 msaddler)
+        source_regex = source_regex.replace('_flat_exc_mean', '')
+        SPOOF_DIRNAME = '_flat_exc_mean'
     source_fn_list = sorted(glob.glob(source_regex))
     assert len(source_fn_list) > 0, "source_regex did not match any files"
     source_file_idx = job_idx // jobs_per_source_file
@@ -149,6 +154,11 @@ def parallel_run_tfrecords(source_regex, job_idx=0, jobs_per_source_file=1, grou
     source_hdf5_filename = source_fn_list[source_file_idx]
     # Open the source hdf5 file and determine the feature paths from hdf5 paths
     source_hdf5_f = h5py.File(source_hdf5_filename, 'r')
+    if SPOOF_DIRNAME:
+        # Quick, temporary hack to spoof `_flat_exc_mean` hdf5 files without symlinks (2020-09-17 msaddler)
+        dirname = os.path.dirname(source_hdf5_filename)
+        basename = os.path.basename(source_hdf5_filename)
+        source_hdf5_filename = os.path.join(dirname + SPOOF_DIRNAME, basename)
     feature_paths = get_feature_paths_from_source_file(source_hdf5_f, groups_to_search=groups_to_search)
     print('>>> [PARALLEL_RUN] feature_dict:')
     for key in feature_paths.keys():
