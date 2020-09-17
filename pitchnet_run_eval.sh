@@ -59,7 +59,7 @@ python pitchnet_evaluate_best.py \
 -de "/data/mcpherson2020/testspl_v01/$TFRECORDS_REGEX" \
 -efn "${EFN_PREFIX}testspl_v01_bestckpt.json" \
 -o "$OUTDIR" \
--wpo 1\
+-wpo 1 \
 >> "$OUTPUT_LOG_FN" 2>&1
 
 python pitchnet_evaluate_best.py \
