@@ -6,13 +6,13 @@
 ##SBATCH --mail-type=ALL
 #SBATCH --gres=gpu:4
 #SBATCH --gpus-per-node=4
-#SBATCH --nodes=1
+#SBATCH --nodes=4
 #SBATCH --ntasks-per-node=4
 #SBATCH --mem=0
-#SBATCH --time=12:00:00
-#SBATCH --qos=sched_mit_newuser
-##SBATCH --time=24:00:00
-##SBATCH --qos=sched_level_2
+##SBATCH --time=12:00:00
+##SBATCH --qos=sched_mit_newuser
+#SBATCH --time=24:00:00
+#SBATCH --qos=sched_level_2
 #SBATCH --exclusive
 
 ## Create file containing SLURM node list
