@@ -16,7 +16,7 @@
 # source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10_filter*/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates*.hdf5'
 # source_regex="$SCRATCH_PATH"'/data_hearinglossnet/pitchrepnet_eval2afc_bernox2005/sr10000_cf050_cohc10eN1_cihc10eN1_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates*.hdf5'
 # source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_mfcc/PNDv08PYS*12_TLASmatched12_snr_neg10pos10_phase3/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates*.hdf5'
-source_regex='/om/user/msaddler/data_pitchnet/*/*v01*/sr2000_cf1000_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/*.hdf5'
+source_regex='/om/user/msaddler/data_pitchnet/*/*v01*/sr20000_cf100_species004_spont070_BWlinear_IHC3000Hz_IHC7order/*.hdf5'
 
 jobs_per_source_file=1
 offset=0
