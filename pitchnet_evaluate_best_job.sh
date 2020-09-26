@@ -16,11 +16,11 @@
 #SBATCH --array=83,154,190,191,286,288,302,335,338,346
 
 ZPJID=$(printf "%04d" $SLURM_ARRAY_TASK_ID)
-OUTDIR='/saved_models/arch_search_v02_topN/f0_label_384/arch_'$ZPJID
+OUTDIR='/saved_models/arch_search_v02_topN/PND_v08spch_noise_TLAS_snr_neg10pos10/arch_'$ZPJID
 DATA_TAG="sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order"
 
-# PATH_DATA="/om/user/msaddler/data_pitchnet"
-PATH_DATA="$SCRATCH_PATH/data_pitchnet"
+PATH_DATA="/om/user/msaddler/data_pitchnet"
+# PATH_DATA="$SCRATCH_PATH/data_pitchnet"
 PATH_SAVED_MODELS="/om2/user/msaddler/pitchnet/saved_models"
 PATH_CODE_LOCATION="/om2/user/msaddler/pitchnet/ibmHearingAid"
 
