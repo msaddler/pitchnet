@@ -35,13 +35,13 @@ export HDF5_USE_FILE_LOCKING=FALSE
 source activate mdlab # Activate conda environment with "cython_bez2018" module installed
 echo $(hostname)
 
-dest_filename='sr20000_cf100_species002_spont070_BW40eN1_IHC3000Hz_IHC7order'
+dest_filename='sr20000_cf100_species002_spont070_BW02eN1_IHC3000Hz_IHC7order'
 python -u nervegram_run_parallel.py \
 -s "${source_regex}" \
 -d "${dest_filename}" \
 -j ${job_idx} \
 -jps ${jobs_per_source_file} \
--bwsf '4.0' \
+-bwsf '0.25' \
 -lpf '3000.0' \
 -lpfo '7' \
 -sks 'auto' \
