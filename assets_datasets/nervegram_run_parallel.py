@@ -94,9 +94,9 @@ if __name__ == "__main__":
         'pin_fs': 100e3,
         'pin_dBSPL_flag': 0,
         'pin_dBSPL': None,
-        'species': 4, #2,
-        'bandwidth_scale_factor': [80.0] * 100, #args.bandwidth_scale_factor,
-        'cf_list': np.arange(125.0, 8125.0, 80), #None,
+        'species': 2,
+        'bandwidth_scale_factor': args.bandwidth_scale_factor,
+        'cf_list': None,
         'num_cf': args.num_cf,
         'min_cf': 125.0,
         'max_cf': 14e3,
@@ -128,22 +128,22 @@ if __name__ == "__main__":
             print('#', key, kwargs_nervegram[key])
     print("### bez2018model nervegram parameters ###")
     
-#     # Quick check to ensure nervegram parameters match those advertised in dest_filename
-#     if kwargs_nervegram['spont'] > 1:
-#         spont_str = '{:03d}'.format(int(kwargs_nervegram['spont']))
-#     else:
-#         spont_str = '{:d}eN1'.format(int(kwargs_nervegram['spont'] * 10))
-#     fn_check = 'sr{:d}_cf{:03d}_species{:03d}_spont{}_BW{:02d}eN1_IHC{:04d}Hz_IHC{:d}order'.format(
-#         int(kwargs_nervegram['nervegram_fs']),
-#         int(kwargs_nervegram['num_cf']),
-#         int(kwargs_nervegram['species']),
-#         spont_str,
-#         int(kwargs_nervegram['bandwidth_scale_factor'] * 10),
-#         int(kwargs_nervegram['IhcLowPass_cutoff']),
-#         int(kwargs_nervegram['IhcLowPass_order']),
-#     )
-#     print(fn_check)
-#     assert fn_check in args.dest_filename, "FAILED DEST FILENAME CHECK"
+    # Quick check to ensure nervegram parameters match those advertised in dest_filename
+    if kwargs_nervegram['spont'] > 1:
+        spont_str = '{:03d}'.format(int(kwargs_nervegram['spont']))
+    else:
+        spont_str = '{:d}eN1'.format(int(kwargs_nervegram['spont'] * 10))
+    fn_check = 'sr{:d}_cf{:03d}_species{:03d}_spont{}_BW{:02d}eN1_IHC{:04d}Hz_IHC{:d}order'.format(
+        int(kwargs_nervegram['nervegram_fs']),
+        int(kwargs_nervegram['num_cf']),
+        int(kwargs_nervegram['species']),
+        spont_str,
+        int(kwargs_nervegram['bandwidth_scale_factor'] * 10),
+        int(kwargs_nervegram['IhcLowPass_cutoff']),
+        int(kwargs_nervegram['IhcLowPass_order']),
+    )
+    print(fn_check)
+    assert fn_check in args.dest_filename, "FAILED DEST FILENAME CHECK"
     
     # Automating selection of source keys
     source_fn_list = sorted(glob.glob(args.source_regex))

@@ -8,7 +8,7 @@
 #SBATCH --time=0-24:00:00
 ##SBATCH --time-min=0-24:00:00
 #SBATCH --exclude=node[001-030]
-#SBATCH --array=0-104
+#SBATCH --array=0-299
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --requeue
@@ -22,11 +22,11 @@
 # dest_filename="$DIR_DEST"'/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates.hdf5'
 # jobs_per_source_file=50
 
-# source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/*.hdf5'
-# jobs_per_source_file=3
+source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/*.hdf5'
+jobs_per_source_file=3
 
-source_regex='/om/user/msaddler/data_pitchnet/*/*v01*/stim.hdf5'
-jobs_per_source_file=15
+# source_regex='/om/user/msaddler/data_pitchnet/*/*v01*/stim.hdf5'
+# jobs_per_source_file=15
 
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
@@ -35,14 +35,14 @@ export HDF5_USE_FILE_LOCKING=FALSE
 source activate mdlab # Activate conda environment with "cython_bez2018" module installed
 echo $(hostname)
 
-dest_filename='sr20000_cf100_species004_spont070_BWlinear_IHC3000Hz_IHC7order'
+dest_filename='sr20000_cf100_species002_spont070_BW10eN1_IHC0320Hz_IHC7order'
 python -u nervegram_run_parallel.py \
 -s "${source_regex}" \
 -d "${dest_filename}" \
 -j ${job_idx} \
 -jps ${jobs_per_source_file} \
 -bwsf '1.0' \
--lpf '3000.0' \
+-lpf '320.0' \
 -lpfo '7' \
 -sks 'auto' \
 -sksr 'sr' \
