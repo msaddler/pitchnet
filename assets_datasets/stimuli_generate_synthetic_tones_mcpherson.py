@@ -165,6 +165,23 @@ if __name__ == "__main__":
     assert len(sys.argv) == 2, "scipt usage: python <script_name> <hdf5_filename>"
     hdf5_filename = str(sys.argv[1])
     
+#     generate_mcpherson_noisy_tone_dataset(hdf5_filename,
+#                                           list_dbsnr_component=[0.0],
+#                                           list_dbspl_overall=np.arange(0.0, 121.0, 10.0))
+    
     generate_mcpherson_noisy_tone_dataset(hdf5_filename,
-                                          list_dbsnr_component=[0.0],
-                                          list_dbspl_overall=np.arange(0.0, 121.0, 10.0))
+                                          fs=32e3,
+                                          dur=0.150,
+                                          phase_modes=['sine'],
+                                          harmonic_numbers=[1],
+                                          f0_min=100.0,
+                                          f0_max=400.0,
+                                          step_size_in_octaves=1/(12*16*16),
+                                          list_dbsnr_component=np.arange(-12, 12, 2),
+                                          list_dbspl_overall=[60.0],
+                                          kwargs_complex_tone={},
+                                          kwargs_modified_uniform_masking_noise={},
+                                          noise_filter_cutoff=6e3,
+                                          noise_filter_order=6,
+                                          noise_filter_type='lowpass',
+                                          disp_step=100)
