@@ -6,7 +6,7 @@
 #SBATCH --mem=2500
 #SBATCH --nodes=1
 #SBATCH --time=0-2:00:00
-#SBATCH --array=0-104
+#SBATCH --array=45-59
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 ##SBATCH --dependency=afterok:14990544
