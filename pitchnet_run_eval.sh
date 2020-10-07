@@ -13,54 +13,54 @@ echo "| EFN_PREFIX=$EFN_PREFIX" >> $OUTPUT_LOG_FN
 echo "------------------------------------------------" >> $OUTPUT_LOG_FN
 
 
-python pitchnet_evaluate_best.py \
--de "/data/bernox2005/lowharm_v01/$TFRECORDS_REGEX" \
--efn "${EFN_PREFIX}lowharm_v01_bestckpt.json" \
--o "$OUTDIR" \
--wpo 1 \
->> "$OUTPUT_LOG_FN" 2>&1
+# python pitchnet_evaluate_best.py \
+# -de "/data/bernox2005/lowharm_v01/$TFRECORDS_REGEX" \
+# -efn "${EFN_PREFIX}lowharm_v01_bestckpt.json" \
+# -o "$OUTDIR" \
+# -wpo 1 \
+# >> "$OUTPUT_LOG_FN" 2>&1
 
-python pitchnet_evaluate_best.py \
--de "/data/mooremoore2003/freqshifted_v01/$TFRECORDS_REGEX" \
--efn "${EFN_PREFIX}freqshifted_v01_bestckpt.json" \
--o "$OUTDIR" \
--wpo 1 \
->> "$OUTPUT_LOG_FN" 2>&1
+# python pitchnet_evaluate_best.py \
+# -de "/data/mooremoore2003/freqshifted_v01/$TFRECORDS_REGEX" \
+# -efn "${EFN_PREFIX}freqshifted_v01_bestckpt.json" \
+# -o "$OUTDIR" \
+# -wpo 1 \
+# >> "$OUTPUT_LOG_FN" 2>&1
 
-python pitchnet_evaluate_best.py \
--de "/data/moore1985/mistunedharm_v01/$TFRECORDS_REGEX" \
--efn "${EFN_PREFIX}mistunedharm_v01_bestckpt.json" \
--o "$OUTDIR" \
--wpo 1 \
->> "$OUTPUT_LOG_FN" 2>&1
+# python pitchnet_evaluate_best.py \
+# -de "/data/moore1985/mistunedharm_v01/$TFRECORDS_REGEX" \
+# -efn "${EFN_PREFIX}mistunedharm_v01_bestckpt.json" \
+# -o "$OUTDIR" \
+# -wpo 1 \
+# >> "$OUTPUT_LOG_FN" 2>&1
 
-python pitchnet_evaluate_best.py \
--de "/data/oxenham2004/transposedtones_v01/$TFRECORDS_REGEX" \
--efn "${EFN_PREFIX}transposedtones_v01_bestckpt.json" \
--o "$OUTDIR" \
--wpo 1 \
->> "$OUTPUT_LOG_FN" 2>&1
+# python pitchnet_evaluate_best.py \
+# -de "/data/oxenham2004/transposedtones_v01/$TFRECORDS_REGEX" \
+# -efn "${EFN_PREFIX}transposedtones_v01_bestckpt.json" \
+# -o "$OUTDIR" \
+# -wpo 1 \
+# >> "$OUTPUT_LOG_FN" 2>&1
 
-python pitchnet_evaluate_best.py \
--de "/data/shackcarl1994/altphase_v01/$TFRECORDS_REGEX" \
--efn "${EFN_PREFIX}altphase_v01_bestckpt.json" \
--o "$OUTDIR" \
--wpo 1 \
->> "$OUTPUT_LOG_FN" 2>&1
+# python pitchnet_evaluate_best.py \
+# -de "/data/shackcarl1994/altphase_v01/$TFRECORDS_REGEX" \
+# -efn "${EFN_PREFIX}altphase_v01_bestckpt.json" \
+# -o "$OUTDIR" \
+# -wpo 1 \
+# >> "$OUTPUT_LOG_FN" 2>&1
 
-python pitchnet_evaluate_best.py \
--de "/data/mcpherson2020/testsnr_v01/$TFRECORDS_REGEX" \
--efn "${EFN_PREFIX}testsnr_v01_bestckpt.json" \
--o "$OUTDIR" \
--wpo 1 \
->> "$OUTPUT_LOG_FN" 2>&1
+# python pitchnet_evaluate_best.py \
+# -de "/data/mcpherson2020/testsnr_v01/$TFRECORDS_REGEX" \
+# -efn "${EFN_PREFIX}testsnr_v01_bestckpt.json" \
+# -o "$OUTDIR" \
+# -wpo 1 \
+# >> "$OUTPUT_LOG_FN" 2>&1
 
-python pitchnet_evaluate_best.py \
--de "/data/mcpherson2020/testspl_v01/$TFRECORDS_REGEX" \
--efn "${EFN_PREFIX}testspl_v01_bestckpt.json" \
--o "$OUTDIR" \
--wpo 1 \
->> "$OUTPUT_LOG_FN" 2>&1
+# python pitchnet_evaluate_best.py \
+# -de "/data/mcpherson2020/testspl_v01/$TFRECORDS_REGEX" \
+# -efn "${EFN_PREFIX}testspl_v01_bestckpt.json" \
+# -o "$OUTDIR" \
+# -wpo 1 \
+# >> "$OUTPUT_LOG_FN" 2>&1
 
 # python pitchnet_evaluate_best.py \
 # -de "/data/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_0[8-9]*.tfrecords" \
@@ -69,12 +69,12 @@ python pitchnet_evaluate_best.py \
 # -wpo 0 \
 # >> "$OUTPUT_LOG_FN" 2>&1
 
-# python pitchnet_evaluate_best.py \
-# -de "/data/mcpherson2020/testsnr_v02/$TFRECORDS_REGEX" \
-# -efn "${EFN_PREFIX}testsnr_v02_bestckpt.json" \
-# -o "$OUTDIR" \
-# -wpo 1 \
-# >> "$OUTPUT_LOG_FN" 2>&1
+python pitchnet_evaluate_best.py \
+-de "/data/mcpherson2020/testsnr_v02/$TFRECORDS_REGEX" \
+-efn "${EFN_PREFIX}testsnr_v02_bestckpt.json" \
+-o "$OUTDIR" \
+-wpo 1 \
+>> "$OUTPUT_LOG_FN" 2>&1
 
 # python pitchnet_evaluate_best.py \
 # -de "/data/mcpherson2020/testspl_v02/$TFRECORDS_REGEX" \

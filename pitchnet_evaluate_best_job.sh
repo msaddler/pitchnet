@@ -16,8 +16,8 @@
 #SBATCH --array=83,154,190,191,286,288,302,335,338,346
 
 ZPJID=$(printf "%04d" $SLURM_ARRAY_TASK_ID)
-OUTDIR='/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/arch_'$ZPJID
-DATA_TAG="sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order"
+OUTDIR='/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW40eN1_IHC3000Hz_IHC7order/arch_'$ZPJID
+DATA_TAG="sr20000_cf100_species002_spont070_BW40eN1_IHC3000Hz_IHC7order"
 
 PATH_DATA="/om/user/msaddler/data_pitchnet"
 # PATH_DATA="$SCRATCH_PATH/data_pitchnet"
