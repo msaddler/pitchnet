@@ -93,6 +93,7 @@ def bernox2005_bandpass_complex_tone(f0,
                                      threshold_dBSPL=33.3,
                                      component_dBSL=15.,
                                      strict_low_harm=None,
+                                     strict_audible_harm=False,
                                      **kwargs_complex_tone):
     '''
     Generates a bandpass filtered complex tone with component levels as determined by
@@ -107,6 +108,7 @@ def bernox2005_bandpass_complex_tone(f0,
     threshold_dBSPL (float): audible threshold in units of dB re 20e-6 Pa
     component_dBSL (float): "sensation level" in units of dB above audible threshold
     strict_low_harm (int): if specified, include only harmonic numbers >= strict_low_harm
+    strict_audidble_harm (bool): if True, include only harmonic numbers presented above threshold_dBSPL
     **kwargs_complex_tone (kwargs): passed directly to `complex_tone()`
     
     Returns
@@ -120,6 +122,9 @@ def bernox2005_bandpass_complex_tone(f0,
         harmonic_freqs = harmonic_freqs[harmonic_numbers >= strict_low_harm]
         harmonic_numbers = harmonic_numbers[harmonic_numbers >= strict_low_harm]
     harmonic_dBSPL = threshold_dBSPL + component_dBSL + frequency_response_in_dB(harmonic_freqs)
+    if strict_audible_harm:
+        harmonic_numbers = harmonic_numbers[harmonic_dBSPL >= threshold_dBSPL]
+        harmonic_dBSPL = harmonic_dBSPL[harmonic_dBSPL >= threshold_dBSPL]
     amplitudes = 20e-6 * np.power(10, (harmonic_dBSPL/20))
     signal = util_stimuli.complex_tone(f0, fs, dur, harmonic_numbers=harmonic_numbers,
                                        amplitudes=amplitudes, **kwargs_complex_tone)
@@ -208,7 +213,8 @@ def generate_BernsteinOxenhamFixedFilter_dataset(hdf5_filename,
                         frequency_response_in_dB=fixed_freq_response,
                         threshold_dBSPL=threshold_dBSPL,
                         component_dBSL=component_dBSL,
-                        strict_low_harm=lh,
+                        strict_low_harm=None,
+                        strict_audible_harm=True,
                         phase_mode=phase_mode_decoding[ph])
                     # Construct modified uniform masking noise
                     if np.isinf(noise_dBHzSPL):
