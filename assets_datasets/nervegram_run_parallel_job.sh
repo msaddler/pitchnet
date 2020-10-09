@@ -25,7 +25,7 @@
 # source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_pos50pos70/*.hdf5'
 # jobs_per_source_file=3
 
-source_regex='/om/user/msaddler/data_pitchnet/bernox2005/lowharm_v04/stim.hdf5'
+source_regex='/om/user/msaddler/data_pitchnet/bernox2005/exact_v00/stim.hdf5'
 jobs_per_source_file=15
 
 offset=0
