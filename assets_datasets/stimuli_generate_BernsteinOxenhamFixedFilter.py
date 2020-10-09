@@ -199,10 +199,15 @@ def generate_BernsteinOxenhamFixedFilter_dataset(hdf5_filename,
                         threshold_dBSPL=threshold_dBSPL, component_dBSL=component_dBSL,
                         phase_mode=phase_mode_decoding[ph])
                     # Construct modified uniform masking noise
-                    noise = util_stimuli.modified_uniform_masking_noise(
-                        fs, dur, dBHzSPL=noise_dBHzSPL,
-                        attenuation_start=noise_attenuation_start,
-                        attenuation_slope=noise_attenuation_slope)
+                    if np.isinf(noise_dBHzSPL):
+                        if itrN == 0:
+                            print('------> USING ZERO NOISE <------')
+                        noise = np.zeros_like(signal)
+                    else:
+                        noise = util_stimuli.modified_uniform_masking_noise(
+                            fs, dur, dBHzSPL=noise_dBHzSPL,
+                            attenuation_start=noise_attenuation_start,
+                            attenuation_slope=noise_attenuation_slope)
                     # Add signal + noise and metadata to data_dict for hdf5 filewriting
                     tone_in_noise = signal + noise
                     data_dict['tone_in_noise'] = tone_in_noise.astype(np.float32)
@@ -239,18 +244,39 @@ if __name__ == "__main__":
     assert len(sys.argv) == 2, "scipt usage: python <script_name> <hdf5_filename>"
     hdf5_filename = str(sys.argv[1])
     
+    generate_BernsteinOxenhamFixedFilter_dataset(hdf5_filename,
+                                                 fs=32e3,
+                                                 dur=0.150,
+                                                 phase_modes=['sine', 'rand'],
+                                                 low_harm_min=1,
+                                                 low_harm_max=30,
+                                                 base_f0_min=100.0,
+                                                 base_f0_max=300.0,
+                                                 base_f0_n=10,
+                                                 delta_f0_min=0.94,
+                                                 delta_f0_max=1.06,
+                                                 delta_f0_n=121,
+                                                 highpass_filter_cutoff=2.5e3,
+                                                 lowpass_filter_cutoff=3.5e3,
+                                                 filter_order=4,
+                                                 threshold_dBSPL=33.3,
+                                                 component_dBSL=15.0,
+                                                 noise_dBHzSPL=-np.inf,#15.0,
+                                                 noise_attenuation_start=600.0,
+                                                 noise_attenuation_slope=2,
+                                                 disp_step=100)
 #     generate_BernsteinOxenhamFixedFilter_dataset(hdf5_filename,
 #                                                  fs=32e3,
 #                                                  dur=0.150,
-#                                                  phase_modes=['sine', 'rand'],
+#                                                  phase_modes=['sine'],
 #                                                  low_harm_min=1,
 #                                                  low_harm_max=30,
-#                                                  base_f0_min=100.0,
-#                                                  base_f0_max=300.0,
-#                                                  base_f0_n=10,
-#                                                  delta_f0_min=0.94,
-#                                                  delta_f0_max=1.06,
-#                                                  delta_f0_n=121,
+#                                                  base_f0_min=80.0,
+#                                                  base_f0_max=320.0,
+#                                                  base_f0_n=192*2*4,
+#                                                  delta_f0_min=1,
+#                                                  delta_f0_max=1,
+#                                                  delta_f0_n=1,
 #                                                  highpass_filter_cutoff=2.5e3,
 #                                                  lowpass_filter_cutoff=3.5e3,
 #                                                  filter_order=4,
@@ -260,24 +286,3 @@ if __name__ == "__main__":
 #                                                  noise_attenuation_start=600.0,
 #                                                  noise_attenuation_slope=2,
 #                                                  disp_step=100)
-    generate_BernsteinOxenhamFixedFilter_dataset(hdf5_filename,
-                                                 fs=32e3,
-                                                 dur=0.150,
-                                                 phase_modes=['sine'],
-                                                 low_harm_min=1,
-                                                 low_harm_max=30,
-                                                 base_f0_min=80.0,
-                                                 base_f0_max=320.0,
-                                                 base_f0_n=192*2*4,
-                                                 delta_f0_min=1,
-                                                 delta_f0_max=1,
-                                                 delta_f0_n=1,
-                                                 highpass_filter_cutoff=2.5e3,
-                                                 lowpass_filter_cutoff=3.5e3,
-                                                 filter_order=4,
-                                                 threshold_dBSPL=33.3,
-                                                 component_dBSL=15.0,
-                                                 noise_dBHzSPL=15.0,
-                                                 noise_attenuation_start=600.0,
-                                                 noise_attenuation_slope=2,
-                                                 disp_step=100)
