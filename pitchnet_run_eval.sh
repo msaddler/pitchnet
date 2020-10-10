@@ -83,16 +83,23 @@ echo "------------------------------------------------" >> $OUTPUT_LOG_FN
 # -wpo 1 \
 # >> "$OUTPUT_LOG_FN" 2>&1
 
-python pitchnet_evaluate_best.py \
--de "/data/bernox2005/lowharm_v02/$TFRECORDS_REGEX" \
--efn "${EFN_PREFIX}lowharm_v02_bestckpt.json" \
--o "$OUTDIR" \
--wpo 1 \
->> "$OUTPUT_LOG_FN" 2>&1
+# python pitchnet_evaluate_best.py \
+# -de "/data/bernox2005/lowharm_v02/$TFRECORDS_REGEX" \
+# -efn "${EFN_PREFIX}lowharm_v02_bestckpt.json" \
+# -o "$OUTDIR" \
+# -wpo 1 \
+# >> "$OUTPUT_LOG_FN" 2>&1
+
+# python pitchnet_evaluate_best.py \
+# -de "/data/bernox2005/lowharm_v03/$TFRECORDS_REGEX" \
+# -efn "${EFN_PREFIX}lowharm_v03_bestckpt.json" \
+# -o "$OUTDIR" \
+# -wpo 1 \
+# >> "$OUTPUT_LOG_FN" 2>&1
 
 python pitchnet_evaluate_best.py \
--de "/data/bernox2005/lowharm_v03/$TFRECORDS_REGEX" \
--efn "${EFN_PREFIX}lowharm_v03_bestckpt.json" \
+-de "/data/bernox2005/lowharm_v04/$TFRECORDS_REGEX" \
+-efn "${EFN_PREFIX}lowharm_v04_bestckpt.json" \
 -o "$OUTDIR" \
 -wpo 1 \
 >> "$OUTPUT_LOG_FN" 2>&1

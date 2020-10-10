@@ -146,17 +146,30 @@ PRIOR_RANGE='0.5'
 # -j ${job_idx}
 
 
-singularity exec --nv \
--B /home \
--B /om \
--B /nobackup \
--B /om2/user/msaddler \
--B /om4 \
-/om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
-python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_bernox.py \
--r "${OUTDIR_REGEX}/${EFN_PREFIX}lowharm_v02_bestckpt.json" \
--p ${PRIOR_RANGE} \
--j ${job_idx}
+# singularity exec --nv \
+# -B /home \
+# -B /om \
+# -B /nobackup \
+# -B /om2/user/msaddler \
+# -B /om4 \
+# /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
+# python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_bernox.py \
+# -r "${OUTDIR_REGEX}/${EFN_PREFIX}lowharm_v02_bestckpt.json" \
+# -p ${PRIOR_RANGE} \
+# -j ${job_idx}
+
+
+# singularity exec --nv \
+# -B /home \
+# -B /om \
+# -B /nobackup \
+# -B /om2/user/msaddler \
+# -B /om4 \
+# /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
+# python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_bernox.py \
+# -r "${OUTDIR_REGEX}/${EFN_PREFIX}lowharm_v03_bestckpt.json" \
+# -p ${PRIOR_RANGE} \
+# -j ${job_idx}
 
 
 singularity exec --nv \
@@ -167,7 +180,7 @@ singularity exec --nv \
 -B /om4 \
 /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
 python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_bernox.py \
--r "${OUTDIR_REGEX}/${EFN_PREFIX}lowharm_v03_bestckpt.json" \
+-r "${OUTDIR_REGEX}/${EFN_PREFIX}lowharm_v04_bestckpt.json" \
 -p ${PRIOR_RANGE} \
 -j ${job_idx}
 
