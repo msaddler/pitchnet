@@ -105,8 +105,15 @@ echo "------------------------------------------------" >> $OUTPUT_LOG_FN
 # >> "$OUTPUT_LOG_FN" 2>&1
 
 python pitchnet_evaluate_best.py \
--de "/data/bernox2005/exact_v00/$TFRECORDS_REGEX" \
--efn "${EFN_PREFIX}exact_v00_bestckpt.json" \
+-de "/data/mcpherson2020/testspl_v03/$TFRECORDS_REGEX" \
+-efn "${EFN_PREFIX}testspl_v03_bestckpt.json" \
 -o "$OUTDIR" \
 -wpo 1 \
 >> "$OUTPUT_LOG_FN" 2>&1
+
+# python pitchnet_evaluate_best.py \
+# -de "/data/bernox2005/exact_v00/$TFRECORDS_REGEX" \
+# -efn "${EFN_PREFIX}exact_v00_bestckpt.json" \
+# -o "$OUTDIR" \
+# -wpo 1 \
+# >> "$OUTPUT_LOG_FN" 2>&1
