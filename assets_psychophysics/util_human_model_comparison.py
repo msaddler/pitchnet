@@ -14,7 +14,7 @@ sys.path.append('/om2/user/msaddler/python-packages/msutil')
 import util_figures
 
 
-def get_human_results_dict_pure_tone_spl(f0_max=800, threshold_level=20.0, dbspl_bin=1):
+def get_human_results_dict_pure_tone_spl(f0_max=800, threshold_level=0.0, dbspl_bin=1):
     '''
     Returns human pure tone frequency discrimination thresholds from
     Wier et al. (1977, JASA) Table II as a function of sound level.
