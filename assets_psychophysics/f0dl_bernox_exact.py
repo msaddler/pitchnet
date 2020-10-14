@@ -41,8 +41,6 @@ def add_f0_judgments_to_expt_dict(expt_dict,
     sort_idx = np.argsort(expt_dict[f0_true_key])
     f0_true = expt_dict[f0_true_key][sort_idx]
     f0_pred = expt_dict[f0_pred_key][sort_idx]
-    if 'base_f0' in expt_dict.keys():
-        base_f0 = expt_dict['base_f0'][sort_idx]
     # Initialize f0 percent difference and psychophysical judgment arrays (fill with NaN)
     pairwise_pct_diffs = np.full([f0_true.shape[0], f0_true.shape[0]], np.nan, dtype=np.float32)
     pairwise_judgments = np.full([f0_true.shape[0], f0_true.shape[0]], np.nan, dtype=np.float32)
@@ -54,9 +52,6 @@ def add_f0_judgments_to_expt_dict(expt_dict,
         pct_diffs = 100. * (f0_true - f0_ref) / f0_ref
         # Find pct_diffs within the range specified by max_pct_diff
         comparable_idxs = np.logical_and(pct_diffs >= -max_pct_diff, pct_diffs <= max_pct_diff)
-        if 'base_f0' in expt_dict.keys():
-            same_filter_idxs = base_f0 == base_f0[idx_ref]
-            comparable_idxs = np.logical_and(comparable_idxs, same_filter_idxs)
         pairwise_pct_diffs[idx_ref, comparable_idxs] = pct_diffs[comparable_idxs]
         # Compute the percent differences between the predictions
         pred_pct_diffs = 100. * (f0_pred[comparable_idxs] - f0_pred_ref) / f0_pred_ref
