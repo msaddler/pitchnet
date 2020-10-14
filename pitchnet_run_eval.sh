@@ -104,12 +104,12 @@ echo "------------------------------------------------" >> $OUTPUT_LOG_FN
 # -wpo 1 \
 # >> "$OUTPUT_LOG_FN" 2>&1
 
-python pitchnet_evaluate_best.py \
--de "/data/mcpherson2020/testspl_v03/$TFRECORDS_REGEX" \
--efn "${EFN_PREFIX}testspl_v03_bestckpt.json" \
--o "$OUTDIR" \
--wpo 1 \
->> "$OUTPUT_LOG_FN" 2>&1
+# python pitchnet_evaluate_best.py \
+# -de "/data/mcpherson2020/testspl_v03/$TFRECORDS_REGEX" \
+# -efn "${EFN_PREFIX}testspl_v03_bestckpt.json" \
+# -o "$OUTDIR" \
+# -wpo 1 \
+# >> "$OUTPUT_LOG_FN" 2>&1
 
 # python pitchnet_evaluate_best.py \
 # -de "/data/bernox2005/exact_v00/$TFRECORDS_REGEX" \
@@ -117,3 +117,10 @@ python pitchnet_evaluate_best.py \
 # -o "$OUTDIR" \
 # -wpo 1 \
 # >> "$OUTPUT_LOG_FN" 2>&1
+
+python pitchnet_evaluate_best.py \
+-de "/data/PND_v08/noise_TLAS_snr_neg10pos10/$TFRECORDS_REGEX" \
+-efn "EVAL_validation_bestckpt.json" \
+-o "$OUTDIR" \
+-wpo 0 \
+>> "$OUTPUT_LOG_FN" 2>&1
