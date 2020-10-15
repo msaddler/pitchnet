@@ -244,59 +244,59 @@ def run_f0dl_experiment(json_fn,
     return complete_results_dict
 
 
-# def main(json_eval_fn,
-#          json_results_dict_fn=None,
-#          save_results_to_file=False,
-#          max_pct_diff=100/6,
-#          bin_width=5e-2,
-#          use_empirical_f0dl_if_possible=False,
-#          f0_label_true_key='f0_label:labels_true',
-#          f0_label_pred_key='f0_label:labels_pred',
-#          f0_label_prob_key='f0_label:probs_out',
-#          kwargs_f0_bins={},
-#          kwargs_f0_octave={},
-#          kwargs_f0_normalization={},
-#          kwargs_f0_prior={},
-#          f0_min=-np.inf,
-#          f0_max=np.inf,
-#          max_processes=60):
-#     '''
-#     '''
-#     # Run the Bernstein and Oxenham (2005) F0DL experiment; results stored in results_dict
-#     metadata_key_list=['low_harm', 'phase_mode', 'f0', 'base_f0']
-#     results_dict = run_f0dl_experiment(json_eval_fn,
-#                                        max_pct_diff=max_pct_diff,
-#                                        bin_width=bin_width,
-#                                        use_empirical_f0dl_if_possible=use_empirical_f0dl_if_possible,
-#                                        metadata_key_list=metadata_key_list,
-#                                        f0_label_pred_key=f0_label_pred_key,
-#                                        f0_label_true_key=f0_label_true_key,
-#                                        f0_label_prob_key=f0_label_prob_key,
-#                                        kwargs_f0_bins=kwargs_f0_bins,
-#                                        kwargs_f0_octave=kwargs_f0_octave,
-#                                        kwargs_f0_normalization=kwargs_f0_normalization,
-#                                        kwargs_f0_prior=kwargs_f0_prior,
-#                                        f0_min=f0_min,
-#                                        f0_max=f0_max,
-#                                        max_processes=max_processes)
-#     results_dict['json_eval_fn'] = json_eval_fn
-#     results_dict['kwargs_f0_prior'] = kwargs_f0_prior
-#     # If specified, save results_dict to file
-#     if save_results_to_file:
-#         # Check filename for results_dict
-#         if json_results_dict_fn is None:
-#             json_results_dict_fn = json_eval_fn.replace('.json', '_results_dict.json')
-#         assert not json_results_dict_fn == json_eval_fn, "json_results_dict_fn must not overwrite json_eval_fn"
-#         # Define helper class to JSON serialize the results_dict
-#         class NumpyEncoder(json.JSONEncoder):
-#             def default(self, obj):
-#                 if isinstance(obj, np.ndarray): return obj.tolist()
-#                 if isinstance(obj, np.int64): return int(obj)  
-#                 return json.JSONEncoder.default(self, obj)
-#         # Write results_dict to json_results_dict_fn
-#         with open(json_results_dict_fn, 'w') as f: json.dump(results_dict, f, cls=NumpyEncoder)
-#         print('[END] wrote results_dict to {}'.format(json_results_dict_fn), flush=True)
-#     return results_dict
+def main(json_eval_fn,
+         json_results_dict_fn=None,
+         save_results_to_file=False,
+         max_pct_diff=100/6,
+         bin_width=5e-2,
+         use_empirical_f0dl_if_possible=False,
+         f0_label_true_key='f0_label:labels_true',
+         f0_label_pred_key='f0_label:labels_pred',
+         f0_label_prob_key='f0_label:probs_out',
+         kwargs_f0_bins={},
+         kwargs_f0_octave={},
+         kwargs_f0_normalization={},
+         kwargs_f0_prior={},
+         f0_min=-np.inf,
+         f0_max=np.inf,
+         max_processes=60):
+    '''
+    '''
+    # Run the Bernstein and Oxenham (2005) F0DL experiment; results stored in results_dict
+    metadata_key_list=['fl', 'low_harm', 'phase_mode', 'f0', 'base_f0']
+    results_dict = run_f0dl_experiment(json_eval_fn,
+                                       max_pct_diff=max_pct_diff,
+                                       bin_width=bin_width,
+                                       use_empirical_f0dl_if_possible=use_empirical_f0dl_if_possible,
+                                       metadata_key_list=metadata_key_list,
+                                       f0_label_pred_key=f0_label_pred_key,
+                                       f0_label_true_key=f0_label_true_key,
+                                       f0_label_prob_key=f0_label_prob_key,
+                                       kwargs_f0_bins=kwargs_f0_bins,
+                                       kwargs_f0_octave=kwargs_f0_octave,
+                                       kwargs_f0_normalization=kwargs_f0_normalization,
+                                       kwargs_f0_prior=kwargs_f0_prior,
+                                       f0_min=f0_min,
+                                       f0_max=f0_max,
+                                       max_processes=max_processes)
+    results_dict['json_eval_fn'] = json_eval_fn
+    results_dict['kwargs_f0_prior'] = kwargs_f0_prior
+    # If specified, save results_dict to file
+    if save_results_to_file:
+        # Check filename for results_dict
+        if json_results_dict_fn is None:
+            json_results_dict_fn = json_eval_fn.replace('.json', '_results_dict.json')
+        assert not json_results_dict_fn == json_eval_fn, "json_results_dict_fn must not overwrite json_eval_fn"
+        # Define helper class to JSON serialize the results_dict
+        class NumpyEncoder(json.JSONEncoder):
+            def default(self, obj):
+                if isinstance(obj, np.ndarray): return obj.tolist()
+                if isinstance(obj, np.int64): return int(obj)  
+                return json.JSONEncoder.default(self, obj)
+        # Write results_dict to json_results_dict_fn
+        with open(json_results_dict_fn, 'w') as f: json.dump(results_dict, f, cls=NumpyEncoder)
+        print('[END] wrote results_dict to {}'.format(json_results_dict_fn), flush=True)
+    return results_dict
 
 
 # if __name__ == "__main__":
