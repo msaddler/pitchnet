@@ -119,6 +119,10 @@ def generate_Oxenham2004_dataset(hdf5_filename,
                 noise = util_stimuli.modified_uniform_masking_noise(fs, dur, **noise_params)
                 signal_in_noise = y + noise
                 data_dict['stimuli/signal_in_noise'] = signal_in_noise.astype(np.float32)
+            else:
+                if itrN == 0:
+                    print('------> USING ZERO NOISE <------')
+                data_dict['stimuli/signal_in_noise'] = y.astype(np.float32)
             # Initialize output hdf5 dataset on first iteration
             if itrN == 0:
                 print('[INITIALIZING]: {}'.format(hdf5_filename))
