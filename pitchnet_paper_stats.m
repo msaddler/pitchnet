@@ -1,91 +1,47 @@
-clearvars;
+clear all;
 close all;
 clc;
 
+global ALPHA; ALPHA = 0.01;
+global VERBOSE; VERBOSE = 1;
+
 addpath('/Users/mark/Documents/MIT/lab_mcdermott/statistics_anova');
 
-%{   NETWORK NEUROPHYSIOLOGY STATISTICS   }%
-FN_DATA = 'pitchnet_paper_stats_data_neurophysiology_2020AUG09.json';
-DATA = jsondecode(fileread(FN_DATA));
-DATA_NAMES = fieldnames(DATA);
-mmANOVA(DATA,...
-    {'natural_speech_music',},...
-    'bernox2005', 'relu_4_low_harm', 'low_harm', [1,30]);
+
+% %{   NETWORK NEUROPHYSIOLOGY STATISTICS   }%
+% FN_DATA = 'pitchnet_paper_stats_data_neurophysiology_2020OCT29.json';
+% DATA = jsondecode(fileread(FN_DATA));
+% DATA_NAMES = fieldnames(DATA);
+
+% mmANOVA(DATA,...
+%     {'natural_speech_music',},...
+%     'bernox2005', 'relu_4_low_harm', 'low_harm', [1,30]);
+
+
+
 
 %{   NETWORK PSYCHOPHYSICS STATISTICS   }%
-FN_DATA = 'pitchnet_paper_stats_data_psychophysics_2020AUG09.json';
+FN_DATA = 'pitchnet_paper_stats_data_psychophysics_2020OCT29.json';
 DATA = jsondecode(fileread(FN_DATA));
 DATA_NAMES = fieldnames(DATA);
 
-mmANOVA(DATA,...
-    {'IHC0050Hz', 'IHC0250Hz', 'IHC1000Hz', 'IHC3000Hz', 'IHC6000Hz', 'IHC9000Hz'},...
-    'f0dlspl', 'f0dl', 'dbspl', [20.0,110.0]);
-% mmANOVA(DATA,...
-%     {'IHC0050Hz', 'IHC0250Hz', 'IHC1000Hz', 'IHC3000Hz', 'IHC6000Hz', 'IHC9000Hz'},...
-%     'bernox2005', 'f0dl', 'low_harm', [1,30]);
-
-mmANOVA(DATA,...
-    {'BW05eN1', 'BW10eN1', 'BW20eN1'},...
-    'f0dlsnr', 'f0dl', 'snr_per_component', [-21.5, -8]);
-% mmANOVA(DATA,...
-%     {'BW05eN1', 'BW10eN1', 'BW20eN1'},...
-%     'bernox2005', 'f0dl', 'low_harm', [1,30]);
-% 
-mmANOVA(DATA,...
-    {'natural', 'natural_hp'},...
-    'bernox2005', 'f0dl', 'low_harm', [1,30]);
-mmANOVA(DATA,...
-    {'natural', 'natural_lp'},...
-    'bernox2005', 'f0dl', 'low_harm', [1,30]);
-
-mmANOVA(DATA,...
-    {'noise_high', 'noise_low', 'noise_none'},...
-    'bernox2005', 'f0dl', 'low_harm', [2,5]);
-
-
-% twosample_f0dl_bernox(DATA, 'spch_only', 'inst_only', 0, 1);
 % twosample_f0dl_bernox(DATA, 'IHC9000Hz', 'IHC3000Hz', 0, 1);
 % twosample_f0dl_bernox(DATA, 'IHC6000Hz', 'IHC3000Hz', 0, 1);
 % twosample_f0dl_bernox(DATA, 'IHC1000Hz', 'IHC3000Hz', 0, 1);
-% twosample_f0dl_bernox(DATA, 'IHC0250Hz', 'IHC3000Hz', 0, 1);
+% twosample_f0dl_bernox(DATA, 'IHC0320Hz', 'IHC3000Hz', 0, 1);
 % twosample_f0dl_bernox(DATA, 'IHC0050Hz', 'IHC3000Hz', 0, 1);
-% twosample_f0dl_bernox(DATA, 'IHC0050Hz_ANF1000', 'IHC3000Hz', 0, 1);
-
-% twosample_f0dl_bernox(DATA, 'BW05eN1', 'BW10eN1', 0, 1);
-% twosample_f0dl_bernox(DATA, 'BW20eN1', 'BW10eN1', 0, 1);
-% twosample_f0dl_bernox(DATA, 'rep10archs_IHC9000Hz', 'rep10archs_IHC3000Hz', 0, 1);
-% twosample_f0dl_bernox(DATA, 'rep10archs_IHC6000Hz', 'rep10archs_IHC3000Hz', 0, 1);
-% twosample_f0dl_bernox(DATA, 'rep10archs_IHC1000Hz', 'rep10archs_IHC3000Hz', 0, 1);
-% twosample_f0dl_bernox(DATA, 'rep10archs_IHC0250Hz', 'rep10archs_IHC3000Hz', 0, 1);
-% twosample_f0dl_bernox(DATA, 'rep10archs_IHC0050Hz', 'rep10archs_IHC3000Hz', 0, 1);
-% twosample_f0dl_bernox(DATA, 'rep10archs_BW05eN1', 'rep10archs_BW10eN1', 0, 1);
-% twosample_f0dl_bernox(DATA, 'rep10archs_BW20eN1', 'rep10archs_BW10eN1', 0, 1);
-
-% twosample_transition_point_bernox(DATA, 'natural', 'natural_bp')
-% twosample_transition_point_bernox(DATA, 'natural', 'natural_hp')
-% twosample_transition_point_bernox(DATA, 'BW05eN1', 'BW10eN1')
-% twosample_transition_point_bernox(DATA, 'BW20eN1', 'BW10eN1')
 % twosample_transition_point_bernox(DATA, 'IHC9000Hz', 'IHC3000Hz');
 % twosample_transition_point_bernox(DATA, 'IHC6000Hz', 'IHC3000Hz');
 % twosample_transition_point_bernox(DATA, 'IHC1000Hz', 'IHC3000Hz');
-% twosample_transition_point_bernox(DATA, 'IHC0250Hz', 'IHC3000Hz');
+% twosample_transition_point_bernox(DATA, 'IHC0320Hz', 'IHC3000Hz');
 % twosample_transition_point_bernox(DATA, 'IHC0050Hz', 'IHC3000Hz');
-% twosample_transition_point_bernox(DATA, 'IHC0050Hz_ANF1000', 'IHC3000Hz');
 
-% effect_size_f0dl_bernox(DATA, {'natural', 'natural_bp', 'natural_hp', 'synthetic_lp', 'synthetic_bp', 'synthetic_hp'})
-% effect_size_f0dl_bernox(DATA, {'BW05eN1', 'BW10eN1', 'BW20eN1'})
-
-% expt_key = 'mistunedharmonics';
-% twosample_human_model_similarity(DATA, 'IHC0050Hz', 'IHC3000Hz', expt_key);
-% twosample_human_model_similarity(DATA, 'IHC0250Hz', 'IHC3000Hz', expt_key);
-% twosample_human_model_similarity(DATA, 'IHC1000Hz', 'IHC3000Hz', expt_key);
-% twosample_human_model_similarity(DATA, 'IHC6000Hz', 'IHC3000Hz', expt_key);
-% twosample_human_model_similarity(DATA, 'IHC9000Hz', 'IHC3000Hz', expt_key);
-% twosample_human_model_similarity_combined(DATA, 'IHC0050Hz', 'IHC3000Hz');
-% twosample_human_model_similarity_combined(DATA, 'IHC0250Hz', 'IHC3000Hz');
-% twosample_human_model_similarity_combined(DATA, 'IHC1000Hz', 'IHC3000Hz');
-% twosample_human_model_similarity_combined(DATA, 'IHC6000Hz', 'IHC3000Hz');
-% twosample_human_model_similarity_combined(DATA, 'IHC9000Hz', 'IHC3000Hz');
+% twosample_f0dl_bernox(DATA, 'BWlinear', 'BW10eN1', 0, 1);
+% twosample_f0dl_bernox(DATA, 'BW05eN1', 'BW10eN1', 0, 1);
+% twosample_f0dl_bernox(DATA, 'BW20eN1', 'BW10eN1', 0, 1);
+% twosample_transition_point_bernox(DATA, 'BWlinear', 'BW10eN1');
+% twosample_transition_point_bernox(DATA, 'BW05eN1', 'BW10eN1');
+% twosample_transition_point_bernox(DATA, 'BW20eN1', 'BW10eN1');
 
 % twosample_human_model_similarity(DATA, 'BW05eN1', 'BW10eN1', 'bernox2005');
 % twosample_human_model_similarity(DATA, 'BW05eN1', 'BW10eN1', 'altphasecomplexes');
@@ -93,32 +49,41 @@ mmANOVA(DATA,...
 % twosample_human_model_similarity(DATA, 'BW05eN1', 'BW10eN1', 'mistunedharmonics');
 % twosample_human_model_similarity(DATA, 'BW05eN1', 'BW10eN1', 'transposedtones');
 
-% twosample_human_model_similarity(DATA, 'natural_bp', 'natural', 'bernox2005');
-% twosample_human_model_similarity(DATA, 'natural_hp', 'natural', 'bernox2005');
-% twosample_human_model_similarity(DATA, 'synthetic_lp', 'natural', 'bernox2005');
-% twosample_human_model_similarity(DATA, 'synthetic_bp', 'natural', 'bernox2005');
-% twosample_human_model_similarity(DATA, 'synthetic_hp', 'natural', 'bernox2005');
+% twosample_human_model_similarity(DATA, 'BWlinear', 'BW10eN1', 'bernox2005');
+% twosample_human_model_similarity(DATA, 'BWlinear', 'BW10eN1', 'altphasecomplexes');
+% twosample_human_model_similarity(DATA, 'BWlinear', 'BW10eN1', 'freqshiftedcomplexes');
+% twosample_human_model_similarity(DATA, 'BWlinear', 'BW10eN1', 'mistunedharmonics');
+% twosample_human_model_similarity(DATA, 'BWlinear', 'BW10eN1', 'transposedtones');
 
-% twosample_human_model_similarity(DATA, 'natural_bp', 'natural', 'transposedtones');
-% twosample_human_model_similarity(DATA, 'natural_hp', 'natural', 'transposedtones');
-% twosample_human_model_similarity(DATA, 'synthetic_lp', 'natural', 'transposedtones');
-% twosample_human_model_similarity(DATA, 'synthetic_bp', 'natural', 'transposedtones');
-% twosample_human_model_similarity(DATA, 'synthetic_hp', 'natural', 'transposedtones');
+% transposedtones_ttest(DATA, {'natural', 'natural_hp'})
+% twosample_f0dl_bernox(DATA, 'spch_only', 'inst_only', 0, 1);
 
-% twosample_human_model_similarity(DATA, 'noise_low', 'noise_high', 'bernox2005');
-% twosample_human_model_similarity(DATA, 'noise_low', 'noise_high', 'altphasecomplexes');
-% twosample_human_model_similarity(DATA, 'noise_low', 'noise_high', 'freqshiftedcomplexes');
 % twosample_human_model_similarity(DATA, 'noise_none', 'noise_high', 'bernox2005');
 % twosample_human_model_similarity(DATA, 'noise_none', 'noise_high', 'altphasecomplexes');
 % twosample_human_model_similarity(DATA, 'noise_none', 'noise_high', 'freqshiftedcomplexes');
 % twosample_human_model_similarity(DATA, 'noise_none', 'noise_high', 'mistunedharmonics');
 % twosample_human_model_similarity(DATA, 'noise_none', 'noise_high', 'transposedtones');
 
-% transposedtones_ttest(DATA, {'natural', 'natural_bp', 'natural_hp', 'synthetic_lp', 'synthetic_bp', 'synthetic_hp'})
+% mmANOVA(DATA,...
+%     {'IHC0050Hz', 'IHC0320Hz', 'IHC1000Hz', 'IHC3000Hz', 'IHC6000Hz', 'IHC9000Hz'},...
+%     'f0dlspl', 'f0dl', 'dbspl', [10.0, 100.0]);
+% mmANOVA(DATA,...
+%     {'IHC0050Hz', 'IHC0250Hz', 'IHC1000Hz', 'IHC3000Hz', 'IHC6000Hz', 'IHC9000Hz'},...
+%     'bernox2005', 'f0dl', 'low_harm', [1,30]);
+% mmANOVA(DATA,...
+%     {'BW05eN1', 'BW10eN1', 'BW20eN1'},...
+%     'bernox2005', 'f0dl', 'low_harm', [1,30]);
+% 
+% mmANOVA(DATA,...
+%     {'natural', 'natural_hp'},...
+%     'bernox2005', 'f0dl', 'low_harm', [1,30]);
+% mmANOVA(DATA,...
+%     {'natural', 'natural_lp'},...
+%     'bernox2005', 'f0dl', 'low_harm', [1,30]);
+% mmANOVA(DATA,...
+%     {'noise_high', 'noise_low', 'noise_none'},...
+%     'bernox2005', 'f0dl', 'low_harm', [2,5]);
 
-global ALPHA; ALPHA = 0.001;
-global VERBOSE; VERBOSE = 1;
- 
 
 
 function print_ttest2(x1, x2)
