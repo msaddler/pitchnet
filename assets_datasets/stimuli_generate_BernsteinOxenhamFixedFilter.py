@@ -86,8 +86,14 @@ def shift_bandpass_filter_frequency_response(desired_fl, desired_fl_gain_in_dB,
     return shifted_frequency_response_in_dB
 
 
-def bernox2005_bandpass_complex_tone(f0, fs, dur, frequency_response_in_dB=None,
-                                     threshold_dBSPL=33.3, component_dBSL=15.,
+def bernox2005_bandpass_complex_tone(f0,
+                                     fs,
+                                     dur,
+                                     frequency_response_in_dB=None,
+                                     threshold_dBSPL=33.3,
+                                     component_dBSL=15.,
+                                     strict_low_harm=None,
+                                     strict_audible_harm=False,
                                      **kwargs_complex_tone):
     '''
     Generates a bandpass filtered complex tone with component levels as determined by
@@ -101,6 +107,8 @@ def bernox2005_bandpass_complex_tone(f0, fs, dur, frequency_response_in_dB=None,
     frequency_response_in_dB (function): see `get_bandpass_filter_frequency_response()`
     threshold_dBSPL (float): audible threshold in units of dB re 20e-6 Pa
     component_dBSL (float): "sensation level" in units of dB above audible threshold
+    strict_low_harm (int): if specified, include only harmonic numbers >= strict_low_harm
+    strict_audidble_harm (bool): if True, include only harmonic numbers presented above threshold_dBSPL
     **kwargs_complex_tone (kwargs): passed directly to `complex_tone()`
     
     Returns
@@ -110,7 +118,13 @@ def bernox2005_bandpass_complex_tone(f0, fs, dur, frequency_response_in_dB=None,
     '''
     harmonic_freqs = np.arange(f0, fs/2, f0)
     harmonic_numbers = harmonic_freqs / f0
+    if strict_low_harm is not None:
+        harmonic_freqs = harmonic_freqs[harmonic_numbers >= strict_low_harm]
+        harmonic_numbers = harmonic_numbers[harmonic_numbers >= strict_low_harm]
     harmonic_dBSPL = threshold_dBSPL + component_dBSL + frequency_response_in_dB(harmonic_freqs)
+    if strict_audible_harm:
+        harmonic_numbers = harmonic_numbers[harmonic_dBSPL >= threshold_dBSPL]
+        harmonic_dBSPL = harmonic_dBSPL[harmonic_dBSPL >= threshold_dBSPL]
     amplitudes = 20e-6 * np.power(10, (harmonic_dBSPL/20))
     signal = util_stimuli.complex_tone(f0, fs, dur, harmonic_numbers=harmonic_numbers,
                                        amplitudes=amplitudes, **kwargs_complex_tone)
@@ -195,14 +209,23 @@ def generate_BernsteinOxenhamFixedFilter_dataset(hdf5_filename,
                     # Construct signal with specified f0 and phase mode
                     f0 = base_f0 * delta_f0
                     signal, audible_harmonic_numbers = bernox2005_bandpass_complex_tone(
-                        f0, fs, dur, frequency_response_in_dB=fixed_freq_response,
-                        threshold_dBSPL=threshold_dBSPL, component_dBSL=component_dBSL,
+                        f0, fs, dur,
+                        frequency_response_in_dB=fixed_freq_response,
+                        threshold_dBSPL=threshold_dBSPL,
+                        component_dBSL=component_dBSL,
+                        strict_low_harm=None,
+                        strict_audible_harm=True,
                         phase_mode=phase_mode_decoding[ph])
                     # Construct modified uniform masking noise
-                    noise = util_stimuli.modified_uniform_masking_noise(
-                        fs, dur, dBHzSPL=noise_dBHzSPL,
-                        attenuation_start=noise_attenuation_start,
-                        attenuation_slope=noise_attenuation_slope)
+                    if np.isinf(noise_dBHzSPL):
+                        if itrN == 0:
+                            print('------> USING ZERO NOISE <------')
+                        noise = np.zeros_like(signal)
+                    else:
+                        noise = util_stimuli.modified_uniform_masking_noise(
+                            fs, dur, dBHzSPL=noise_dBHzSPL,
+                            attenuation_start=noise_attenuation_start,
+                            attenuation_slope=noise_attenuation_slope)
                     # Add signal + noise and metadata to data_dict for hdf5 filewriting
                     tone_in_noise = signal + noise
                     data_dict['tone_in_noise'] = tone_in_noise.astype(np.float32)
@@ -227,7 +250,8 @@ def generate_BernsteinOxenhamFixedFilter_dataset(hdf5_filename,
                     write_example_to_hdf5(hdf5_f, data_dict, itrN,
                                           data_key_pair_list=data_key_pair_list)
                     if itrN % disp_step == 0:
-                        print('... signal {} of {}'.format(itrN, N))
+                        print('... signal {} of {}, low_harm={}, audible_harmonics=[{},{}]'.format(
+                            itrN, N, lh, audible_harmonic_numbers[0], audible_harmonic_numbers[-1]))
                     itrN += 1
     # Close hdf5 file
     hdf5_f.close()
@@ -239,18 +263,39 @@ if __name__ == "__main__":
     assert len(sys.argv) == 2, "scipt usage: python <script_name> <hdf5_filename>"
     hdf5_filename = str(sys.argv[1])
     
+    generate_BernsteinOxenhamFixedFilter_dataset(hdf5_filename,
+                                                 fs=32e3,
+                                                 dur=0.150,
+                                                 phase_modes=['sine', 'rand'],
+                                                 low_harm_min=1,
+                                                 low_harm_max=30,
+                                                 base_f0_min=100.0,
+                                                 base_f0_max=300.0,
+                                                 base_f0_n=10,
+                                                 delta_f0_min=0.94,
+                                                 delta_f0_max=1.06,
+                                                 delta_f0_n=121,
+                                                 highpass_filter_cutoff=2.5e3,
+                                                 lowpass_filter_cutoff=3.5e3,
+                                                 filter_order=4,
+                                                 threshold_dBSPL=33.3,
+                                                 component_dBSL=15.0,
+                                                 noise_dBHzSPL=-np.inf,#15.0,
+                                                 noise_attenuation_start=600.0,
+                                                 noise_attenuation_slope=2,
+                                                 disp_step=100)
 #     generate_BernsteinOxenhamFixedFilter_dataset(hdf5_filename,
 #                                                  fs=32e3,
 #                                                  dur=0.150,
-#                                                  phase_modes=['sine', 'rand'],
+#                                                  phase_modes=['sine'],
 #                                                  low_harm_min=1,
 #                                                  low_harm_max=30,
-#                                                  base_f0_min=100.0,
-#                                                  base_f0_max=300.0,
-#                                                  base_f0_n=10,
-#                                                  delta_f0_min=0.94,
-#                                                  delta_f0_max=1.06,
-#                                                  delta_f0_n=121,
+#                                                  base_f0_min=80.0,
+#                                                  base_f0_max=320.0,
+#                                                  base_f0_n=192*2*4,
+#                                                  delta_f0_min=1,
+#                                                  delta_f0_max=1,
+#                                                  delta_f0_n=1,
 #                                                  highpass_filter_cutoff=2.5e3,
 #                                                  lowpass_filter_cutoff=3.5e3,
 #                                                  filter_order=4,
@@ -260,24 +305,3 @@ if __name__ == "__main__":
 #                                                  noise_attenuation_start=600.0,
 #                                                  noise_attenuation_slope=2,
 #                                                  disp_step=100)
-    generate_BernsteinOxenhamFixedFilter_dataset(hdf5_filename,
-                                                 fs=32e3,
-                                                 dur=0.150,
-                                                 phase_modes=['sine'],
-                                                 low_harm_min=1,
-                                                 low_harm_max=30,
-                                                 base_f0_min=80.0,
-                                                 base_f0_max=320.0,
-                                                 base_f0_n=192*2*4,
-                                                 delta_f0_min=1,
-                                                 delta_f0_max=1,
-                                                 delta_f0_n=1,
-                                                 highpass_filter_cutoff=2.5e3,
-                                                 lowpass_filter_cutoff=3.5e3,
-                                                 filter_order=4,
-                                                 threshold_dBSPL=33.3,
-                                                 component_dBSL=15.0,
-                                                 noise_dBHzSPL=15.0,
-                                                 noise_attenuation_start=600.0,
-                                                 noise_attenuation_slope=2,
-                                                 disp_step=100)

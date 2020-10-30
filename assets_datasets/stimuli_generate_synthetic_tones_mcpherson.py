@@ -110,10 +110,11 @@ def generate_mcpherson_noisy_tone_dataset(hdf5_filename,
         'config_tone/f0_min': f0_min,
         'config_tone/f0_max': f0_max,
         'config_tone/harmonic_numbers': np.array(harmonic_numbers),
-        'config_tone/noise_filter_order': noise_filter_order,
-        'config_tone/noise_filter_cutoff': noise_filter_cutoff,
-        'config_tone/noise_filter_type': noise_filter_type,
     }
+    if noise_filter is not None:
+        data_dict['config_tone/noise_filter_order'] = noise_filter_order,
+        data_dict['config_tone/noise_filter_cutoff'] = noise_filter_cutoff,
+        data_dict['config_tone/noise_filter_type'] = noise_filter_type,
     config_key_pair_list = [(k, k) for k in data_dict.keys()]
     data_key_pair_list = [] # Will be populated right before initializing hdf5 file
     # Main loop to generate the bandpass filtered tones
@@ -165,6 +166,40 @@ if __name__ == "__main__":
     assert len(sys.argv) == 2, "scipt usage: python <script_name> <hdf5_filename>"
     hdf5_filename = str(sys.argv[1])
     
+#     generate_mcpherson_noisy_tone_dataset(hdf5_filename,
+#                                           list_dbsnr_component=[0.0],
+#                                           list_dbspl_overall=np.arange(0.0, 121.0, 10.0))
+    
+#     generate_mcpherson_noisy_tone_dataset(hdf5_filename,
+#                                           fs=32e3,
+#                                           dur=0.150,
+#                                           phase_modes=['sine'],
+#                                           harmonic_numbers=[1],
+#                                           f0_min=100.0,
+#                                           f0_max=400.0,
+#                                           step_size_in_octaves=1/(12*16*16),
+#                                           list_dbsnr_component=np.arange(-24, 12, 3),
+#                                           list_dbspl_overall=[60.0],
+#                                           kwargs_complex_tone={},
+#                                           kwargs_modified_uniform_masking_noise={},
+#                                           noise_filter_cutoff=6e3,
+#                                           noise_filter_order=6,
+#                                           noise_filter_type='lowpass',
+#                                           disp_step=100)
+    
     generate_mcpherson_noisy_tone_dataset(hdf5_filename,
-                                          list_dbsnr_component=[0.0],
-                                          list_dbspl_overall=np.arange(0.0, 121.0, 10.0))
+                                          fs=32e3,
+                                          dur=0.150,
+                                          phase_modes=['sine'],
+                                          harmonic_numbers=[1],
+                                          f0_min=200.0,
+                                          f0_max=800.0,
+                                          step_size_in_octaves=1/(12*16*16),
+                                          list_dbsnr_component=[20.0],
+                                          list_dbspl_overall=np.arange(0.0, 111.0, 10.0),
+                                          kwargs_complex_tone={},
+                                          kwargs_modified_uniform_masking_noise={},
+                                          noise_filter_cutoff=6e3,
+                                          noise_filter_order=6,
+                                          noise_filter_type=None,
+                                          disp_step=100)

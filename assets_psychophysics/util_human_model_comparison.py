@@ -14,6 +14,53 @@ sys.path.append('/om2/user/msaddler/python-packages/msutil')
 import util_figures
 
 
+def get_human_results_dict_pure_tone_spl(f0_max=800, threshold_level=0.0, dbspl_bin=1):
+    '''
+    Returns human pure tone frequency discrimination thresholds from
+    Wier et al. (1977, JASA) Table II as a function of sound level.
+    '''
+    table2_delta_f_values = np.array([[8.5, 4.1, 6.2, 18.6, 9.9, 19.8, 68.9, 120.1],
+                                      [3.0, 2.3, 3.6, 10.7, 4.3, 10.1, 37.7, 98.2],
+                                      [1.3, 1.4, 1.6, 2.6, 2.2, 5.8, 21.8, 73.1],
+                                      [1.0, 1.0, 1.1, 1.4, 1.9, 3.2, 15.9, 68.5],
+                                      [np.nan, 1.2, 1.0, 1.2, 1.3, 2.3, 11.4, 82.8]])
+    (N_dbsl, N_freq) = table2_delta_f_values.shape
+    table2_freq_values = np.tile(np.array([200, 400, 600, 800, 1000, 2000, 4000, 8000]), (N_dbsl, 1))
+    table2_dbsl_values = np.tile(np.array([[5, 10, 20, 40, 80]]).T, (1, N_freq))
+    table1_threshold_values = np.array([33.8, 20.8, 15.3, 12.8, 14.8, 17.5, 19.8, 23.5])
+    if threshold_level is None:
+        table2_dbspl_values = table2_dbsl_values + np.tile(table1_threshold_values, (N_dbsl, 1))
+    else:
+        table2_dbspl_values = table2_dbsl_values + threshold_level
+    table2_f0dl_values = 100 * table2_delta_f_values / table2_freq_values
+    
+    f0dl_values = table2_f0dl_values.reshape([-1])
+    dbsl_values = table2_dbsl_values.reshape([-1])
+    dbspl_values = table2_dbspl_values.reshape([-1])
+    freq_values = table2_freq_values.reshape([-1])
+    IDX = np.logical_and(~np.isnan(f0dl_values), freq_values <= f0_max)
+    f0dl_values = f0dl_values[IDX]
+    dbsl_values = dbsl_values[IDX]
+    dbspl_values = dbspl_values[IDX]
+    freq_values = freq_values[IDX]
+    
+    dbspl_values = np.round(dbspl_values / dbspl_bin) * dbspl_bin
+    dbspl = np.unique(dbspl_values)
+    f0dl = np.zeros_like(dbspl)
+    for idx, d in enumerate(dbspl):
+        f0dl[idx] = np.mean(f0dl_values[dbspl_values == d])
+    
+    results_dict = {
+        'dbspl': dbspl,
+        'f0dl': f0dl,
+        'f0dl_values': f0dl_values,
+        'dbsl_values': dbsl_values,
+        'dbspl_values': dbspl_values,
+        'freq_values': freq_values,
+    }
+    return results_dict
+
+
 def get_human_results_dict_bernox2005(average_conditions=True):
     '''
     Returns psychophysical results dictionary of Bernstein and Oxenham (2005, JASA)

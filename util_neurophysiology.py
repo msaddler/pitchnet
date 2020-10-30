@@ -55,7 +55,7 @@ def store_network_activations(output_directory,
     
     # Build input data pipeline
     ITERATOR_PARAMS = CONFIG['ITERATOR_PARAMS']
-    bytesList_decoding_dict = {"meanrates": {"dtype": "tf.float32", "shape": [100, 1000]}}
+    bytesList_decoding_dict = {"nervegram_meanrates": {"dtype": "tf.float32", "shape": [100, 1000]}}
     feature_parsing_dict = pitchnet_evaluate_best.get_feature_parsing_dict_from_tfrecords(
         tfrecords_regex,
         bytesList_decoding_dict)
@@ -576,7 +576,7 @@ if __name__ == "__main__":
     assert len(sys.argv) == 2, "scipt usage: python <script_name> <output_directory_regex>"
     output_directory_regex = str(sys.argv[1])
     
-    tfrecords_regex = '/om/user/msaddler/data_pitchnet/neurophysiology/bernox2005_SlidingFixedFilter_lharm01to30_phase0_f0min080_f0max320/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/*.tfrecords'
+    tfrecords_regex = '/om/user/msaddler/data_pitchnet/bernox2005/neurophysiology_SlidingFixedFilter_lharm01to30_phase0_f0min080_f0max320/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/*.tfrecords'
     output_directory_list = sorted(glob.glob(output_directory_regex))
     
     print('output_directory_list:')

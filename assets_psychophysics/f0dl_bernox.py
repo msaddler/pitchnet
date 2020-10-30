@@ -121,6 +121,9 @@ def compute_f0_pred_with_prior(expt_dict,
     assert f0_label_prob_key in expt_dict.keys(), "f0_label_prob_key not found in expt_dict"
     assert f0_prior_ref_key in expt_dict.keys(), "f0_prior_ref_key not found in expt_dict"
     f0_pred_prob = expt_dict[f0_label_prob_key]
+    if f0_pred_prob.shape[1] > f0_bins.shape[0]:
+        print('WARNING: truncating f0_pred_prob dimension: {} --> {}'.format(f0_pred_prob.shape[1], f0_bins.shape[0]))
+        f0_pred_prob = f0_pred_prob[:, :f0_bins.shape[0]]
     msg = "f0_pred_prob ({}) and f0_bins ({}) must match in shape"
     assert f0_pred_prob.shape[1] == f0_bins.shape[0], msg.format(f0_pred_prob.shape, f0_bins.shape)
     f0_prior_ref = expt_dict[f0_prior_ref_key]

@@ -156,13 +156,13 @@ def make_bernox_threshold_plot(ax, results_dict_input,
         if phase_mode == 0:
             plot_kwargs = {'label': 'SINE', 'color': 'k',
                            'ls':'-', 'lw':2, 'marker':''}
-            if len(xval) <= 10:
+            if len(xval) <= 8:
                 plot_kwargs.update({'ms':10, 'marker':'.'})
             plot_kwargs.update(sine_plot_kwargs)
         else:
             plot_kwargs = {'label': 'RAND', 'color': 'k',
                            'ls':'--', 'lw':2, 'marker':'', 'dashes': (1,1)}
-            if len(xval) <= 10:
+            if len(xval) <= 8:
                 plot_kwargs.update({'ms':10, 'marker':'.'})
             plot_kwargs.update(rand_plot_kwargs)
         if not legend_on: plot_kwargs['label'] = None
@@ -1209,6 +1209,7 @@ def make_f0dl_threshold_plot(ax, results_dict_input,
                              key_xval=None,
                              str_title=None,
                              str_xlabel=None,
+                             str_ylabel='F0 discrimination\nthreshold (%F0)',
                              legend_on=True,
                              include_yerr=True,
                              plot_kwargs_update={},
@@ -1291,7 +1292,7 @@ def make_f0dl_threshold_plot(ax, results_dict_input,
     
     ax = util_figures.format_axes(ax,
                                   str_xlabel=str_xlabel,
-                                  str_ylabel='F0 discrimination\nthreshold (%F0)',
+                                  str_ylabel=str_ylabel,
                                   fontsize_labels=fontsize_labels,
                                   fontsize_ticks=fontsize_ticks,
                                   fontweight_labels=None,
