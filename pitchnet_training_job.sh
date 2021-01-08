@@ -19,11 +19,11 @@
 #SBATCH --requeue
 
 ZPJID=$(printf "%04d" $SLURM_ARRAY_TASK_ID)
-OUTDIR='/saved_models/arch_search_v02_topN/PND_v08_noise_TLAS_snr_pos50pos70/arch_'$ZPJID
+OUTDIR='/saved_models/arch_search_v02_topN/connear/arch_'$ZPJID
 # OUTDIR='/saved_models/arch_search_v02_topN/sr2000_cf1000_species002_spont070_BW10eN1_IHC0050Hz_IHC7order/arch_0191_seed'$SLURM_ARRAY_TASK_ID
 OUTPUT_LOG_FN='/om2/user/msaddler/pitchnet'$OUTDIR'/output_train.log'
-DATA_TRAIN='/data/PND_v08/noise_TLAS_snr_pos50pos70/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_0[0-7]*.tfrecords'
-DATA_EVAL='/data/PND_v08/noise_TLAS_snr_pos50pos70/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_0[8-9]*.tfrecords'
+DATA_TRAIN='/data/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_0[0-7]*.tfrecords'
+DATA_EVAL='/data/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_0[8-9]*.tfrecords'
 
 echo $OUTDIR
 echo $OUTPUT_LOG_FN
