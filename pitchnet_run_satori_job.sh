@@ -6,7 +6,7 @@
 ##SBATCH --mail-type=ALL
 #SBATCH --gres=gpu:4
 #SBATCH --gpus-per-node=4
-#SBATCH --nodes=4
+#SBATCH --nodes=3
 #SBATCH --ntasks-per-node=4
 #SBATCH --mem=0
 ##SBATCH --time=12:00:00
@@ -41,4 +41,4 @@ parallel \
 --slf $SLURM_JOB_NODELIST_FILENAME \
 --joblog $SLURM_TASK_LOG_FILENAME \
 --wd $(pwd) \
-./pitchnet_run_satori.sh $PARALLEL_ARGUMENT_STRING ::: $(seq 10 29)
+./pitchnet_run_satori.sh $PARALLEL_ARGUMENT_STRING ::: $(seq 0 9)
