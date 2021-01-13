@@ -8,7 +8,7 @@
 #SBATCH --time=0-24:00:00
 ##SBATCH --time-min=0-24:00:00
 #SBATCH --exclude=node[001-030]
-#SBATCH --array=0-49
+#SBATCH --array=0
 ##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --requeue
@@ -16,9 +16,9 @@
 
 ## Define source_regex and dest_filename here (use single quotes to prevent regex from expanding)
 
-DIR_SOURCE="$SCRATCH_PATH"'/data_hearinglossnet/PRNsynth200ms_sr32000_v00'
-DIR_DEST="$SCRATCH_PATH"'/data_hearinglossnet/PRNsynth200ms_sr32000_v00'
-source_regex="$DIR_SOURCE"'/stim*.hdf5'
+DIR_SOURCE="$SCRATCH_PATH"'/data_hearinglossnet/PRNsilent200ms_sr32000_v00'
+DIR_DEST="$SCRATCH_PATH"'/data_hearinglossnet/PRNsilent200ms_sr32000_v00'
+source_regex="$DIR_SOURCE"'/stim.hdf5'
 dest_filename="$DIR_DEST"'/sr10000_cf050_nst001_BW10eN1_IHC3000Hz_IHC7order_cohc10eN1_cihc10eN1/bez2018meanrates.hdf5'
 jobs_per_source_file=1
 
