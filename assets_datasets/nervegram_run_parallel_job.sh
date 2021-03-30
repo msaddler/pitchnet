@@ -9,7 +9,7 @@
 ##SBATCH --time-min=0-24:00:00
 #SBATCH --exclude=node[001-030]
 #SBATCH --array=0-14
-#SBATCH --partition=mcdermott
+##SBATCH --partition=mcdermott
 ##SBATCH --partition=use-everything
 #SBATCH --requeue
 ##SBATCH --dependency=afterok:17389934
@@ -18,7 +18,7 @@
 # source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_pos50pos70/*.hdf5'
 # jobs_per_source_file=3
 
-source_regex='/om/user/msaddler/data_pitchnet/bernox2005/neurophysiology_v01_EqualAmpTEN_lharm01to15_phase0_f0min080_f0max640/stim.hdf5'
+source_regex='/om/user/msaddler/data_pitchnet/bernox2005/neurophysiology_v01_EqualAmpTEN_lharm01to30_phase0_f0min080_f0max320/stim.hdf5'
 jobs_per_source_file=15
 
 offset=0
