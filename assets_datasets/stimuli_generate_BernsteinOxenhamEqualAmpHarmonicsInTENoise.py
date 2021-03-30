@@ -28,19 +28,20 @@ def complex_tone_in_TENoise(f0,
 def main(hdf5_filename,
          fs=32e3,
          dur=0.150,
-         phase_modes=['sine', 'rand'],
+         phase_modes=['sine'],
          low_harm_min=1,
-         low_harm_max=30,
-         num_harm=10,
-         base_f0_min=100.0,
-         base_f0_max=300.0,
-         base_f0_n=10,
-         delta_f0_min=0.94,
-         delta_f0_max=1.06,
-         delta_f0_n=121,
+         low_harm_max=15,
+         num_harm=9,
+         base_f0_min=80.0,
+         base_f0_max=640.0,
+         base_f0_n=192*4*3,
+         delta_f0_min=1,
+         delta_f0_max=1,
+         delta_f0_n=1,
          TENoise_dBSPL_per_ERB=10.0,
-         threshold_dBSPL=10.7,
-         component_dBSL=12.5,
+         threshold_dBSPL=0.0,
+         component_dBSL=45.0,
+         include_pure_tones=True,
          disp_step=100):
     '''
     '''
@@ -56,6 +57,8 @@ def main(hdf5_filename,
     delta_f0_list = np.linspace(delta_f0_min, delta_f0_max, delta_f0_n)
     # Compute number of stimuli (all combinations of low_harm, base_f0, delta_f0, and phase_mode)
     N = len(unique_ph_list) * len(unique_lh_list) * len(base_f0_list) * len(delta_f0_list)
+    if include_pure_tones:
+        N = N + (len(base_f0_list) * len(delta_f0_list))
     
     # Prepare data_dict and config_key_pair_list for hdf5 filewriting
     data_dict = {
@@ -125,6 +128,41 @@ def main(hdf5_filename,
                     if itrN % disp_step == 0:
                         print('... signal {} of {}'.format(itrN, N))
                     itrN += 1
+    if include_pure_tones:
+        for base_f0 in base_f0_list:
+            for delta_f0 in delta_f0_list:
+                # Construct tone in noise with specified parameters
+                f0 = base_f0 * delta_f0
+                harmonic_numbers = np.array([1])
+                harmonic_dBSPL = threshold_dBSPL + component_dBSL
+                amplitudes = 20e-6 * np.power(10, (harmonic_dBSPL/20)) * np.ones_like(harmonic_numbers)
+                kwargs_complex_tone = {
+                    'phase_mode': 'sine',
+                    'harmonic_numbers': harmonic_numbers,
+                    'amplitudes': amplitudes,
+                }
+                kwargs_TENoise = {
+                    'dBSPL_per_ERB': TENoise_dBSPL_per_ERB,
+                }
+                tone_in_noise = complex_tone_in_TENoise(f0,
+                                                        fs,
+                                                        dur,
+                                                        kwargs_complex_tone=kwargs_complex_tone,
+                                                        kwargs_TENoise=kwargs_TENoise)
+                data_dict['tone_in_noise'] = tone_in_noise.astype(np.float32)
+                data_dict['f0'] = f0
+                data_dict['base_f0'] = base_f0
+                data_dict['delta_f0'] = delta_f0
+                data_dict['phase_mode'] = int(ph)
+                data_dict['low_harm'] = int(lh)
+                data_dict['min_audible_harm'] = int(np.min(harmonic_numbers))
+                data_dict['max_audible_harm'] = int(np.max(harmonic_numbers))
+                # Write each data_dict to hdf5 file
+                write_example_to_hdf5(hdf5_f, data_dict, itrN,
+                                      data_key_pair_list=data_key_pair_list)
+                if itrN % disp_step == 0:
+                    print('... signal {} of {}'.format(itrN, N))
+                itrN += 1
     # Close hdf5 file
     hdf5_f.close()
     print('[END]: {}'.format(hdf5_filename))
@@ -132,24 +170,24 @@ def main(hdf5_filename,
 
 if __name__ == "__main__":
     ''' TEMPORARY COMMAND-LINE USAGE '''
-    assert len(sys.argv) == 3, "scipt usage: python <script_name> <hdf5_filename> <noise_level>"
+    assert len(sys.argv) == 2, "scipt usage: python <script_name> <hdf5_filename>"
     hdf5_filename = str(sys.argv[1])
-    TENoise_dBSPL_per_ERB = int(sys.argv[2])
     
     main(hdf5_filename,
          fs=32e3,
          dur=0.150,
-         phase_modes=['sine', 'rand'],
+         phase_modes=['sine'],
          low_harm_min=1,
-         low_harm_max=30,
-         num_harm=10,
-         base_f0_min=100.0,
-         base_f0_max=300.0,
-         base_f0_n=10,
-         delta_f0_min=0.94,
-         delta_f0_max=1.06,
-         delta_f0_n=121,
-         TENoise_dBSPL_per_ERB=TENoise_dBSPL_per_ERB,
-         threshold_dBSPL=TENoise_dBSPL_per_ERB,
-         component_dBSL=10.0,
+         low_harm_max=15,
+         num_harm=9,
+         base_f0_min=80.0,
+         base_f0_max=640.0,
+         base_f0_n=192*4*3,
+         delta_f0_min=1,
+         delta_f0_max=1,
+         delta_f0_n=1,
+         TENoise_dBSPL_per_ERB=10.0,
+         threshold_dBSPL=0.0,
+         component_dBSL=45.0,
+         include_pure_tones=True,
          disp_step=100)
