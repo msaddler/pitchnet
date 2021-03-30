@@ -89,10 +89,10 @@ if __name__ == "__main__":
     assert args.jobs_per_source_file is not None
     # Set bez2018model nervegram parameters
     kwargs_nervegram = {
-        'nervegram_dur': 0.200,#0.050,
+        'nervegram_dur': 0.050,
         'nervegram_fs': args.meanrates_sr,
-        'buffer_start_dur': 0.0,#0.070,
-        'buffer_end_dur': 0.0,#0.010,
+        'buffer_start_dur': 0.070,
+        'buffer_end_dur': 0.010,
         'pin_fs': 100e3,
         'pin_dBSPL_flag': 0,
         'pin_dBSPL': None,
@@ -101,7 +101,7 @@ if __name__ == "__main__":
         'cf_list': None,
         'num_cf': args.num_cf,
         'min_cf': 125.0,
-        'max_cf': 8e3,#14e3,
+        'max_cf': 14e3,
         'max_spikes_per_train': 500,
         'num_spike_trains': args.num_spike_trains,
         'cohc': 1.0,
@@ -147,7 +147,7 @@ if __name__ == "__main__":
         int(kwargs_nervegram['IhcLowPass_order']),
     )
     print(fn_check)
-#     assert fn_check in args.dest_filename, "FAILED DEST FILENAME CHECK"
+    assert fn_check in args.dest_filename, "FAILED DEST FILENAME CHECK"
     
     # Automating selection of source keys
     source_fn_list = sorted(glob.glob(args.source_regex))
