@@ -214,6 +214,8 @@ def run_f0dl_experiment(json_fn,
                                                           kwargs_f0_prior=kwargs_f0_prior)
     expt_dict = f0dl_bernox.filter_expt_dict(expt_dict, filter_dict={'f0':[f0_min, f0_max]})
     unique_phase_mode_list = np.unique(expt_dict['phase_mode'])
+    if 'fl' not in expt_dict.keys():
+        expt_dict['fl'] = 2.5e3 * np.ones_like(expt_dict['f0'])
     unique_fl_list = np.unique(expt_dict['fl'])
     N = len(unique_phase_mode_list) * len(unique_fl_list)    
     # Define a pickle-able wrapper for `parallel_run_f0dl_experiment` using functools
