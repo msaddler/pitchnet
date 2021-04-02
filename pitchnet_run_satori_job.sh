@@ -41,4 +41,4 @@ parallel \
 --slf $SLURM_JOB_NODELIST_FILENAME \
 --joblog $SLURM_TASK_LOG_FILENAME \
 --wd $(pwd) \
-./pitchnet_run_satori.sh $PARALLEL_ARGUMENT_STRING ::: $(seq 0 19)
+./pitchnet_run_satori.sh $PARALLEL_ARGUMENT_STRING ::: $(seq 0 9)
