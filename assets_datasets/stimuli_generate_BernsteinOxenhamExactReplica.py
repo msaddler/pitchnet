@@ -202,4 +202,20 @@ if __name__ == "__main__":
     assert len(sys.argv) == 2, "scipt usage: python <script_name> <hdf5_filename>"
     hdf5_filename = str(sys.argv[1])
     
-    generate_BernsteinOxenhamExactReplica_dataset(hdf5_filename)
+#     generate_BernsteinOxenhamExactReplica_dataset(hdf5_filename)
+    generate_BernsteinOxenhamExactReplica_dataset(hdf5_filename,
+                                                  fs=32e3,
+                                                  dur=0.150,
+                                                  phase_modes=['sine', 'rand'],
+                                                  unique_fl_list=[1500, 1750, 2000],
+                                                  unique_fh_list=[2500, 3750, 3000],
+                                                  f0_min=080.0,
+                                                  f0_max=1.0e3,
+                                                  step_size_in_octaves=1/(12*16*16*2),
+                                                  filter_order=4,
+                                                  threshold_dBSPL=33.3,
+                                                  component_dBSL=15.0,
+                                                  noise_dBHzSPL=15.0,
+                                                  noise_attenuation_start=600.0,
+                                                  noise_attenuation_slope=2,
+                                                  disp_step=100)
