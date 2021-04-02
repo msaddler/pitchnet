@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=4000
 #SBATCH --nodes=1
-#SBATCH --time=0-8:00:00
+#SBATCH --time=0-18:00:00
 ##SBATCH --time-min=0-24:00:00
 #SBATCH --exclude=node[001-030]
 #SBATCH --array=0-14
@@ -18,7 +18,7 @@
 # source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_pos50pos70/*.hdf5'
 # jobs_per_source_file=3
 
-source_regex='/om/user/msaddler/data_pitchnet/bernox2005/neurophysiology_v01_EqualAmpTEN_lharm01to30_phase0_f0min080_f0max320/stim.hdf5'
+source_regex='/om/user/msaddler/data_pitchnet/bernox2005/exact_v01/stim.hdf5'
 jobs_per_source_file=15
 
 offset=0
