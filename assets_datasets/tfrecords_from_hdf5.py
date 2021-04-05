@@ -239,4 +239,4 @@ if __name__ == "__main__":
     parallel_run_tfrecords(source_regex,
                            job_idx=job_idx,
                            jobs_per_source_file=jobs_per_source_file,
-                           groups_to_search=['/', '/diagnostic'])
+                           groups_to_search=['/', '/diagnostic', '/stimuli'])
