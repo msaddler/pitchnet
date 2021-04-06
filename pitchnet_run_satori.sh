@@ -40,6 +40,46 @@ declare -a outdir_list=(
     "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz/arch_0335"
     "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz/arch_0338"
     "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz/arch_0346"
+    "/saved_models/arch_search_v02_topN/cochlearn_PND_v08inst_noise_TLAS_snr_neg10pos10/arch_0083"
+    "/saved_models/arch_search_v02_topN/cochlearn_PND_v08inst_noise_TLAS_snr_neg10pos10/arch_0154"
+    "/saved_models/arch_search_v02_topN/cochlearn_PND_v08inst_noise_TLAS_snr_neg10pos10/arch_0190"
+    "/saved_models/arch_search_v02_topN/cochlearn_PND_v08inst_noise_TLAS_snr_neg10pos10/arch_0191"
+    "/saved_models/arch_search_v02_topN/cochlearn_PND_v08inst_noise_TLAS_snr_neg10pos10/arch_0286"
+    "/saved_models/arch_search_v02_topN/cochlearn_PND_v08inst_noise_TLAS_snr_neg10pos10/arch_0288"
+    "/saved_models/arch_search_v02_topN/cochlearn_PND_v08inst_noise_TLAS_snr_neg10pos10/arch_0302"
+    "/saved_models/arch_search_v02_topN/cochlearn_PND_v08inst_noise_TLAS_snr_neg10pos10/arch_0335"
+    "/saved_models/arch_search_v02_topN/cochlearn_PND_v08inst_noise_TLAS_snr_neg10pos10/arch_0338"
+    "/saved_models/arch_search_v02_topN/cochlearn_PND_v08inst_noise_TLAS_snr_neg10pos10/arch_0346"
+    "/saved_models/arch_search_v02_topN/cochlearn_PND_v08spch_noise_TLAS_snr_neg10pos10/arch_0083"
+    "/saved_models/arch_search_v02_topN/cochlearn_PND_v08spch_noise_TLAS_snr_neg10pos10/arch_0154"
+    "/saved_models/arch_search_v02_topN/cochlearn_PND_v08spch_noise_TLAS_snr_neg10pos10/arch_0190"
+    "/saved_models/arch_search_v02_topN/cochlearn_PND_v08spch_noise_TLAS_snr_neg10pos10/arch_0191"
+    "/saved_models/arch_search_v02_topN/cochlearn_PND_v08spch_noise_TLAS_snr_neg10pos10/arch_0286"
+    "/saved_models/arch_search_v02_topN/cochlearn_PND_v08spch_noise_TLAS_snr_neg10pos10/arch_0288"
+    "/saved_models/arch_search_v02_topN/cochlearn_PND_v08spch_noise_TLAS_snr_neg10pos10/arch_0302"
+    "/saved_models/arch_search_v02_topN/cochlearn_PND_v08spch_noise_TLAS_snr_neg10pos10/arch_0335"
+    "/saved_models/arch_search_v02_topN/cochlearn_PND_v08spch_noise_TLAS_snr_neg10pos10/arch_0338"
+    "/saved_models/arch_search_v02_topN/cochlearn_PND_v08spch_noise_TLAS_snr_neg10pos10/arch_0346"
+    "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz_PND_v08inst_noise_TLAS_snr_neg10pos10/arch_0083"
+    "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz_PND_v08inst_noise_TLAS_snr_neg10pos10/arch_0154"
+    "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz_PND_v08inst_noise_TLAS_snr_neg10pos10/arch_0190"
+    "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz_PND_v08inst_noise_TLAS_snr_neg10pos10/arch_0191"
+    "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz_PND_v08inst_noise_TLAS_snr_neg10pos10/arch_0286"
+    "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz_PND_v08inst_noise_TLAS_snr_neg10pos10/arch_0288"
+    "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz_PND_v08inst_noise_TLAS_snr_neg10pos10/arch_0302"
+    "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz_PND_v08inst_noise_TLAS_snr_neg10pos10/arch_0335"
+    "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz_PND_v08inst_noise_TLAS_snr_neg10pos10/arch_0338"
+    "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz_PND_v08inst_noise_TLAS_snr_neg10pos10/arch_0346"
+    "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz_PND_v08spch_noise_TLAS_snr_neg10pos10/arch_0083"
+    "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz_PND_v08spch_noise_TLAS_snr_neg10pos10/arch_0154"
+    "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz_PND_v08spch_noise_TLAS_snr_neg10pos10/arch_0190"
+    "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz_PND_v08spch_noise_TLAS_snr_neg10pos10/arch_0191"
+    "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz_PND_v08spch_noise_TLAS_snr_neg10pos10/arch_0286"
+    "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz_PND_v08spch_noise_TLAS_snr_neg10pos10/arch_0288"
+    "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz_PND_v08spch_noise_TLAS_snr_neg10pos10/arch_0302"
+    "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz_PND_v08spch_noise_TLAS_snr_neg10pos10/arch_0335"
+    "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz_PND_v08spch_noise_TLAS_snr_neg10pos10/arch_0338"
+    "/saved_models/arch_search_v02_topN/cochlearn_IHC4000Hz_PND_v08spch_noise_TLAS_snr_neg10pos10/arch_0346"
 )
 OUTDIR=${outdir_list[$job_idx]}
 
@@ -90,24 +130,30 @@ OUTDIR=${outdir_list[$job_idx]}
 # OUTPUT_LOG_FN=$OUTDIR'/output_train.log'
 
 ## CHOOSE THE DATA_TAG BASED ON THE OUTPUT DIRECTORY
-DATA_TAG="noise_TLAS_snr_neg10pos10"
+DATA_TAG="PND_v08/noise_TLAS_snr_neg10pos10"
+if [[ "$OUTDIR" == *"PND_v08inst_noise_TLAS_snr_neg10pos10"* ]]; then
+  DATA_TAG="PND_v08inst/noise_TLAS_snr_neg10pos10"
+fi
+if [[ "$OUTDIR" == *"PND_v08spch_noise_TLAS_snr_neg10pos10"* ]]; then
+  DATA_TAG="PND_v08spch/noise_TLAS_snr_neg10pos10"
+fi
 if [[ "$OUTDIR" == *"noise_TLAS_snr_posInf"* ]]; then
-  DATA_TAG="noise_TLAS_snr_posInf"
+  DATA_TAG="PND_v08/noise_TLAS_snr_posInf"
 fi
 if [[ "$OUTDIR" == *"noise_TLAS_snr_pos10pos30"* ]]; then
-  DATA_TAG="noise_TLAS_snr_pos10pos30"
+  DATA_TAG="PND_v08/noise_TLAS_snr_pos10pos30"
 fi
 if [[ "$OUTDIR" == *"noise_TLAS_snr_neg10pos10_filter_signalLPv01"* ]]; then
-  DATA_TAG="noise_TLAS_snr_neg10pos10_filter_signalLPv01"
+  DATA_TAG="PND_v08/noise_TLAS_snr_neg10pos10_filter_signalLPv01"
 fi
 if [[ "$OUTDIR" == *"noise_TLAS_snr_neg10pos10_filter_signalHPv00"* ]]; then
-  DATA_TAG="noise_TLAS_snr_neg10pos10_filter_signalHPv00"
+  DATA_TAG="PND_v08/noise_TLAS_snr_neg10pos10_filter_signalHPv00"
 fi
 
 # DATA_TRAIN='/data/PND_v08/'$DATA_TAG'/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_0[0-7]*.tfrecords'
 # DATA_EVAL='/data/PND_v08/'$DATA_TAG'/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_0[8-9]*.tfrecords'
-DATA_TRAIN='/data/PND_v08/'$DATA_TAG'/train/*.tfrecords'
-DATA_EVAL='/data/PND_v08/'$DATA_TAG'/valid/*.tfrecords'
+DATA_TRAIN='/data/'$DATA_TAG'/train/*.tfrecords'
+DATA_EVAL='/data/'$DATA_TAG'/valid/*.tfrecords'
 OUTPUT_LOG_FN=$OUTDIR'/output_train.log'
 
 echo "[START TRAINING] $OUTPUT_LOG_FN" &> $(printf "slurm_run_train_satori-%04d.out" ${job_idx})

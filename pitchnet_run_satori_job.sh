@@ -9,10 +9,10 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
 #SBATCH --mem=0
-##SBATCH --time=12:00:00
-##SBATCH --qos=sched_mit_newuser
-#SBATCH --time=24:00:00
-#SBATCH --qos=sched_level_1
+#SBATCH --time=12:00:00
+#SBATCH --qos=sched_mit_newuser
+##SBATCH --time=24:00:00
+##SBATCH --qos=sched_level_1
 #SBATCH --exclusive
 
 ## Create file containing SLURM node list
@@ -41,4 +41,4 @@ parallel \
 --slf $SLURM_JOB_NODELIST_FILENAME \
 --joblog $SLURM_TASK_LOG_FILENAME \
 --wd $(pwd) \
-./pitchnet_run_satori.sh $PARALLEL_ARGUMENT_STRING ::: $(seq 16 19)
+./pitchnet_run_satori.sh $PARALLEL_ARGUMENT_STRING ::: $(seq 20 23)
