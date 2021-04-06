@@ -2,17 +2,17 @@
 #SBATCH --job-name=pitchnet_run
 #SBATCH --out="slurm-%j.out"
 ##SBATCH --error="slurm-%j.err"
-##SBATCH --mail-user=msaddler@mit.edu
-##SBATCH --mail-type=ALL
+#SBATCH --mail-user=msaddler@mit.edu
+#SBATCH --mail-type=ALL
 #SBATCH --gres=gpu:4
 #SBATCH --gpus-per-node=4
-#SBATCH --nodes=2
+#SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
 #SBATCH --mem=0
 ##SBATCH --time=12:00:00
 ##SBATCH --qos=sched_mit_newuser
 #SBATCH --time=24:00:00
-#SBATCH --qos=sched_level_2
+#SBATCH --qos=sched_level_1
 #SBATCH --exclusive
 
 ## Create file containing SLURM node list
@@ -41,4 +41,4 @@ parallel \
 --slf $SLURM_JOB_NODELIST_FILENAME \
 --joblog $SLURM_TASK_LOG_FILENAME \
 --wd $(pwd) \
-./pitchnet_run_satori.sh $PARALLEL_ARGUMENT_STRING ::: $(seq 0 9)
+./pitchnet_run_satori.sh $PARALLEL_ARGUMENT_STRING ::: $(seq 16 19)
