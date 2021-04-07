@@ -76,7 +76,7 @@ def create_temporary_config(output_directory,
                             eval_regex,
                             config_filename='config.json', 
                             temporary_config_filename='EVAL_config.json',
-                            bytesList_keys=['signal', 'meanrates', 'nervegram_meanrates', 'nervegram_spike_times']):
+                            bytesList_keys=['signal', 'meanrates', 'nervegram_meanrates', 'stimuli/signal_in_noise']):
     '''
     '''
     with open(os.path.join(output_directory, config_filename)) as f: CONFIG = json.load(f)
@@ -158,4 +158,3 @@ if __name__ == "__main__":
                       eval_brain_ckpt=eval_brain_ckpt,
                       eval_output_fn=eval_output_fn,
                       write_probs_out=bool(args.write_probs_out))
-    
