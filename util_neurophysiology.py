@@ -31,7 +31,7 @@ def store_network_activations(output_directory,
                               fn_config='config.json',
                               fn_valid_metrics='validation_metrics.json',
                               metadata_keys=['f0', 'low_harm', 'phase_mode', 'snr', 'min_audible_harm', 'max_audible_harm'],
-                              maindata_keyparts=['relu'],
+                              maindata_keyparts=['relu', 'fc_top'],
                               batch_size=128,
                               display_step=50):
     '''
@@ -116,6 +116,8 @@ def store_network_activations(output_directory,
                     tensors_to_evaluate[key] = tf.reduce_mean(brain_container[key], axis=(2,))
                 else:
                     tensors_to_evaluate[key] = brain_container[key]
+                if key == 'fc_top':
+                    tensors_to_evaluate[key + '_softmax'] = tf.nn.softmax(brain_container[key])
                 break
     
     # Main evaluation routine
@@ -167,7 +169,7 @@ def store_network_tuning_results(fn_input,
                                  fn_output,
                                  key_dim0='low_harm',
                                  key_dim1='f0_label',
-                                 key_acts='relu',
+                                 key_acts=None,
                                  kwargs_f0_bins={}):
     '''
     Functions takes input hdf5 file of network activations, re-organizes
@@ -208,6 +210,9 @@ def store_network_tuning_results(fn_input,
         print('f0_bins', f_output['f0_bins'])
     
     # Iterate over activation keys and compute tuning to stimulus dimensions
+    if key_acts is None:
+        key_acts = [k for k in input_dataset_key_list if len(f[k].shape) > 1]
+        print('Automatically populated `key_acts`:', key_acts)
     if isinstance(key_acts, str):
         key_acts = [k for k in input_dataset_key_list if key_acts in k]
     for k in key_acts:
@@ -580,7 +585,7 @@ if __name__ == "__main__":
     assert len(sys.argv) == 2, "scipt usage: python <script_name> <output_directory_regex>"
     output_directory_regex = str(sys.argv[1])
     
-    tfrecords_regex = '/om/user/msaddler/data_pitchnet/bernox2005/neurophysiology_v03_EqualAmpTEN_lharm01to30_phase0_f0min080_f0max320/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/*.tfrecords'
+    tfrecords_regex = '/om/user/msaddler/data_pitchnet/bernox2005/neurophysiology_v02_EqualAmpTEN_lharm01to15_phase0_f0min080_f0max640/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/*.tfrecords'
     output_directory_list = sorted(glob.glob(output_directory_regex))
     
     print('output_directory_list:')
@@ -590,7 +595,7 @@ if __name__ == "__main__":
     for output_directory in output_directory_list:
         print('\n\n\nSTART: {}'.format(output_directory))
         
-        fn_activations='NEUROPHYSIOLOGY_v03_bernox2005_activations.hdf5'
+        fn_activations='NEUROPHYSIOLOGY_v02_bernox2005_activations.hdf5'
         fn_activations = os.path.join(output_directory, fn_activations)
         fn_tuning_results = fn_activations.replace('.hdf5', '_tuning_low_harm_f0.hdf5')
 
