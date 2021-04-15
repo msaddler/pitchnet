@@ -321,6 +321,7 @@ def make_1d_tuning_plot(ax,
                         results_dict_input,
                         key_dim0='low_harm',
                         key_resp_list='relu_4_low_harm',
+                        limit_dim0=None,
                         color_list=None,
                         include_yerr=True,
                         kwargs_plot_update={},
@@ -334,6 +335,11 @@ def make_1d_tuning_plot(ax,
         xval = results_dict_input[key_dim0]
         yval = results_dict_input['yval']
         yerr = results_dict_input['yerr']
+        if limit_dim0 is not None:
+            IDX = np.logical_and(xval >= limit_dim0[0], xval <= limit_dim0[1])
+            xval = xval[IDX]
+            yval = yval[IDX]
+            yerr = yerr[IDX]
     else:
         is_neural_data = False
     
@@ -393,6 +399,10 @@ def make_1d_tuning_plot(ax,
                 assert np.all(yval_tmp.shape == xval.shape)
                 yval_list.append(yval_tmp)
             yval_list = np.stack(yval_list, axis=0)
+            if limit_dim0 is not None:
+                IDX = np.logical_and(xval >= limit_dim0[0], xval <= limit_dim0[1])
+                xval = xval[IDX]
+                yval_list = yval_list[:, IDX]
             DATA[key_dim0] = xval
             DATA[key_resp] = yval_list
             yval, yerr = util_figures_psychophysics.combine_subjects(
