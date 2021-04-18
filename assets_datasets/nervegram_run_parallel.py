@@ -94,7 +94,7 @@ if __name__ == "__main__":
         'buffer_start_dur': 0.070,
         'buffer_end_dur': 0.010,
         'pin_fs': 100e3,
-        'pin_dBSPL_flag': 0,
+        'pin_dBSPL_flag': 1,
         'pin_dBSPL': None,
         'species': 2,
         'bandwidth_scale_factor': args.bandwidth_scale_factor,
@@ -104,7 +104,7 @@ if __name__ == "__main__":
         'max_cf': 14e3,
         'max_spikes_per_train': 500,
         'num_spike_trains': args.num_spike_trains,
-        'cohc': 1.0,
+        'cohc': 0.0,
         'cihc': 1.0,
         'IhcLowPass_cutoff': args.lowpass_filter_cutoff,
         'IhcLowPass_order': args.lowpass_filter_order,
@@ -187,6 +187,7 @@ if __name__ == "__main__":
         print('AUTO-GENERATED dest_filename={}'.format(dest_filename))
     
     # Run bez2018 model
+    np.random.seed(args.job_idx)
     parallel_run_dataset_generation(args.source_regex,
                                     dest_filename,
                                     job_idx=args.job_idx,
@@ -194,4 +195,5 @@ if __name__ == "__main__":
                                     source_key_signal=source_key_signal,
                                     source_key_signal_fs=source_key_signal_fs,
                                     source_keys_to_copy=get_source_keys_to_copy(),
-                                    kwargs_nervegram=kwargs_nervegram)
+                                    kwargs_nervegram=kwargs_nervegram,
+                                    range_dbspl=[60, 90])
