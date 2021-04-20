@@ -94,7 +94,7 @@ if __name__ == "__main__":
         'buffer_start_dur': 0.070,
         'buffer_end_dur': 0.010,
         'pin_fs': 100e3,
-        'pin_dBSPL_flag': 1,
+        'pin_dBSPL_flag': 0,
         'pin_dBSPL': None,
         'species': 2,
         'bandwidth_scale_factor': args.bandwidth_scale_factor,
@@ -196,4 +196,4 @@ if __name__ == "__main__":
                                     source_key_signal_fs=source_key_signal_fs,
                                     source_keys_to_copy=get_source_keys_to_copy(),
                                     kwargs_nervegram=kwargs_nervegram,
-                                    range_dbspl=[60, 90])
+                                    range_dbspl=None)
