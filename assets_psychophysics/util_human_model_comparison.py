@@ -482,7 +482,10 @@ def get_altphase_histogram_results_dict(results_dict,
         # Manually compute histogram and convert to percentage for each condition
         for idx in range(len(f0_pred_ratio_list)):
             bin_counts, bin_edges = np.histogram(f0_pred_ratio_list[idx], bins=bins)
-            bin_percentages = 100.0 * bin_counts / np.sum(bin_counts)
+            if np.sum(bin_counts) == 0:
+                bin_percentages = bin_counts
+            else:
+                bin_percentages = 100.0 * bin_counts / np.sum(bin_counts)
             bin_heights_array[idx, :] = bin_percentages
         # Return outputs in an orderly dictionary, ready for plotting / averaging
         histogram_results_dict = {
