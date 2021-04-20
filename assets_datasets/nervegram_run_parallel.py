@@ -104,7 +104,7 @@ if __name__ == "__main__":
         'max_cf': 14e3,
         'max_spikes_per_train': 500,
         'num_spike_trains': args.num_spike_trains,
-        'cohc': 0.0,
+        'cohc': 0.2,
         'cihc': 1.0,
         'IhcLowPass_cutoff': args.lowpass_filter_cutoff,
         'IhcLowPass_order': args.lowpass_filter_order,
