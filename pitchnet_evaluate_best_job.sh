@@ -4,10 +4,10 @@
 #SBATCH --out="/om2/user/msaddler/pitchnet/slurm_pitchnet_eval-%A_%a.out"
 ##SBATCH --gres=gpu:tesla-v100:1
 ##SBATCH --gres=gpu:QUADRORTX6000:1
-##SBATCH --gres=gpu:GEFORCEGTX1080TI:1
+#SBATCH --gres=gpu:GEFORCEGTX1080TI:1
 ##SBATCH --gres=gpu:GEFORCERTX2080TI:1
-#SBATCH --gres=gpu:1
-#SBATCH --constraint=high-capacity
+##SBATCH --gres=gpu:1
+##SBATCH --constraint=high-capacity
 #SBATCH --mem=12000
 #SBATCH --cpus-per-task=6
 #SBATCH --time=0-12:00:00
@@ -25,10 +25,10 @@ PATH_PYTHON_PACKAGES="/om2/user/msaddler/python-packages"
 
 ZPJID=$(printf "%04d" $SLURM_ARRAY_TASK_ID)
 OUTDIR='/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/arch_'$ZPJID
-DATA_TAG="sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order_cohc0pt2"
+DATA_TAG="sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order_cohc0"
 # TFRECORDS_REGEX="stim_waveform.tfrecords"
 TFRECORDS_REGEX="$DATA_TAG/bez2018meanrates_*.tfrecords"
-EFN_PREFIX='EVAL_SOFTMAX_cohc0pt2_'
+EFN_PREFIX='EVAL_SOFTMAX_cohc0_'
 OUTPUT_LOG_FN=$OUTDIR'/output_eval.log'
 
 echo "[START EVALUATION] $OUTPUT_LOG_FN"
