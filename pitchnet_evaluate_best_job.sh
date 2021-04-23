@@ -25,10 +25,10 @@ PATH_PYTHON_PACKAGES="/om2/user/msaddler/python-packages"
 
 ZPJID=$(printf "%04d" $SLURM_ARRAY_TASK_ID)
 OUTDIR='/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order_cohc0_dBSPL60to90/arch_'$ZPJID
-DATA_TAG="sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order_cohc0"
+DATA_TAG="sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order"
 # TFRECORDS_REGEX="stim_waveform.tfrecords"
 TFRECORDS_REGEX="$DATA_TAG/bez2018meanrates_*.tfrecords"
-EFN_PREFIX='EVAL_SOFTMAX_cohc0_'
+EFN_PREFIX='EVAL_SOFTMAX_'
 OUTPUT_LOG_FN=$OUTDIR'/output_eval.log'
 
 echo "[START EVALUATION] $OUTPUT_LOG_FN"
