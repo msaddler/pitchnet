@@ -85,14 +85,14 @@ echo "------------------------------------------------" >> $OUTPUT_LOG_FN
 
 python pitchnet_evaluate_best.py \
 -de "/data/bernox2005/puretone_v00/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/*tfrecords" \
--efn "${EFN_PREFIX}_cohc1_puretone_v00_bestckpt.json" \
+-efn "${EFN_PREFIX}cohc1_puretone_v00_bestckpt.json" \
 -o "$OUTDIR" \
 -wpo 1 \
 >> "$OUTPUT_LOG_FN" 2>&1
 
 python pitchnet_evaluate_best.py \
 -de "/data/bernox2005/puretone_v00/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order_cohc0/*tfrecords" \
--efn "${EFN_PREFIX}_cohc0_puretone_v00_bestckpt.json" \
+-efn "${EFN_PREFIX}cohc0_puretone_v00_bestckpt.json" \
 -o "$OUTDIR" \
 -wpo 1 \
 >> "$OUTPUT_LOG_FN" 2>&1
