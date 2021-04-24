@@ -279,9 +279,9 @@ if __name__ == "__main__":
                                                  highpass_filter_cutoff=2.5e3,
                                                  lowpass_filter_cutoff=3.5e3,
                                                  filter_order=4,
-                                                 threshold_dBSPL=33.3+27,
+                                                 threshold_dBSPL=33.3+6.7, # Increase to 40 (pure tone in UMNm softmax detection)
                                                  component_dBSL=15.0,
-                                                 noise_dBHzSPL=15.0+27,
+                                                 noise_dBHzSPL=15.0,
                                                  noise_attenuation_start=600.0,
                                                  noise_attenuation_slope=2,
                                                  strict_audible_harm=False,
