@@ -3,8 +3,8 @@
 #SBATCH --job-name=pitchnet_eval
 #SBATCH --out="/om2/user/msaddler/pitchnet/slurm_pitchnet_eval-%A_%a.out"
 ##SBATCH --gres=gpu:tesla-v100:1
-##SBATCH --gres=gpu:QUADRORTX6000:1
-#SBATCH --gres=gpu:GEFORCEGTX1080TI:1
+#SBATCH --gres=gpu:QUADRORTX6000:1
+##SBATCH --gres=gpu:GEFORCEGTX1080TI:1
 ##SBATCH --gres=gpu:GEFORCERTX2080TI:1
 ##SBATCH --gres=gpu:1
 ##SBATCH --constraint=high-capacity
