@@ -42,6 +42,8 @@ def main(hdf5_filename,
          threshold_dBSPL=0.0,
          component_dBSL=45.0,
          include_pure_tones=True,
+         inharmonic_jitter=None,
+         inharmonic_min_freq_diff=30.0,
          disp_step=100):
     '''
     '''
@@ -78,6 +80,8 @@ def main(hdf5_filename,
         'config_tone/threshold_dBSPL': threshold_dBSPL,
         'config_tone/component_dBSL': component_dBSL,
     }
+    if inharmonic_jitter is not None:
+        data_dict['config_tone/inharmonic_jitter'] = inharmonic_jitter
     config_key_pair_list = [(k, k) for k in data_dict.keys()]
     data_key_pair_list = [] # Will be populated right before initializing hdf5 file
     # Main loop to generate the harmonic tones
@@ -96,6 +100,25 @@ def main(hdf5_filename,
                         'harmonic_numbers': harmonic_numbers,
                         'amplitudes': amplitudes,
                     }
+                    if inharmonic_jitter is not None:
+                        frequencies = f0 * harmonic_numbers
+                        jitter_values = np.random.uniform(
+                            low=-inharmonic_jitter,
+                            high=inharmonic_jitter,
+                            size=frequencies.shape)
+                        jittered_frequencies = frequencies + f0 * jitter_values
+                        while np.min(np.diff(jittered_frequencies)) < inharmonic_min_freq_diff:
+                            jitter_values = np.random.uniform(
+                                low=-inharmonic_jitter,
+                                high=inharmonic_jitter,
+                                size=frequencies.shape)
+                            jittered_frequencies = frequencies + f0 * jitter_values
+                        kwargs_complex_tone = {
+                            'phase_mode': phase_mode_decoding[ph],
+                            'harmonic_numbers': None,
+                            'frequencies': jittered_frequencies,
+                            'amplitudes': amplitudes,
+                        }
                     kwargs_TENoise = {
                         'dBSPL_per_ERB': TENoise_dBSPL_per_ERB,
                     }
@@ -178,10 +201,10 @@ if __name__ == "__main__":
          dur=0.150,
          phase_modes=['sine'],
          low_harm_min=1,
-         low_harm_max=30,
+         low_harm_max=15,
          num_harm=9,
          base_f0_min=80.0,
-         base_f0_max=320.0,
+         base_f0_max=640.0,
          base_f0_n=192*4*2,
          delta_f0_min=1,
          delta_f0_max=1,
@@ -190,4 +213,6 @@ if __name__ == "__main__":
          threshold_dBSPL=0.0,
          component_dBSL=45.0,
          include_pure_tones=True,
+         inharmonic_jitter=0.5,
+         inharmonic_min_freq_diff=30.0,
          disp_step=100)
