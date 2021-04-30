@@ -43,10 +43,14 @@ def main(hdf5_filename,
          component_dBSL=45.0,
          include_pure_tones=True,
          inharmonic_jitter=None,
+         inharmonic_jitter_fixed=True,
          inharmonic_min_freq_diff=30.0,
-         disp_step=100):
+         disp_step=100,
+         random_seed=858):
     '''
     '''
+    np.random.seed(random_seed)
+    
     # Define encoding / decoding dictionaries for phase_mode
     phase_mode_encoding = {'sine':0, 'rand':1, 'sch':2, 'cos':3, 'alt':4}
     phase_mode_decoding = {0:'sine', 1:'rand', 2:'sch', 3:'cos', 4:'alt'}
@@ -61,6 +65,17 @@ def main(hdf5_filename,
     N = len(unique_ph_list) * len(unique_lh_list) * len(base_f0_list) * len(delta_f0_list)
     if include_pure_tones:
         N = N + (len(base_f0_list) * len(delta_f0_list))
+    
+    if (inharmonic_jitter is not None) and inharmonic_jitter_fixed:
+        all_possible_harmonic_numbers = np.arange(1, low_harm_max + num_harm)
+        jittered_frequencies = np.zeros_like(all_possible_harmonic_numbers)
+        while np.min(np.diff(jittered_frequencies)) < 30.0:
+            frequencies = base_f0_min * all_possible_harmonic_numbers
+            fixed_jitter_values = np.random.uniform(
+                low=-inharmonic_jitter,
+                high=inharmonic_jitter,
+                size=frequencies.shape)
+            jittered_frequencies = frequencies + base_f0_min * fixed_jitter_values
     
     # Prepare data_dict and config_key_pair_list for hdf5 filewriting
     data_dict = {
@@ -102,17 +117,21 @@ def main(hdf5_filename,
                     }
                     if inharmonic_jitter is not None:
                         frequencies = f0 * harmonic_numbers
-                        jitter_values = np.random.uniform(
-                            low=-inharmonic_jitter,
-                            high=inharmonic_jitter,
-                            size=frequencies.shape)
-                        jittered_frequencies = frequencies + f0 * jitter_values
-                        while np.min(np.diff(jittered_frequencies)) < inharmonic_min_freq_diff:
-                            jitter_values = np.random.uniform(
-                                low=-inharmonic_jitter,
-                                high=inharmonic_jitter,
-                                size=frequencies.shape)
-                            jittered_frequencies = frequencies + f0 * jitter_values
+                        if inharmonic_jitter_fixed:
+                            _, _, HARM_IDX = np.intersect1d(
+                                harmonic_numbers,
+                                all_possible_harmonic_numbers,
+                                return_indices=True)
+                            assert HARM_IDX.shape == harmonic_numbers.shape
+                            jittered_frequencies = frequencies + f0 * fixed_jitter_values[HARM_IDX]
+                        else:
+                            jittered_frequencies = np.zeros_like(harmonic_numbers)
+                            while np.min(np.diff(jittered_frequencies)) < inharmonic_min_freq_diff:
+                                jitter_values = np.random.uniform(
+                                    low=-inharmonic_jitter,
+                                    high=inharmonic_jitter,
+                                    size=frequencies.shape)
+                                jittered_frequencies = frequencies + f0 * jitter_values
                         kwargs_complex_tone = {
                             'phase_mode': phase_mode_decoding[ph],
                             'harmonic_numbers': None,
@@ -214,5 +233,7 @@ if __name__ == "__main__":
          component_dBSL=45.0,
          include_pure_tones=True,
          inharmonic_jitter=0.5,
+         inharmonic_jitter_fixed=True,
          inharmonic_min_freq_diff=30.0,
-         disp_step=100)
+         disp_step=100,
+         random_seed=858)
