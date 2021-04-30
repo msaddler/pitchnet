@@ -595,7 +595,7 @@ if __name__ == "__main__":
     assert len(sys.argv) == 2, "scipt usage: python <script_name> <output_directory_regex>"
     output_directory_regex = str(sys.argv[1])
     
-    tfrecords_regex = '/om/user/msaddler/data_pitchnet/bernox2005/neurophysiology_v02_inharmonic_EqualAmpTEN_lharm01to15_phase0_f0min080_f0max640/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/*.tfrecords'
+    tfrecords_regex = '/om/user/msaddler/data_pitchnet/bernox2005/neurophysiology_v02_inharmonic_fixed_EqualAmpTEN_lharm01to15_phase0_f0min080_f0max640/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/*.tfrecords'
     output_directory_list = sorted(glob.glob(output_directory_regex))
     
     print('output_directory_list:')
@@ -605,7 +605,7 @@ if __name__ == "__main__":
     for output_directory in output_directory_list:
         print('\n\n\nSTART: {}'.format(output_directory))
         
-        fn_activations='NEUROPHYSIOLOGY_v02_inharmonic_bernox2005_activations.hdf5'
+        fn_activations='NEUROPHYSIOLOGY_v02_inharmonic_fixed_bernox2005_activations.hdf5'
         fn_activations = os.path.join(output_directory, fn_activations)
         fn_tuning_results = fn_activations.replace('.hdf5', '_tuning_low_harm_f0.hdf5')
 
