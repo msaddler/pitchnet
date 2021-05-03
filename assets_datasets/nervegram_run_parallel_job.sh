@@ -18,7 +18,7 @@
 # source_regex="$SCRATCH_PATH"'/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/*.hdf5'
 # jobs_per_source_file=3
 
-source_regex='/om/user/msaddler/data_pitchnet/bernox2005/neurophysiology_v02_inharmonic_fixed_EqualAmpTEN_lharm01to15_phase0_f0min080_f0max640/stim.hdf5'
+source_regex='/om/user/msaddler/data_pitchnet/bernox2005/puretone_v01/stim.hdf5'
 jobs_per_source_file=15
 
 offset=0
