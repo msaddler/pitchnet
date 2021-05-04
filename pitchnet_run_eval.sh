@@ -90,12 +90,12 @@ echo "------------------------------------------------" >> $OUTPUT_LOG_FN
 # -wpo 1 \
 # >> "$OUTPUT_LOG_FN" 2>&1
 
-python pitchnet_evaluate_best.py \
--de "/data/bernox2005/puretone_v01/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/*tfrecords" \
--efn "${EFN_PREFIX}cohc1_puretone_v01_bestckpt.json" \
--o "$OUTDIR" \
--wpo 1 \
->> "$OUTPUT_LOG_FN" 2>&1
+# python pitchnet_evaluate_best.py \
+# -de "/data/bernox2005/puretone_v01/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/*tfrecords" \
+# -efn "${EFN_PREFIX}cohc1_puretone_v01_bestckpt.json" \
+# -o "$OUTDIR" \
+# -wpo 1 \
+# >> "$OUTPUT_LOG_FN" 2>&1
 
 # python pitchnet_evaluate_best.py \
 # -de "/data/bernox2005/puretone_v02/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/*tfrecords" \
@@ -124,6 +124,20 @@ python pitchnet_evaluate_best.py \
 # -o "$OUTDIR" \
 # -wpo 1 \
 # >> "$OUTPUT_LOG_FN" 2>&1
+
+python pitchnet_evaluate_best.py \
+-de "/data/bernox2005/lowharm_v01_noise08/$TFRECORDS_REGEX" \
+-efn "${EFN_PREFIX}lowharm_v01_noise08_bestckpt.json" \
+-o "$OUTDIR" \
+-wpo 1 \
+>> "$OUTPUT_LOG_FN" 2>&1
+
+python pitchnet_evaluate_best.py \
+-de "/data/bernox2005/lowharm_v01_noise10/$TFRECORDS_REGEX" \
+-efn "${EFN_PREFIX}lowharm_v01_noise10_bestckpt.json" \
+-o "$OUTDIR" \
+-wpo 1 \
+>> "$OUTPUT_LOG_FN" 2>&1
 
 # # python pitchnet_evaluate_best.py \
 # # -de "/data/mcpherson2020/testsnr_v01/$TFRECORDS_REGEX" \
