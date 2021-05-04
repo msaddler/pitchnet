@@ -90,6 +90,27 @@ echo "------------------------------------------------" >> $OUTPUT_LOG_FN
 # -wpo 1 \
 # >> "$OUTPUT_LOG_FN" 2>&1
 
+python pitchnet_evaluate_best.py \
+-de "/data/bernox2005/puretone_v01/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/*tfrecords" \
+-efn "${EFN_PREFIX}cohc1_puretone_v01_bestckpt.json" \
+-o "$OUTDIR" \
+-wpo 1 \
+>> "$OUTPUT_LOG_FN" 2>&1
+
+python pitchnet_evaluate_best.py \
+-de "/data/bernox2005/puretone_v02/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/*tfrecords" \
+-efn "${EFN_PREFIX}cohc1_puretone_v02_bestckpt.json" \
+-o "$OUTDIR" \
+-wpo 1 \
+>> "$OUTPUT_LOG_FN" 2>&1
+
+python pitchnet_evaluate_best.py \
+-de "/data/bernox2005/puretone_v03/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/*tfrecords" \
+-efn "${EFN_PREFIX}cohc1_puretone_v03_bestckpt.json" \
+-o "$OUTDIR" \
+-wpo 1 \
+>> "$OUTPUT_LOG_FN" 2>&1
+
 # python pitchnet_evaluate_best.py \
 # -de "/data/bernox2005/puretone_v00/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order_cohc0/*tfrecords" \
 # -efn "${EFN_PREFIX}cohc0_puretone_v00_bestckpt.json" \
@@ -97,12 +118,12 @@ echo "------------------------------------------------" >> $OUTPUT_LOG_FN
 # -wpo 1 \
 # >> "$OUTPUT_LOG_FN" 2>&1
 
-python pitchnet_evaluate_best.py \
--de "/data/bernox2005/lowharm_v01_thresh40/$TFRECORDS_REGEX" \
--efn "${EFN_PREFIX}lowharm_v01_thresh40_bestckpt.json" \
--o "$OUTDIR" \
--wpo 1 \
->> "$OUTPUT_LOG_FN" 2>&1
+# python pitchnet_evaluate_best.py \
+# -de "/data/bernox2005/lowharm_v01_thresh40/$TFRECORDS_REGEX" \
+# -efn "${EFN_PREFIX}lowharm_v01_thresh40_bestckpt.json" \
+# -o "$OUTDIR" \
+# -wpo 1 \
+# >> "$OUTPUT_LOG_FN" 2>&1
 
 # # python pitchnet_evaluate_best.py \
 # # -de "/data/mcpherson2020/testsnr_v01/$TFRECORDS_REGEX" \
