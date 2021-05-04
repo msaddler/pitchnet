@@ -281,7 +281,7 @@ if __name__ == "__main__":
                                                  filter_order=4,
                                                  threshold_dBSPL=33.3,
                                                  component_dBSL=15.0,
-                                                 noise_dBHzSPL=10.0, # Decrease to 10 (pure tone in UMNm softmax detection)
+                                                 noise_dBHzSPL=8.0, # Decrease to 8 (pure tone in UMNm softmax detection)
                                                  noise_attenuation_start=600.0,
                                                  noise_attenuation_slope=2,
                                                  strict_audible_harm=False,
