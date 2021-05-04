@@ -11,6 +11,7 @@
 ##SBATCH --partition=use-everything
 #SBATCH --exclude=node[001-030]
 #SBATCH --requeue
+#SBATCH --dependency=afterok:20033349
 
 offset=0
 job_idx=$(($SLURM_ARRAY_TASK_ID + $offset))
@@ -89,6 +90,19 @@ PRIOR_RANGE='0.5'
 # -j ${job_idx}
 
 
+# singularity exec --nv \
+# -B /home \
+# -B /om \
+# -B /nobackup \
+# -B /om2/user/msaddler \
+# -B /om4 \
+# /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
+# python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_bernox.py \
+# -r "${OUTDIR_REGEX}/${EFN_PREFIX}lowharm_v01_thresh40_bestckpt.json" \
+# -p ${PRIOR_RANGE} \
+# -j ${job_idx}
+
+
 singularity exec --nv \
 -B /home \
 -B /om \
@@ -97,7 +111,20 @@ singularity exec --nv \
 -B /om4 \
 /om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
 python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_bernox.py \
--r "${OUTDIR_REGEX}/${EFN_PREFIX}lowharm_v01_thresh40_bestckpt.json" \
+-r "${OUTDIR_REGEX}/${EFN_PREFIX}lowharm_v01_noise08_bestckpt.json" \
+-p ${PRIOR_RANGE} \
+-j ${job_idx}
+
+
+singularity exec --nv \
+-B /home \
+-B /om \
+-B /nobackup \
+-B /om2/user/msaddler \
+-B /om4 \
+/om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
+python /om2/user/msaddler/pitchnet/assets_psychophysics/f0dl_bernox.py \
+-r "${OUTDIR_REGEX}/${EFN_PREFIX}lowharm_v01_noise10_bestckpt.json" \
 -p ${PRIOR_RANGE} \
 -j ${job_idx}
 
