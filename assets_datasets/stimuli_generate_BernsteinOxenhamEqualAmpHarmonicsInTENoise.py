@@ -97,6 +97,8 @@ def main(hdf5_filename,
     }
     if inharmonic_jitter is not None:
         data_dict['config_tone/inharmonic_jitter'] = inharmonic_jitter
+        if inharmonic_jitter_fixed:
+            data_dict['config_tone/inharmonic_jitter_values_fixed'] = fixed_jitter_values
     config_key_pair_list = [(k, k) for k in data_dict.keys()]
     data_key_pair_list = [] # Will be populated right before initializing hdf5 file
     # Main loop to generate the harmonic tones
@@ -236,4 +238,4 @@ if __name__ == "__main__":
          inharmonic_jitter_fixed=True,
          inharmonic_min_freq_diff=30.0,
          disp_step=100,
-         random_seed=858)
+         random_seed=862)
