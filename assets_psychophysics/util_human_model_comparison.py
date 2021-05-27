@@ -281,7 +281,10 @@ def get_human_results_dict_mistunedharmonics():
     Returns psychophysical results dictionary of Moore et al. (1985, JASA)
     human data, as extracted from figures 2, 3, and 4 (2020-04-17 MRS).
     '''
-    with open('human_data_moore_etal_1985.json', 'r') as f:
+    fn = 'human_data_moore_etal_1985.json'
+    if not os.path.exists(fn):
+        fn = '/om2/user/msaddler/pitchnet/assets_psychophysics/human_data_moore_etal_1985.json'
+    with open(fn, 'r') as f:
         results_dict = json.load(f)
     return results_dict
 
@@ -366,6 +369,8 @@ def extract_data_from_alt_phase_histogram_ps_file(fn='human_data_shackleton_carl
     post-script file received by email from Carlyon & Shackleton (2020JAN10).
     '''
     # Load post-script file as text file
+    if (not os.path.exists(fn)) and (os.path.basename(fn) == fn):
+        fn = os.path.join('/om2/user/msaddler/pitchnet/assets_psychophysics/', fn)
     with open(fn, 'r') as f:
         line_list = f.readlines()
     relevant_line_list = []
