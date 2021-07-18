@@ -1,8 +1,9 @@
 singularity exec --nv \
 -B /home \
--B /om \
 -B /nobackup \
--B /om2/ \
+-B /nese \
+-B /om \
+-B /om2 \
 -B /om4 \
 -B /om2/user/msaddler/python-packages:/python-packages \
 -B /om/user/msaddler/data_pitchnet:/data \
