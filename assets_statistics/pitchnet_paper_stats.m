@@ -5,25 +5,24 @@ clc;
 global ALPHA; ALPHA = 0.01;
 global VERBOSE; VERBOSE = 1;
 
-addpath('/Users/mark/Documents/MIT/lab_mcdermott/statistics_anova');
 
 
-% %{   NETWORK NEUROPHYSIOLOGY STATISTICS   }%
-% FN_DATA = 'pitchnet_paper_stats_data_neurophysiology_2020OCT29.json';
-% DATA = jsondecode(fileread(FN_DATA));
-% DATA_NAMES = fieldnames(DATA);
+%{   NETWORK NEUROPHYSIOLOGY STATISTICS   }%
+FN_DATA = 'pitchnet_paper_stats_data_neurophysiology_2021JUL12.json';
+DATA = jsondecode(fileread(FN_DATA));
+DATA_NAMES = fieldnames(DATA);
 
-% mmANOVA(DATA,...
-%     {'natural_speech_music',},...
-%     'bernox2005', 'relu_4_low_harm', 'low_harm', [1,30]);
+mmANOVA(DATA,...
+    {'natural_speech_music',},...
+    'bernox2005', 'fc_top_low_harm', 'low_harm', [1,30]);
 
 
 
 
 %{   NETWORK PSYCHOPHYSICS STATISTICS   }%
-FN_DATA = 'pitchnet_paper_stats_data_psychophysics_2020OCT29.json';
-DATA = jsondecode(fileread(FN_DATA));
-DATA_NAMES = fieldnames(DATA);
+% FN_DATA = 'pitchnet_paper_stats_data_psychophysics_2020OCT29.json';
+% DATA = jsondecode(fileread(FN_DATA));
+% DATA_NAMES = fieldnames(DATA);
 
 % twosample_f0dl_bernox(DATA, 'IHC9000Hz', 'IHC3000Hz', 0, 1);
 % twosample_f0dl_bernox(DATA, 'IHC6000Hz', 'IHC3000Hz', 0, 1);
@@ -73,7 +72,7 @@ DATA_NAMES = fieldnames(DATA);
 % mmANOVA(DATA,...
 %     {'BW05eN1', 'BW10eN1', 'BW20eN1'},...
 %     'bernox2005', 'f0dl', 'low_harm', [1,30]);
-% 
+%
 % mmANOVA(DATA,...
 %     {'natural', 'natural_hp'},...
 %     'bernox2005', 'f0dl', 'low_harm', [1,30]);
@@ -236,11 +235,11 @@ fprintf('\nComparing human_model_similarity_coef of `%s` and `%s`:\n',...
     data_tag1, data_tag2)
 if VERBOSE
     disp([model_tag1,...
-        sprintf(' | mean coef ± s.d. = %.2f ± %.2f', mean(x1), std(x1)),...
+        sprintf(' | mean coef +/- s.d. = %.2f +/- %.2f', mean(x1), std(x1)),...
         sprintf(' | coef range = [%.2f, %.2f]', min(x1), max(x1)),...
         sprintf(' | pval range = [%.3e, %.3e]', min(p1), max(p1))])
     disp([model_tag2,...
-        sprintf(' | mean coef ± s.d. = %.2f ± %.2f', mean(x2), std(x2)),...
+        sprintf(' | mean coef +/- s.d. = %.2f +/- %.2f', mean(x2), std(x2)),...
         sprintf(' | coef range = [%.2f, %.2f]', min(x2), max(x2)),...
         sprintf(' | pval range = [%.3e, %.3e]', min(p2), max(p2))])
     % Display human vs. combined-model similarity metrics if possible
@@ -280,16 +279,16 @@ expt_tag_list = { 'bernox2005', 'altphasecomplexes', 'freqshiftedcomplexes', 'mi
 for eki = 1:length(expt_tag_list)
     data_tag1 = [model_tag1, '_', expt_tag_list{eki}];
     data_tag2 = [model_tag2, '_', expt_tag_list{eki}];
-    
+
     x1 = DATA.(data_tag1).human_model_similarity_coef(:);
     p1 = DATA.(data_tag1).human_model_similarity_pval(:);
     x2 = DATA.(data_tag2).human_model_similarity_coef(:);
     p2 = DATA.(data_tag1).human_model_similarity_pval(:);
-    
+
     if eki == 1
         combined_similarity_ranks = zeros(length(x1)+length(x2), 1);
     end
-    
+
     [~, sort_idx] = sort([x1;x2], 'descend');
     ranks = transpose(1:length(combined_similarity_ranks));
     ranks = ranks(sort_idx);
@@ -300,8 +299,8 @@ x1 = combined_similarity_ranks(1:length(x1));
 x2 = combined_similarity_ranks(length(x1)+1:end);
 fprintf('\nComparing EXPERIMENT-COMBINED human_model_similarity_coef rankings of `%s` and `%s`:\n',...
     model_tag1, model_tag2)
-fprintf('%s : mean rank ± s.d. = %.2f ± %.2f\n', model_tag1, mean(x1), std(x1))
-fprintf('%s : mean rank ± s.d. = %.2f ± %.2f\n', model_tag2, mean(x2), std(x2))
+fprintf('%s : mean rank +/- s.d. = %.2f +/- %.2f\n', model_tag1, mean(x1), std(x1))
+fprintf('%s : mean rank +/- s.d. = %.2f +/- %.2f\n', model_tag2, mean(x2), std(x2))
 % Stats tests
 disp('::: sign-test');
 print_signtest(x1, x2);
@@ -321,15 +320,15 @@ for itr1 = 1:length(list_model_tag)
     f0dl(f0dl > 100.0) = 100.0;
     log10_f0dl = log10(f0dl);
     f_carrier = DATA.(data_tag).tt_combined_f_carrier;
-    
+
     PT_log10_f0dl = log10_f0dl(:, f_carrier == 0);
     TT_log10_f0dl = log10_f0dl(:, f_carrier == 1);
-    
+
     disp([data_tag, ' | paired t-test between pure tone and mean transposed tone thresholds']);
     [h,p,ci,stats] = ttest(PT_log10_f0dl(:), TT_log10_f0dl(:), 'Alpha', ALPHA);
     fprintf('h=%d, p=%0.4e, t(%d)=%0.2f, sd=%.2f, ci=[%.2f,%.2f]\n',...
         h, p, stats.df, stats.tstat, stats.sd, ci(1), ci(2));
-    
+
     disp('::: t-test');
     x1 = mean(PT_log10_f0dl, 2);
     x2 = mean(TT_log10_f0dl, 2);
@@ -368,7 +367,7 @@ end
 
 offset = 0;
 for itr1 = 1:length(list_model_tag)
-    
+
     if isfield(DATA, list_model_tag{itr1})
         SUBDATA = DATA.(list_model_tag{itr1});
         data_tag = expt_tag;
@@ -376,16 +375,16 @@ for itr1 = 1:length(list_model_tag)
         SUBDATA = DATA;
         data_tag = [list_model_tag{itr1}, '_', expt_tag];
     end
-    
+
     resp = SUBDATA.(data_tag).(resp_tag);
     cond = SUBDATA.(data_tag).(cond_tag);
-    
+
     if isempty(cond_range)
         filt_idx = cond == cond;
     else
         filt_idx = (cond >= cond_range(1)) & (cond <= cond_range(2));
     end
-    
+
     % Special adjustments for F0 discrimination experiments
     if contains(resp_tag, 'f0dl')
         % F0 discrimination thresholds are capped at 100% and
@@ -397,10 +396,10 @@ for itr1 = 1:length(list_model_tag)
             filt_idx = filt_idx & (SUBDATA.(data_tag).phase_mode == 0);
         end
     end
-    
+
     resp = resp(:, filt_idx);
     cond = cond(filt_idx, :);
-    
+
     if itr1 == 1
         between_factors = zeros(length(list_model_tag) * size(resp, 1), 1);
         within_factor_names = {cond_tag};
@@ -408,7 +407,7 @@ for itr1 = 1:length(list_model_tag)
         datamat = zeros(length(between_factors), length(cond));
     end
     between_name = intersect(between_name, list_model_tag{itr1}, 'stable');
-    
+
     IDX = (1:size(resp, 1)) + offset;
     between_factors(IDX) = itr1;
     datamat(IDX, :) = resp;
