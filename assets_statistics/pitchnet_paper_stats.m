@@ -59,45 +59,21 @@ DATA_NAMES = fieldnames(DATA);
 %     {'natural', 'natural_lp'},...
 %     'bernox2005', 'f0dl', 'low_harm', [1,30]);
 
-transposedtones_ttest(DATA, {'natural', 'natural_hp'})
+% transposedtones_ttest(DATA, {'natural', 'natural_hp'})
+
+% twosample_f0dl_bernox(DATA, 'spch_only', 'inst_only', 0, 1);
 
 % mmANOVA(DATA,...
-%     {'noise_high', 'noise_low', 'noise_none'},...
+%     {'natural', 'noise_low', 'noise_none'},...
 %     'bernox2005', 'f0dl', 'low_harm', [2,5]);
 
 
+twosample_human_model_similarity(DATA, 'noise_none', 'natural', 'bernox2005');
+twosample_human_model_similarity(DATA, 'noise_none', 'natural', 'altphasecomplexes');
+twosample_human_model_similarity(DATA, 'noise_none', 'natural', 'freqshiftedcomplexes');
+twosample_human_model_similarity(DATA, 'noise_none', 'natural', 'mistunedharmonics');
+twosample_human_model_similarity(DATA, 'noise_none', 'natural', 'transposedtones');
 
-% twosample_human_model_similarity(DATA, 'BW05eN1', 'BW10eN1', 'bernox2005');
-% twosample_human_model_similarity(DATA, 'BW05eN1', 'BW10eN1', 'altphasecomplexes');
-% twosample_human_model_similarity(DATA, 'BW05eN1', 'BW10eN1', 'freqshiftedcomplexes');
-% twosample_human_model_similarity(DATA, 'BW05eN1', 'BW10eN1', 'mistunedharmonics');
-% twosample_human_model_similarity(DATA, 'BW05eN1', 'BW10eN1', 'transposedtones');
-
-% twosample_human_model_similarity(DATA, 'BWlinear', 'BW10eN1', 'bernox2005');
-% twosample_human_model_similarity(DATA, 'BWlinear', 'BW10eN1', 'altphasecomplexes');
-% twosample_human_model_similarity(DATA, 'BWlinear', 'BW10eN1', 'freqshiftedcomplexes');
-% twosample_human_model_similarity(DATA, 'BWlinear', 'BW10eN1', 'mistunedharmonics');
-% twosample_human_model_similarity(DATA, 'BWlinear', 'BW10eN1', 'transposedtones');
-
-% transposedtones_ttest(DATA, {'natural', 'natural_hp'})
-% twosample_f0dl_bernox(DATA, 'spch_only', 'inst_only', 0, 1);
-
-% twosample_human_model_similarity(DATA, 'noise_none', 'noise_high', 'bernox2005');
-% twosample_human_model_similarity(DATA, 'noise_none', 'noise_high', 'altphasecomplexes');
-% twosample_human_model_similarity(DATA, 'noise_none', 'noise_high', 'freqshiftedcomplexes');
-% twosample_human_model_similarity(DATA, 'noise_none', 'noise_high', 'mistunedharmonics');
-% twosample_human_model_similarity(DATA, 'noise_none', 'noise_high', 'transposedtones');
-
-% mmANOVA(DATA,...
-%     {'IHC0050Hz', 'IHC0320Hz', 'IHC1000Hz', 'IHC3000Hz', 'IHC6000Hz', 'IHC9000Hz'},...
-%     'f0dlspl', 'f0dl', 'dbspl', [10.0, 100.0]);
-% mmANOVA(DATA,...
-%     {'IHC0050Hz', 'IHC0250Hz', 'IHC1000Hz', 'IHC3000Hz', 'IHC6000Hz', 'IHC9000Hz'},...
-%     'bernox2005', 'f0dl', 'low_harm', [1,30]);
-% mmANOVA(DATA,...
-%     {'BW05eN1', 'BW10eN1', 'BW20eN1'},...
-%     'bernox2005', 'f0dl', 'low_harm', [1,30]);
-%
 
 
 
@@ -247,31 +223,16 @@ p2 = DATA.(data_tag1).human_model_similarity_pval(:);
 % Summarize individiual human vs. model similarity metrics
 fprintf('\nComparing human_model_similarity_coef of `%s` and `%s`:\n',...
     data_tag1, data_tag2)
-if VERBOSE
-    disp([model_tag1,...
-        sprintf(' | mean coef +/- s.d. = %.2f +/- %.2f', mean(x1), std(x1)),...
-        sprintf(' | coef range = [%.2f, %.2f]', min(x1), max(x1)),...
-        sprintf(' | pval range = [%.3e, %.3e]', min(p1), max(p1))])
-    disp([model_tag2,...
-        sprintf(' | mean coef +/- s.d. = %.2f +/- %.2f', mean(x2), std(x2)),...
-        sprintf(' | coef range = [%.2f, %.2f]', min(x2), max(x2)),...
-        sprintf(' | pval range = [%.3e, %.3e]', min(p2), max(p2))])
-    % Display human vs. combined-model similarity metrics if possible
-    if contains(expt_tag, 'bernox2005')
-        coef1 = DATA.(data_tag1).human_combined_model_similarity_coef;
-        pval1 = DATA.(data_tag1).human_combined_model_similarity_pval;
-        coef2 = DATA.(data_tag2).human_combined_model_similarity_coef;
-        pval2 = DATA.(data_tag2).human_combined_model_similarity_pval;
-        sine_coef1 = DATA.(data_tag1).human_combined_model_similarity_sine_coef;
-        sine_pval1 = DATA.(data_tag1).human_combined_model_similarity_sine_pval;
-        sine_coef2 = DATA.(data_tag2).human_combined_model_similarity_sine_coef;
-        sine_pval2 = DATA.(data_tag2).human_combined_model_similarity_sine_pval;
-        disp([model_tag1, sprintf('-COMBINED | coef=%.4e | pval=%.4e', coef1, pval1)]);
-        disp([model_tag2, sprintf('-COMBINED | coef=%.4e | pval=%.4e', coef2, pval2)]);
-        disp([model_tag1, sprintf('-COMBINED | sine_coef=%.4e | sine_pval=%.4e', sine_coef1, sine_pval1)]);
-        disp([model_tag2, sprintf('-COMBINED | sine_coef=%.4e | sine_pval=%.4e', sine_coef2, sine_pval2)]);
-    end
-end
+% if VERBOSE
+%     disp([model_tag1,...
+%         sprintf(' | mean coef +/- s.d. = %.2f +/- %.2f', mean(x1), std(x1)),...
+%         sprintf(' | coef range = [%.2f, %.2f]', min(x1), max(x1)),...
+%         sprintf(' | pval range = [%.3e, %.3e]', min(p1), max(p1))])
+%     disp([model_tag2,...
+%         sprintf(' | mean coef +/- s.d. = %.2f +/- %.2f', mean(x2), std(x2)),...
+%         sprintf(' | coef range = [%.2f, %.2f]', min(x2), max(x2)),...
+%         sprintf(' | pval range = [%.3e, %.3e]', min(p2), max(p2))])
+% end
 % Stats tests
 disp('::: t-test with norminv(coef/2 + 1/2)');
 print_ttest2(norminv(x1/2 + 1/2), norminv(x2/2 + 1/2));
