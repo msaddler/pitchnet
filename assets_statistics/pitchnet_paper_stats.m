@@ -7,40 +7,47 @@ global VERBOSE; VERBOSE = 1;
 
 
 
-%{   NETWORK NEUROPHYSIOLOGY STATISTICS   }%
-FN_DATA = 'pitchnet_paper_stats_data_neurophysiology_2021JUL12.json';
-DATA = jsondecode(fileread(FN_DATA));
-DATA_NAMES = fieldnames(DATA);
-
-mmANOVA(DATA,...
-    {'natural_speech_music',},...
-    'bernox2005', 'fc_top_low_harm', 'low_harm', [1,30]);
+% %{   NETWORK NEUROPHYSIOLOGY STATISTICS   }%
+% FN_DATA = 'pitchnet_paper_stats_data_neurophysiology_2021JUL12.json';
+% DATA = jsondecode(fileread(FN_DATA));
+% DATA_NAMES = fieldnames(DATA);
+% 
+% mmANOVA(DATA,...
+%     {'natural_speech_music',},...
+%     'bernox2005', 'fc_top_low_harm', 'low_harm', [1,30]);
 
 
 
 
 %{   NETWORK PSYCHOPHYSICS STATISTICS   }%
-% FN_DATA = 'pitchnet_paper_stats_data_psychophysics_2020OCT29.json';
-% DATA = jsondecode(fileread(FN_DATA));
-% DATA_NAMES = fieldnames(DATA);
+FN_DATA = 'pitchnet_paper_stats_data_psychophysics_2021AUG05.json';
+DATA = jsondecode(fileread(FN_DATA));
+DATA_NAMES = fieldnames(DATA);
 
 % twosample_f0dl_bernox(DATA, 'IHC9000Hz', 'IHC3000Hz', 0, 1);
 % twosample_f0dl_bernox(DATA, 'IHC6000Hz', 'IHC3000Hz', 0, 1);
 % twosample_f0dl_bernox(DATA, 'IHC1000Hz', 'IHC3000Hz', 0, 1);
 % twosample_f0dl_bernox(DATA, 'IHC0320Hz', 'IHC3000Hz', 0, 1);
 % twosample_f0dl_bernox(DATA, 'IHC0050Hz', 'IHC3000Hz', 0, 1);
+
 % twosample_transition_point_bernox(DATA, 'IHC9000Hz', 'IHC3000Hz');
 % twosample_transition_point_bernox(DATA, 'IHC6000Hz', 'IHC3000Hz');
 % twosample_transition_point_bernox(DATA, 'IHC1000Hz', 'IHC3000Hz');
 % twosample_transition_point_bernox(DATA, 'IHC0320Hz', 'IHC3000Hz');
 % twosample_transition_point_bernox(DATA, 'IHC0050Hz', 'IHC3000Hz');
 
-% twosample_f0dl_bernox(DATA, 'BWlinear', 'BW10eN1', 0, 1);
-% twosample_f0dl_bernox(DATA, 'BW05eN1', 'BW10eN1', 0, 1);
-% twosample_f0dl_bernox(DATA, 'BW20eN1', 'BW10eN1', 0, 1);
-% twosample_transition_point_bernox(DATA, 'BWlinear', 'BW10eN1');
-% twosample_transition_point_bernox(DATA, 'BW05eN1', 'BW10eN1');
-% twosample_transition_point_bernox(DATA, 'BW20eN1', 'BW10eN1');
+% mmANOVA(DATA,...
+%     {'IHC0050Hz', 'IHC0320Hz', 'IHC1000Hz', 'IHC3000Hz', 'IHC6000Hz', 'IHC9000Hz'},...
+%     'f0dlspl', 'f0dl', 'dbspl', [10.0, 100.0]);
+
+
+twosample_f0dl_bernox(DATA, 'BW20eN1', 'BW10eN1', 0, 1);
+twosample_f0dl_bernox(DATA, 'BW05eN1', 'BW10eN1', 0, 1);
+twosample_f0dl_bernox(DATA, 'BWlinear', 'BW10eN1', 0, 1);
+twosample_transition_point_bernox(DATA, 'BW20eN1', 'BW10eN1');
+twosample_transition_point_bernox(DATA, 'BW05eN1', 'BW10eN1');
+twosample_transition_point_bernox(DATA, 'BWlinear', 'BW10eN1');
+
 
 % twosample_human_model_similarity(DATA, 'BW05eN1', 'BW10eN1', 'bernox2005');
 % twosample_human_model_similarity(DATA, 'BW05eN1', 'BW10eN1', 'altphasecomplexes');
@@ -84,6 +91,16 @@ mmANOVA(DATA,...
 %     'bernox2005', 'f0dl', 'low_harm', [2,5]);
 
 
+function d = cohend(x1, x2)
+% Compute Cohen's d to quantify effect size between two groups
+% ( https://en.wikipedia.org/wiki/Effect_size#Cohen's_d )
+n1 = length(x1);
+n2 = length(x2);
+v1 = var(x1);
+v2 = var(x2);
+d = (mean(x2) - mean(x1)) / sqrt(((n1-1)*v1 + (n2-1)*v2) / (n1 + n2 - 2));
+end
+
 
 function print_ttest2(x1, x2)
 % Display results of two-sample t-test
@@ -91,10 +108,10 @@ global ALPHA;
 global VERBOSE;
 [h,p,ci,stats] = ttest2(x1, x2, 'Alpha', ALPHA);
 if VERBOSE
-    fprintf('h=%d, p=%0.4e, t(%d)=%0.2f, sd=%.2f, ci=[%.2f,%.2f]\n',...
-        h, p, stats.df, stats.tstat, stats.sd, ci(1), ci(2));
+    fprintf('h=%d, p=%0.4e, t(%d)=%0.2f, d=%.2f, sd=%.2f, ci=[%.2f,%.2f]\n',...
+        h, p, stats.df, stats.tstat, cohend(x1, x2), stats.sd, ci(1), ci(2));
 else
-    fprintf('h=%d, p=%0.4e, t(%d)=%0.2f\n', h, p, stats.df, stats.tstat);
+    fprintf('h=%d, p=%0.4e, t(%d)=%0.2f, d=%.2f\n', h, p, stats.df, stats.tstat, cohend(x1, x2));
 end
 end
 
@@ -107,19 +124,6 @@ global ALPHA;
 fprintf('h=%d, p=%0.4e, stats.zval=%d, stats.sign=%d\n',...
     h, p, stats.zval, stats.sign);
 end
-
-
-
-function d = cohend(x1, x2)
-% Compute Cohen's d to quantify effect size between two groups
-% ( https://en.wikipedia.org/wiki/Effect_size#Cohen's_d )
-n1 = length(x1);
-n2 = length(x2);
-v1 = var(x1);
-v2 = var(x2);
-d = (mean(x2) - mean(x1)) / sqrt(((n1-1)*v1 + (n2-1)*v2) / (n1 + n2 - 2));
-end
-
 
 
 function twosample_f0dl_bernox(...
