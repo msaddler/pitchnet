@@ -24,6 +24,7 @@ FN_DATA = 'pitchnet_paper_stats_data_psychophysics_2021AUG05.json';
 DATA = jsondecode(fileread(FN_DATA));
 DATA_NAMES = fieldnames(DATA);
 
+
 % twosample_f0dl_bernox(DATA, 'IHC9000Hz', 'IHC3000Hz', 0, 1);
 % twosample_f0dl_bernox(DATA, 'IHC6000Hz', 'IHC3000Hz', 0, 1);
 % twosample_f0dl_bernox(DATA, 'IHC1000Hz', 'IHC3000Hz', 0, 1);
@@ -41,12 +42,29 @@ DATA_NAMES = fieldnames(DATA);
 %     'f0dlspl', 'f0dl', 'dbspl', [10.0, 100.0]);
 
 
-twosample_f0dl_bernox(DATA, 'BW20eN1', 'BW10eN1', 0, 1);
-twosample_f0dl_bernox(DATA, 'BW05eN1', 'BW10eN1', 0, 1);
-twosample_f0dl_bernox(DATA, 'BWlinear', 'BW10eN1', 0, 1);
-twosample_transition_point_bernox(DATA, 'BW20eN1', 'BW10eN1');
-twosample_transition_point_bernox(DATA, 'BW05eN1', 'BW10eN1');
-twosample_transition_point_bernox(DATA, 'BWlinear', 'BW10eN1');
+% twosample_f0dl_bernox(DATA, 'BW20eN1', 'BW10eN1', 0, 1);
+% twosample_f0dl_bernox(DATA, 'BW05eN1', 'BW10eN1', 0, 1);
+% twosample_f0dl_bernox(DATA, 'BWlinear', 'BW10eN1', 0, 1);
+% twosample_transition_point_bernox(DATA, 'BW20eN1', 'BW10eN1');
+% twosample_transition_point_bernox(DATA, 'BW05eN1', 'BW10eN1');
+% twosample_transition_point_bernox(DATA, 'BWlinear', 'BW10eN1');
+% twosample_validation_accuracy(DATA, 'BW20eN1', 'BW10eN1')
+
+
+
+% mmANOVA(DATA,...
+%     {'natural', 'natural_hp'},...
+%     'bernox2005', 'f0dl', 'low_harm', [1,30]);
+% mmANOVA(DATA,...
+%     {'natural', 'natural_lp'},...
+%     'bernox2005', 'f0dl', 'low_harm', [1,30]);
+
+transposedtones_ttest(DATA, {'natural', 'natural_hp'})
+
+% mmANOVA(DATA,...
+%     {'noise_high', 'noise_low', 'noise_none'},...
+%     'bernox2005', 'f0dl', 'low_harm', [2,5]);
+
 
 
 % twosample_human_model_similarity(DATA, 'BW05eN1', 'BW10eN1', 'bernox2005');
@@ -80,15 +98,7 @@ twosample_transition_point_bernox(DATA, 'BWlinear', 'BW10eN1');
 %     {'BW05eN1', 'BW10eN1', 'BW20eN1'},...
 %     'bernox2005', 'f0dl', 'low_harm', [1,30]);
 %
-% mmANOVA(DATA,...
-%     {'natural', 'natural_hp'},...
-%     'bernox2005', 'f0dl', 'low_harm', [1,30]);
-% mmANOVA(DATA,...
-%     {'natural', 'natural_lp'},...
-%     'bernox2005', 'f0dl', 'low_harm', [1,30]);
-% mmANOVA(DATA,...
-%     {'noise_high', 'noise_low', 'noise_none'},...
-%     'bernox2005', 'f0dl', 'low_harm', [2,5]);
+
 
 
 function d = cohend(x1, x2)
@@ -314,25 +324,42 @@ end
 
 
 
+function twosample_validation_accuracy(...
+    DATA, model_tag1, model_tag2)
+% Used to compare validation accuracy between two model conditions
+global VERBOSE;
+data_tag1 = [model_tag1, '_bernox2005'];
+data_tag2 = [model_tag2, '_bernox2005'];
+x1 = DATA.(data_tag1).validation_accuracy(:);
+x2 = DATA.(data_tag2).validation_accuracy(:);
+% Summarize individiual human vs. model similarity metrics
+fprintf('\nComparing validation accuracy of `%s` and `%s`:\n',...
+    model_tag1, model_tag2)
+% Stats tests
+disp('::: t-test');
+print_ttest2(x1, x2);
+if VERBOSE
+    disp('::: sign-test');
+    print_signtest(x1, x2);
+end
+end
+
+
+
 function transposedtones_ttest(DATA, list_model_tag)
 %
 global ALPHA
 global VERBOSE
 for itr1 = 1:length(list_model_tag)
     data_tag = [list_model_tag{itr1}, '_transposedtones'];
-    f0dl = DATA.(data_tag).tt_combined_f0dl;
+    f0dl = DATA.(data_tag).f0dl;
     f0dl(f0dl > 100.0) = 100.0;
     log10_f0dl = log10(f0dl);
-    f_carrier = DATA.(data_tag).tt_combined_f_carrier;
-
+    f_carrier = DATA.(data_tag).f_carrier;
     PT_log10_f0dl = log10_f0dl(:, f_carrier == 0);
-    TT_log10_f0dl = log10_f0dl(:, f_carrier == 1);
+    TT_log10_f0dl = log10_f0dl(:, f_carrier > 1);
 
-    disp([data_tag, ' | paired t-test between pure tone and mean transposed tone thresholds']);
-    [h,p,ci,stats] = ttest(PT_log10_f0dl(:), TT_log10_f0dl(:), 'Alpha', ALPHA);
-    fprintf('h=%d, p=%0.4e, t(%d)=%0.2f, sd=%.2f, ci=[%.2f,%.2f]\n',...
-        h, p, stats.df, stats.tstat, stats.sd, ci(1), ci(2));
-
+    disp([data_tag, '| two-sample t-test between mean pure tone and transpsoed tone thresholds'])
     disp('::: t-test');
     x1 = mean(PT_log10_f0dl, 2);
     x2 = mean(TT_log10_f0dl, 2);
