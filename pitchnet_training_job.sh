@@ -17,8 +17,8 @@ ZPJID=$(printf "%04d" $SLURM_ARRAY_TASK_ID)
 OUTDIR='/saved_models/arch_search_v02_topN/DEMO/arch_'$ZPJID
 
 OUTPUT_LOG_FN='/om2/user/msaddler/pitchnet'$OUTDIR'/output_train.log'
-DATA_TRAIN='/nese/mit/group/mcdermott/msaddler/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_0[0-7]*.tfrecords'
-DATA_EVAL='/nese/mit/group/mcdermott/msaddler/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_0[8-9]*.tfrecords'
+DATA_TRAIN="$SCRATCH_PATH/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_0[0-7]*.tfrecords"
+DATA_EVAL="$SCRATCH_PATH/data_pitchnet/PND_v08/noise_TLAS_snr_neg10pos10/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/bez2018meanrates_0[8-9]*.tfrecords"
 
 
 echo $OUTDIR
@@ -32,6 +32,7 @@ singularity exec --nv \
 -B /om2 \
 -B /om4 \
 -B /nese \
+-B /om2/user/msaddler/pitchnet/packages:/packages \
 -B /om2/user/msaddler/pitchnet/saved_models:/saved_models \
 /om2/user/msaddler/vagrant/tensorflow-1.13.1-pitchnet.simg \
 python /om2/user/msaddler/pitchnet/assets_network/run_train_or_eval.py $OUTDIR \

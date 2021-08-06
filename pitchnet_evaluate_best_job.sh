@@ -20,24 +20,28 @@
 PATH_DATA="/om/user/msaddler/data_pitchnet"
 # PATH_DATA="$SCRATCH_PATH/data_pitchnet"
 PATH_SAVED_MODELS="/om2/user/msaddler/pitchnet/saved_models"
-PATH_CODE_LOCATION="/om2/user/msaddler/pitchnet/ibmHearingAid"
-PATH_PYTHON_PACKAGES="/om2/user/msaddler/python-packages"
+PATH_PACKAGES="/om2/user/msaddler/pitchnet/packages"
 
+SLURM_ARRAY_TASK_ID=302
 ZPJID=$(printf "%04d" $SLURM_ARRAY_TASK_ID)
 OUTDIR='/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/arch_'$ZPJID
-DATA_TAG="sr20000_cf100_species002_spont070_BW05eN1_IHC3000Hz_IHC7order"
+DATA_TAG="sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order"
 # TFRECORDS_REGEX="stim_waveform.tfrecords"
 TFRECORDS_REGEX="$DATA_TAG/bez2018meanrates_*.tfrecords"
-EFN_PREFIX='EVAL_SOFTMAX_BW05eN1_'
+EFN_PREFIX='DEBUG_EVAL_SOFTMAX_'
 OUTPUT_LOG_FN=$OUTDIR'/output_eval.log'
 
 echo "[START EVALUATION] $OUTPUT_LOG_FN"
 singularity exec --nv \
+-B /home \
+-B /nobackup \
+-B /om \
 -B /om2 \
+-B /om4 \
+-B /nese \
+-B $PATH_PACKAGES:/packages \
 -B $PATH_DATA:/data \
 -B $PATH_SAVED_MODELS:/saved_models \
--B $PATH_CODE_LOCATION:/code_location \
--B $PATH_PYTHON_PACKAGES:/python-packages \
-/om2/user/msaddler/singularity-images/tfv1.13_unet.simg \
+/om2/user/msaddler/vagrant/tensorflow-1.13.1-pitchnet.simg \
 ./pitchnet_run_eval.sh $OUTDIR $TFRECORDS_REGEX $EFN_PREFIX $OUTPUT_LOG_FN
 echo "[END EVALUATION] $OUTPUT_LOG_FN"

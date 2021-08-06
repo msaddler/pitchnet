@@ -1,17 +1,16 @@
 import sys
 import os
+import pdb
 import glob
 import json
 import copy
-import numpy as np
-import pdb
 import argparse
-
+import numpy as np
 import tensorflow as tf
 from google.protobuf.json_format import MessageToJson
 
-sys.path.append('/code_location/multi_gpu')
-from run_train_or_eval import run_train_or_eval
+sys.path.append('assets_network')
+import run_train_or_eval
 
 
 def get_best_checkpoint_number(validation_metrics_fn,
@@ -149,12 +148,13 @@ if __name__ == "__main__":
                                                   config_filename='config.json', 
                                                   temporary_config_filename='EVAL_config.json')
     
-    run_train_or_eval(output_directory,
-                      train_regex,
-                      eval_regex,
-                      config_filename=config_filename,
-                      eval_only_mode=True,
-                      force_overwrite=False, 
-                      eval_brain_ckpt=eval_brain_ckpt,
-                      eval_output_fn=eval_output_fn,
-                      write_probs_out=bool(args.write_probs_out))
+    run_train_or_eval.run_train_or_eval(
+        output_directory,
+        train_regex,
+        eval_regex,
+        config_filename=config_filename,
+        eval_only_mode=True,
+        force_overwrite=False, 
+        eval_brain_ckpt=eval_brain_ckpt,
+        eval_output_fn=eval_output_fn,
+        write_probs_out=bool(args.write_probs_out))

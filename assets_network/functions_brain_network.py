@@ -8,7 +8,7 @@ import tensorflow as tf
 
 from functions_parameter_handling import are_identical_dicts
 
-sys.path.append(os.path.abspath(os.path.join(sys.path[0], '../msutil')))
+sys.path.append('/packages/msutil')
 import util_stimuli
 
 
