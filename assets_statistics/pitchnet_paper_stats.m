@@ -68,13 +68,14 @@ DATA_NAMES = fieldnames(DATA);
 %     'bernox2005', 'f0dl', 'low_harm', [2,5]);
 
 
-twosample_human_model_similarity(DATA, 'noise_none', 'natural', 'bernox2005');
-twosample_human_model_similarity(DATA, 'noise_none', 'natural', 'altphasecomplexes');
-twosample_human_model_similarity(DATA, 'noise_none', 'natural', 'freqshiftedcomplexes');
-twosample_human_model_similarity(DATA, 'noise_none', 'natural', 'mistunedharmonics');
-twosample_human_model_similarity(DATA, 'noise_none', 'natural', 'transposedtones');
+% twosample_human_model_similarity(DATA, 'noise_none', 'natural', 'bernox2005');
+% twosample_human_model_similarity(DATA, 'noise_none', 'natural', 'altphasecomplexes');
+% twosample_human_model_similarity(DATA, 'noise_none', 'natural', 'freqshiftedcomplexes');
+% twosample_human_model_similarity(DATA, 'noise_none', 'natural', 'mistunedharmonics');
+% twosample_human_model_similarity(DATA, 'noise_none', 'natural', 'transposedtones');
 
-
+% twosample_human_model_similarity(DATA, 'BWlinear', 'BW10eN1', 'bernox2005');
+% twosample_human_model_similarity(DATA, 'BWlinear', 'BW10eN1', 'altphasecomplexes');
 
 
 function d = cohend(x1, x2)
