@@ -7,6 +7,9 @@ import numpy as np
 import json
 from functions_parameter_handling import are_identical_dicts
 
+sys.path.append('../msutil')
+import util_stimuli
+
 
 def make_brain_net(input_tensor, n_classes_dict, brain_net_architecture, trainable=True, batchnorm_flag=True, dropout_flag=True, save_arch_path=None, save_pckl_path=None, only_include_layers=None):
     """
@@ -94,14 +97,6 @@ def make_brain_net(input_tensor, n_classes_dict, brain_net_architecture, trainab
         elif layer['layer_type'] == 'tf.pad':
             layer_list.append(functools.partial(tf.pad, **layer['args']))
             nets[layer['args']['name']] = layer_list[-1](input_tensor)
- 
-        elif layer['layer_type'] == 'rnn_reshaping':
-            layer_list.append(functools.partial(rnn_reshaping, **layer['args']))
-            nets[layer['args']['name']] = layer_list[-1](input_tensor)
- 
-        elif layer['layer_type'] == 'rnn_layer':
-            layer_list.append(functools.partial(rnn_layer, **layer['args']))
-            nets[layer['args']['name']] = layer_list[-1](input_tensor, trainable=trainable)
 
         elif layer['layer_type'] == 'tf.slice':
             part = functools.partial(tf.slice, **layer['args'])
@@ -114,9 +109,6 @@ def make_brain_net(input_tensor, n_classes_dict, brain_net_architecture, trainab
             nets[layer['args']['name']] = part(input_tensor)
 
         elif layer['layer_type'] == 'tfnnresample':
-            # Import msutil.util_stimuli for `tfnnresample` function
-            sys.path.append('../msutil')
-            import util_stimuli
             def tfnnresample_wrapper(tensor_input,
                                      sr_input,
                                      sr_output,
@@ -446,68 +438,3 @@ def conv2d_for_hpool_valid_width_wrapper(inputs,filters,strides,padding,**kwargs
                                        strides=strides, padding="VALID",
                                        **kwargs)
     return output_tensor
-
-
-def rnn_reshaping(inputs, name='rnn_reshaping'):
-    """
-    Reshapes the last dimensions of inputs to pass features into an RNN.
-    Generally, this will be combining the frequency and channels dimensions. 
-
-    Args:
-        inputs (tensorflow tensor): the tensor that will be reshaped by 
-            flattening to [batch, time, features]
-
-    Returns: 
-        inputs_reshaped (tensorflow tensor): the reshaped inputs        
-    """
-    batch_size = tf.shape(inputs)[0]
-    inputs_dims = inputs.get_shape().as_list()
-    inputs_reshaped = tf.reshape(inputs, 
-                                 [batch_size, inputs_dims[1], np.prod(inputs_dims[2:])])
-    return inputs_reshaped
-
-
-def rnn_layer(inputs, rnn_cell_type='gru', rnn_hidden_size=800,
-               is_bidirectional=True, name='rnn', **kwargs):
-    """Defines a (possibly bidirectional) rnn layer.
-
-    Args:
-        inputs (tensor): input tensors for the current layer.
-        rnn_cell_type (string): RNN cell type to use.
-        rnn_hidden_size (int): the dimensionality of the rnn output space.
-        is_bidirectional (bool): specifies whether the rnn layer is bi-directional.
-        name: for the rnn cell
-        **kwargs: args to pass into the rnn cell
-
-    Returns:
-        rnn_outputs(tensor): output of the rnn cell.
-    """
-    RNN_CELL_OPTIONS={
-        "lstm": tf.nn.rnn_cell.BasicLSTMCell,
-        "rnn": tf.nn.rnn_cell.RNNCell,
-        "gru": tf.nn.rnn_cell.GRUCell,
-    }
-    if rnn_cell_type in RNN_CELL_OPTIONS:
-        rnn_cell = RNN_CELL_OPTIONS[rnn_cell_type]
-    else:
-        raise NotImplementedError('RNN cell type %s is not suppported'%rnn_cell_type)
-  
-    # Construct forward/backward RNN cells.
-    fw_cell = rnn_cell(num_units=rnn_hidden_size,
-                       name="fw_%s"%name,
-                       **kwargs)
-    bw_cell = rnn_cell(num_units=rnn_hidden_size,
-                       name="bw_%s"%name,
-                       **kwargs)
-  
-    if is_bidirectional:
-        outputs, _ = tf.nn.bidirectional_dynamic_rnn(
-            cell_fw=fw_cell, cell_bw=bw_cell, inputs=inputs, dtype=tf.float32,
-            swap_memory=True)
-        rnn_outputs = tf.concat(outputs, -1, name='%s_outputs'%name)
-    else:
-        rnn_outputs = tf.nn.dynamic_rnn(
-            fw_cell, inputs, dtype=tf.float32, swap_memory=True)
-        rnn_outputs = tf.identity(rnn_outputs, name='%s_outputs'%name)
-  
-    return rnn_outputs
