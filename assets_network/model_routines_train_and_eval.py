@@ -90,10 +90,6 @@ def run_training_routine(
     if FRONTEND_PARAMS:
         raise NotImplementedError("FRONTEND_PARAMS is not implemented")
 
-    ### MAKE OUTPUT DIRECTORY ###
-    if not os.path.exists(output_directory):
-        os.makedirs(output_directory)
-
     ### DECIDE WHETHER OR NOT TO RUN INTERMITTENT VALIDATION ###
     valid_flag = (valid_regex is not None) and (valid_step > 0)
 
