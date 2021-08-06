@@ -1,40 +1,52 @@
 import os
-os.environ['TF_CUDNN_USE_AUTOTUNE']='0'
-import numpy as np
-import tensorflow as tf
 import sys
-import glob
-import functions_graph_assembly as fga
-import time
-import warnings
-import functions_evaluation
-import scipy
 import pdb
-from scheduler_util import SignalHandler
+import glob
 import json
+import time
 import re
+import warnings
+import numpy as np
+
+os.environ['TF_CUDNN_USE_AUTOTUNE']='0'
+import tensorflow as tf
+
+import functions_graph_assembly as fga
+import functions_evaluation
 
 
-# monkey patch tf.gradients to point to our custom version, with automatic checkpoint selection
-import memory_saving_gradients
-from tensorflow.python.ops import gradients
-def gradients_memory(ys, xs, grad_ys=None, **kwargs):
-    return memory_saving_gradients.gradients(ys, xs, grad_ys, checkpoints='memory', **kwargs)
-
-
-def run_training_routine(train_regex, num_epochs=1, batch_size=8,
-                         display_step=5, save_step=10000, output_directory="/saved_models/example_arch",
-                         brain_net_ckpt_to_load=None, frontend_ckpt_to_load=None,
-                         controller="/cpu:0", iterator_device="/cpu:0", max_runtime=None, random_seed=517,
-                         debug_print=False, signal_rate=20000, TASK_LOSS_PARAMS={}, N_CLASSES_DICT={},
-                         ITERATOR_PARAMS={}, FRONTEND_PARAMS={}, COCH_PARAMS={}, BRAIN_PARAMS={},
-                         NORMAL_HEARING_PARAMS={}, OPTM_PARAMS={}, valid_regex=None, valid_step=10000, 
-                         valid_display_step=100, early_stopping_metrics=None, 
-                         early_stopping_baselines=None, use_gradient_checkpointing=True, 
-                         load_iterator=False, save_iterator=True, 
-                         **kwargs):
+def run_training_routine(
+        train_regex,
+        num_epochs=1,
+        batch_size=8,
+        display_step=5,
+        save_step=10000,
+        output_directory="/saved_models/example_arch",
+        brain_net_ckpt_to_load=None,
+        frontend_ckpt_to_load=None,
+        controller="/cpu:0",
+        iterator_device="/cpu:0",
+        max_runtime=None,
+        random_seed=517,
+        signal_rate=20000,
+        TASK_LOSS_PARAMS={},
+        N_CLASSES_DICT={},
+        ITERATOR_PARAMS={},
+        FRONTEND_PARAMS={},
+        COCH_PARAMS={},
+        BRAIN_PARAMS={},
+        NORMAL_HEARING_PARAMS={},
+        OPTM_PARAMS={},
+        valid_regex=None,
+        valid_step=10000, 
+        valid_display_step=100,
+        early_stopping_metrics=None, 
+        early_stopping_baselines=None,
+        load_iterator=False,
+        save_iterator=True, 
+        **kwargs):
     '''
-    This function runs the multi-tower training routine (brain network or frontend model or both)
+    This function runs the multi-tower training routine (brain network)
     
     Args
     ----
@@ -50,7 +62,6 @@ def run_training_routine(train_regex, num_epochs=1, batch_size=8,
     iterator_device (str): device that hosts the input iterator (to use tf.Dataset API, must be a CPU)
     max_runtime (int): maximum time (in seconds) to run training before final checkpoint (no limit if set to None or 0)
     random_seed (int): random seed to set tensorflow and numpy
-    debug_print (boolean): if True, adds additional print statements during training
     signal_rate (int): sampling rate of input signal (Hz)
     TASK_LOSS_PARAMS (dict): dictionary containing the loss parameters for each task, keys are the task paths
     N_CLASSES_DICT (dict): dictionary specifying number of output classes for each task
@@ -64,35 +75,25 @@ def run_training_routine(train_regex, num_epochs=1, batch_size=8,
     valid_display (int): print out validation procedure info every valid_display_step steps
     early_stopping_metrics (dict): metric name and minimum delta pairs for early stopping (see functions_evaluation.py)
     early_stopping_baselines (dict): baseline values for the early stopping metrics to reach (see functions_evaluation.py)
-    use_gradient_checkpointing (bool): if false, does not apply the gradient checkpoints to the code
     load_iterator (bool): set to False to prevent training routine from loading iterator checkpoint
     save_iterator (bool): set to False to prevent training routine from building iterator saver (cant save or load iterator)
     '''
-    ### Enable / disable gradient hot patch to turn on gradient checkpointing ###
-    if use_gradient_checkpointing:
-        print("### Using Gradient Checkponting Code ###")
-        global gradients
-        gradients.__dict__["gradients"] = memory_saving_gradients.gradients_collection
-    else:
-        print("### Not Using Gradient Checkponting Code ###")
-
-    ### Check if Summit's scheduler is about to kill job ###
-    sig_handler = SignalHandler()
-    if sig_handler.should_exit(): raise SystemExit("Approaching job scheduler limit!")
-
     ### RESET DEFAULT GRAPH AND SET RANDOM SEEDS ###
     tf.reset_default_graph()
     tf.random.set_random_seed(random_seed)
     np.random.seed(random_seed)
+
+    num_towers = len(fga.get_available_gpus()) # Used to scale the batch_size for iterator
+    
     if BRAIN_PARAMS.get('MULTIBRAIN_PARAMS', {}):
-        num_towers = 1 # No batch multiplication in multibrain mode
-    else:
-        num_towers = len(fga.get_available_gpus()) # Used to scale the batch_size for iterator
+        raise NotImplementedError("MULTIBRAIN_PARAMS is not implemented")    
+    if FRONTEND_PARAMS:
+        raise NotImplementedError("FRONTEND_PARAMS is not implemented")
 
     ### MAKE OUTPUT DIRECTORY ###
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
-    
+
     ### DECIDE WHETHER OR NOT TO RUN INTERMITTENT VALIDATION ###
     valid_flag = (valid_regex is not None) and (valid_step > 0)
 
@@ -100,18 +101,21 @@ def run_training_routine(train_regex, num_epochs=1, batch_size=8,
     print('\n\n\n >>> building input iterator(s) <<< \n\n\n', flush=True)
     with tf.device(iterator_device):
         # Build the one-shot training iterator
-        train_iter, train_dset, train_iter_save_obj = fga.build_tfrecords_iterator(train_regex,
-                                                                                   num_epochs=num_epochs,
-                                                                                   batch_size=batch_size*num_towers,
-                                                                                   iterator_type='one-shot',
-                                                                                   **ITERATOR_PARAMS)
+        train_iter, train_dset, train_iter_save_obj = fga.build_tfrecords_iterator(
+            train_regex,
+            num_epochs=num_epochs,
+            batch_size=batch_size*num_towers,
+            iterator_type='one-shot',
+            **ITERATOR_PARAMS)
         if valid_flag:
             # Build the initializable validation iterator
-            valid_iter, valid_dset, valid_iter_save_obj = fga.build_tfrecords_iterator(valid_regex,
-                                                                                       num_epochs=1, shuffle_flag=False,
-                                                                                       batch_size=batch_size*num_towers,
-                                                                                       iterator_type='initializable',
-                                                                                       **ITERATOR_PARAMS)
+            valid_iter, valid_dset, valid_iter_save_obj = fga.build_tfrecords_iterator(
+                valid_regex,
+                num_epochs=1,
+                shuffle_flag=False,
+                batch_size=batch_size*num_towers,
+                iterator_type='initializable',
+                **ITERATOR_PARAMS)
 
         # Define the iterator_handle placeholder
         iterator_handle = tf.placeholder(tf.string, shape=[])
@@ -136,19 +140,20 @@ def run_training_routine(train_regex, num_epochs=1, batch_size=8,
     feature_signal_path = ITERATOR_PARAMS.get('feature_signal_path', 'stimuli/signal')
     
     # Build the parallel optimizer
-    if BRAIN_PARAMS.get('MULTIBRAIN_PARAMS', {}):
-        # If MULTIBRAIN_PARAMS is non-empty, call `fga.create_multibrain_parallel_optimization`
-        update_grads, batch_loss, batch_loss_dict, batch_out_dict, batch_labels_dict, controls_dict = fga.create_multibrain_parallel_optimization(
-            optimizer, input_tensor_dict, feature_signal_path,
-            signal_rate, global_step, N_CLASSES_DICT, TASK_LOSS_PARAMS,
-            FRONTEND_PARAMS, COCH_PARAMS, BRAIN_PARAMS,
-            NORMAL_HEARING_PARAMS=NORMAL_HEARING_PARAMS,
-            controller=controller)    
-    else:
-        # Otherwise, call `fga.create_parallel_optimization`
-        update_grads, batch_loss, batch_loss_dict, batch_out_dict, batch_labels_dict, controls_dict = fga.create_parallel_optimization(
-         fga.training_model, optimizer, input_tensor_dict, feature_signal_path, signal_rate, global_step, N_CLASSES_DICT, TASK_LOSS_PARAMS,
-         FRONTEND_PARAMS, COCH_PARAMS, BRAIN_PARAMS, NORMAL_HEARING_PARAMS=NORMAL_HEARING_PARAMS, controller=controller)
+    update_grads, batch_loss, batch_loss_dict, batch_out_dict, batch_labels_dict, controls_dict = fga.create_parallel_optimization(
+        fga.training_model,
+        optimizer,
+        input_tensor_dict,
+        feature_signal_path,
+        signal_rate,
+        global_step,
+        N_CLASSES_DICT,
+        TASK_LOSS_PARAMS,
+        FRONTEND_PARAMS,
+        COCH_PARAMS,
+        BRAIN_PARAMS,
+        NORMAL_HEARING_PARAMS=NORMAL_HEARING_PARAMS,
+        controller=controller)
     
     # Build evaluation metrics if running intermittent validation
     if valid_flag:
@@ -159,9 +164,11 @@ def run_training_routine(train_regex, num_epochs=1, batch_size=8,
             valid_vars = [v for v in tf.local_variables() + tf.global_variables() if 'validation/' in v.name]
             valid_vars_initializer = tf.initializers.variables(valid_vars)
             if early_stopping_metrics:
-                validation_metric_cutoffs = functions_evaluation.EarlyStopping(list(early_stopping_metrics.keys()),
-                                                                               min_delta=early_stopping_metrics, 
-                                                                               patience=2, baseline=early_stopping_baselines)
+                validation_metric_cutoffs = functions_evaluation.EarlyStopping(
+                    list(early_stopping_metrics.keys()),
+                    min_delta=early_stopping_metrics,
+                    patience=2,
+                    baseline=early_stopping_baselines)
         # Setup valid_save_dict for saving validation metrics to a JSON file in the output directory
         valid_metric_filename = os.path.join(output_directory, 'validation_metrics.json')
         if os.path.isfile(valid_metric_filename):
@@ -197,10 +204,7 @@ def run_training_routine(train_regex, num_epochs=1, batch_size=8,
         if 'batchnorm_flag_placeholder' in controls_dict.keys():
             valid_feed_dict[controls_dict['batchnorm_flag_placeholder']] = False
         if 'dropout_flag_placeholder' in controls_dict.keys():
-            valid_feed_dict[controls_dict['dropout_flag_placeholder']] = False
-    
-    if debug_print: # list of things to print when debugging. Add to this dict. 
-        print_debug_layers = {}    
+            valid_feed_dict[controls_dict['dropout_flag_placeholder']] = False   
 
     ### BUILD SAVERS AND ATTEMPT TO LOAD PREVIOUS CHECKPOINTS ###
     print('\n\n\n >>> building savers and attempting to load vars <<< \n\n\n', flush=True)
@@ -226,86 +230,34 @@ def run_training_routine(train_regex, num_epochs=1, batch_size=8,
     trainable_brain = BRAIN_PARAMS.get('trainable', False)
     if BRAIN_PARAMS:
         brain_var_scope = 'brain_network'
-        if 'MULTIBRAIN_PARAMS' not in BRAIN_PARAMS:
-            # Build saver for single brain network (capable of saving/loading)
-            brain_ckpt_prefix_name = BRAIN_PARAMS.get('save_ckpt_path', 'brain_model.ckpt')
-            brain_globals = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=brain_var_scope)
-            brain_locals = tf.get_collection(tf.GraphKeys.LOCAL_VARIABLES, scope=brain_var_scope)
-            brain_variables =  brain_globals + brain_locals
-            if trainable_brain:
-                # Since brain network is trainable, checkpoints must be loaded/saved in output_directory
-                saver_brain_net, out_ckpt_loc_brain_net, brain_net_ckpt = fga.build_saver(
-                    sess, brain_variables, output_directory, restore_model_path=brain_net_ckpt_to_load,
-                    ckpt_prefix_name=brain_ckpt_prefix_name)
-                # Reset the checkpoint value to 0 so that the saver will be synced with the iterator
-                if not brain_net_ckpt_to_load:
-                    brain_net_ckpt_offset = brain_net_ckpt - iterator_ckpt
-                else:
-                    brain_net_ckpt_offset = brain_net_ckpt
-                print('brain_net_ckpt:', brain_net_ckpt)
-                print('brain_net_ckpt_offset:', brain_net_ckpt_offset)
-                if debug_print:
-                    first_layer_brain = [var for var in brain_variables if 'conv_0/kernel' in var.op.name]
-                    first_layer_brain = first_layer_brain[0]
-                    print_debug_layers['brain_conv1_weights'] = first_layer_brain
+        # Build saver for single brain network (capable of saving/loading)
+        brain_ckpt_prefix_name = BRAIN_PARAMS.get('save_ckpt_path', 'brain_model.ckpt')
+        brain_globals = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=brain_var_scope)
+        brain_locals = tf.get_collection(tf.GraphKeys.LOCAL_VARIABLES, scope=brain_var_scope)
+        brain_variables =  brain_globals + brain_locals
+        if trainable_brain:
+            # Since brain network is trainable, checkpoints must be loaded/saved in output_directory
+            saver_brain_net, out_ckpt_loc_brain_net, brain_net_ckpt = fga.build_saver(
+                sess, brain_variables, output_directory, restore_model_path=brain_net_ckpt_to_load,
+                ckpt_prefix_name=brain_ckpt_prefix_name)
+            # Reset the checkpoint value to 0 so that the saver will be synced with the iterator
+            if not brain_net_ckpt_to_load:
+                brain_net_ckpt_offset = brain_net_ckpt - iterator_ckpt
             else:
-                # Since brain network is not trainable, it can be loaded from outside output_directory
-                if os.path.basename(brain_ckpt_prefix_name) == brain_ckpt_prefix_name:
-                    brain_net_dir = output_directory
-                else:
-                    brain_net_dir = os.path.dirname(brain_ckpt_prefix_name)
-                # Since brain network is not trainable, values returned by fga.build_saver() are never used
-                _saver_brain_net, _out_ckpt_loc_brain_net, _brain_net_ckpt = fga.build_saver(
-                    sess, brain_variables, brain_net_dir,
-                    restore_model_path=brain_net_ckpt_to_load,
-                    ckpt_prefix_name=os.path.basename(brain_ckpt_prefix_name))
+                brain_net_ckpt_offset = brain_net_ckpt
+            print('brain_net_ckpt:', brain_net_ckpt)
+            print('brain_net_ckpt_offset:', brain_net_ckpt_offset)
         else:
-            # Build savers for multiple brain networks (only used for loading)
-            assert not trainable_brain, "BRAIN_PARAMS['trainable'] must be set to False in multibrain mode"
-            for brain_key in BRAIN_PARAMS['MULTIBRAIN_PARAMS'].keys():
-                brain_scope_re = '{}_device_*'.format(brain_key)
-                brain_globals = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=brain_scope_re)
-                brain_locals = tf.get_collection(tf.GraphKeys.LOCAL_VARIABLES, scope=brain_scope_re)
-                brain_variables =  brain_globals + brain_locals
-                # Define map between multibrain scopes and `brain_var_scope` (matches saved ckpt)
-                brain_variables_dict = {
-                    re.sub('brain[0-9]\w*_device_[0-9]', brain_var_scope, var.name[:-2]) : var 
-                        for var in brain_variables
-                }
-                if 'germain' in brain_key.lower():
-                    brain_variables_dict = {
-                        var.name[var.name.find('loss_') : var.name.rfind(':')] : var 
-                            for var in brain_variables
-                    }
-                # Load checkpoint for each brain_network
-                brain_net_path = BRAIN_PARAMS['MULTIBRAIN_PARAMS'][brain_key].get('save_ckpt_path', None)
-                # Since brain networks are not trainable, they can be loaded from outside output_directory
-                if os.path.basename(brain_net_path) == brain_net_path:
-                    brain_net_dir = output_directory
-                else:
-                    brain_net_dir = os.path.dirname(brain_net_path)
-                # Since brain networks are not trainable, values returned by fga.build_saver() are never used
-                _saver_brain_net, _out_ckpt_loc_brain_net, _brain_net_ckpt = fga.build_saver(
-                    sess, brain_variables_dict, brain_net_dir,
-                    restore_model_path=None,
-                    ckpt_prefix_name=os.path.basename(brain_net_path))
-
-    # Build saver for the frontend_model (attempts load if checkpoint exists)
-    trainable_frontend = FRONTEND_PARAMS.get('trainable', False)
-    if FRONTEND_PARAMS:
-        frontend_ckpt_prefix_name = FRONTEND_PARAMS.get('save_ckpt_path', 'frontend_model.ckpt')
-        frontend_var_scope = 'frontend_model'
-        frontend_globals = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=frontend_var_scope)
-        frontend_locals = tf.get_collection(tf.GraphKeys.LOCAL_VARIABLES, scope=frontend_var_scope)
-        frontend_variables =  frontend_globals + frontend_locals
-        saver_frontend, out_ckpt_loc_frontend, frontend_ckpt = fga.build_saver(sess, frontend_variables, output_directory,
-                                                                               restore_model_path=frontend_ckpt_to_load,
-                                                                               ckpt_prefix_name=frontend_ckpt_prefix_name)
-        # reset the checkpoint value to 0 so that the saver will be synced with the iterator
-        if not frontend_ckpt_to_load:
-            frontend_ckpt_offset = frontend_ckpt - iterator_ckpt
-        else:
-            frontend_ckpt_offset = frontend_ckpt
+            # Since brain network is not trainable, it can be loaded from outside output_directory
+            if os.path.basename(brain_ckpt_prefix_name) == brain_ckpt_prefix_name:
+                brain_net_dir = output_directory
+            else:
+                brain_net_dir = os.path.dirname(brain_ckpt_prefix_name)
+            # Since brain network is not trainable, values returned by fga.build_saver() are never used
+            _saver_brain_net, _out_ckpt_loc_brain_net, _brain_net_ckpt = fga.build_saver(
+                sess, brain_variables, brain_net_dir,
+                restore_model_path=brain_net_ckpt_to_load,
+                ckpt_prefix_name=os.path.basename(brain_ckpt_prefix_name))
     
     ### MAIN TRAINING LOOP ###
     print('\n\n\n >>> begin training routine <<< \n\n\n', flush=True)
@@ -318,19 +270,6 @@ def run_training_routine(train_regex, num_epochs=1, batch_size=8,
     start_time = time.time()
     all_print_out = sess.run([batch_loss] + print_metric_list, feed_dict=train_feed_dict)
     print(disp_str.format(step,step*batch_size*num_towers,(time.time()-start_time),*all_print_out), flush=True)
-
-    if debug_print: # These layers will print if in debug mode 
-        if BRAIN_PARAMS:
-            batch_norm_gamma = [var for var in brain_variables if 'batch_norm_0/gamma' in var.op.name]
-            print_debug_layers['batch_norm_gamma'] = batch_norm_gamma[0]
-            batch_norm_mean = [var for var in brain_variables if 'batch_norm_0/moving_mean' in var.op.name]
-            print_debug_layers['batch_norm_moving_mean'] = batch_norm_mean[0]
-            batch_norm_variance = [var for var in brain_variables if 'batch_norm_0/moving_variance' in var.op.name]
-            print_debug_layers['batch_norm_moving_variance'] = batch_norm_variance[0]
-            batch_norm_beta = [var for var in brain_variables if 'batch_norm_0/beta' in var.op.name]
-            print_debug_layers['batch_norm_beta'] = batch_norm_beta[0]
-        print_debug_layers['learning_rate'] = optimizer._lr
-        print_debug_layers['global_step'] = global_step
 
     try:
         while True: # Training procedure will run until this infinite loop is broken
@@ -346,11 +285,6 @@ def run_training_routine(train_regex, num_epochs=1, batch_size=8,
                     print("### Checkpointing brain_network (step {})...".format(step+brain_net_ckpt_offset), flush=True)
                     saver_brain_net.save(sess, out_ckpt_loc_brain_net, global_step=step+brain_net_ckpt_offset,
                                          write_meta_graph=False)
-                # Checkpoint frontend_model (if path is specified and frontend_model is trainable)
-                if trainable_frontend:
-                    print("### Checkpointing frontend_model (step {})...".format(step+frontend_ckpt_offset), flush=True)
-                    saver_frontend.save(sess, out_ckpt_loc_frontend, global_step=step+frontend_ckpt_offset,
-                                        write_meta_graph=False)
 
             # ====== Display training step (gradients should be updated) ======
             if step % display_step == 0:
@@ -358,15 +292,6 @@ def run_training_routine(train_regex, num_epochs=1, batch_size=8,
                 print(disp_str.format(step, step*batch_size*num_towers, (time.time()-start_time), *all_print_out[:-1]),
                       flush=True) # don't print the grad
                 if sig_handler.should_exit(): raise SystemExit("Approaching job scheduler limit!")
-                # print if using debug mode (runs an additional batch through)
-                if debug_print:
-                    debug_print_names = list(print_debug_layers.keys())
-                    debug_print_names.sort()
-                    debug_layers_eval = sess.run([print_debug_layers[layer] for layer in debug_print_names],
-                                                 feed_dict=train_feed_dict)
-                    for layer_idx, layer in enumerate(debug_print_names):
-                        print('    10 Examples from %s:, %s'%(layer, list(debug_layers_eval[layer_idx].ravel()[0:10])),
-                              flush=True)
 
             # ====== No-display training step (gradients should be updated) ======
             else: 
@@ -391,21 +316,11 @@ def run_training_routine(train_regex, num_epochs=1, batch_size=8,
                                          and (':probs_out' not in name) and ('_audio' not in name)):
                                         print('    {}: {}'.format(name, evaluated_batch[name]))
 
-                            # print if using debug mode (runs an additional batch through)
-                            if debug_print:
-                                debug_print_names = list(print_debug_layers.keys())
-                                debug_print_names.sort()
-                                debug_layers_eval = sess.run([print_debug_layers[layer] for layer in debug_print_names], feed_dict=train_feed_dict)
-                                for layer_idx, layer in enumerate(debug_print_names):
-                                    print('    10 Examples from %s:, %s'%(layer, list(debug_layers_eval[layer_idx].ravel()[0:10])), flush=True)
-
                     except (tf.errors.OutOfRangeError, tf.errors.InvalidArgumentError) as e:
                         # NOTE: InvalidArgumentError occurs when trying to unevenly split the last batch across GPUs
                         print('=== end of validation check: saving/printing summary metrics')
                         if trainable_brain:
                             valid_save_dict['step'].append(int(step + brain_net_ckpt_offset))
-                        elif trainable_frontend:
-                            valid_save_dict['step'].append(int(step + frontend_ckpt_offset))
                         else:
                             valid_save_dict['step'].append(int(step))
                         for key in set(valid_save_dict.keys()).intersection(evaluated_batch.keys()):
@@ -461,9 +376,6 @@ def run_training_routine(train_regex, num_epochs=1, batch_size=8,
         if trainable_brain: 
             print("### Checkpointing brain_network (step {})...".format(step+brain_net_ckpt_offset), flush=True)
             saver_brain_net.save(sess, out_ckpt_loc_brain_net, global_step=step+brain_net_ckpt_offset, write_meta_graph=False)
-        if trainable_frontend:
-            print("### Checkpointing frontend_model (step {})...".format(step+frontend_ckpt_offset), flush=True)
-            saver_frontend.save(sess, out_ckpt_loc_frontend, global_step=step+frontend_ckpt_offset, write_meta_graph=False)
         print('Step: {} | Error count: {}'.format(step, errors_count), flush=True)
         print("Training stopped.", flush=True)
     sess.close()
@@ -471,59 +383,75 @@ def run_training_routine(train_regex, num_epochs=1, batch_size=8,
     return True
 
 
-
-def run_eval_routine(tfrecords_regex, batch_size=8, display_step=5,
-                     output_directory="/saved_models/example_arch",
-                     brain_net_ckpt_to_load=None, frontend_ckpt_to_load=None, controller="/cpu:0", 
-                     random_seed=517, debug_print=False, signal_rate=20000, N_CLASSES_DICT={}, TASK_LOSS_PARAMS=None, 
-                     ITERATOR_PARAMS={}, FRONTEND_PARAMS={}, COCH_PARAMS={}, BRAIN_PARAMS={},
-                     maindata_keyparts=[":labels_true", ":labels_pred", ":correct_pred"], metadata_keys=[],
-                     audio_writing_params={}, **kwargs):
+def run_eval_routine(
+        tfrecords_regex,
+        batch_size=8,
+        display_step=5,
+        output_directory="/saved_models/example_arch",
+        brain_net_ckpt_to_load=None,
+        frontend_ckpt_to_load=None,
+        controller="/cpu:0", 
+        random_seed=517,
+        signal_rate=20000,
+        N_CLASSES_DICT={},
+        TASK_LOSS_PARAMS=None, 
+        ITERATOR_PARAMS={},
+        FRONTEND_PARAMS={},
+        COCH_PARAMS={},
+        BRAIN_PARAMS={},
+        maindata_keyparts=[":labels_true", ":labels_pred", ":correct_pred"],
+        metadata_keys=[],
+        **kwargs):
     '''
-    This function runs the evaluation routine (brain_network or frontend_model + brain_network)
+    This function runs the evaluation routine (brain_network)
     
-    Args:
-        tfrecords_regex (str): regex that globs .tfrecords files for evaluation dataset
-        batch_size (int): number of examples per batch per GPU
-        display_step (int): print out evaluation info every display_step steps
-        output_directory (str): location to load model checkpoints from
-        brain_net_ckpt_to_load (str): path to brain_network .ckpt-# to load, None checks for most recent checkpoint
-        frontend_ckpt_to_load (str): path to frontend .ckpt-# to load, None checks for most recent checkpoint
-        controller (str): specify device to host input pipeline and merge towers
-        random_seed (int): random seed to set tensorflow and numpy
-        debug_print (boolean): if True, adds additional print statements
-        signal_rate (int): sampling rate of input signal (Hz)
-        N_CLASSES_DICT (dict): dictionary specifying number of output classes for each task
-        TASK_LOSS_PARAMS (dict): dictionary containing the loss parameters for each task, keys are the task paths
-        ITERATOR_PARAMS (dict): parameters for building the input data iterator
-        FRONTEND_PARAMS (dict): parameters for building the frontend_model graph
-        COCH_PARAMS (dict): parameters for building the cochlear model
-        BRAIN_PARAMS (dict): parameters for building the brain network
-        maindata_keyparts (list): list of substrings to indicate which evaluation tensors to include in output_file
-        metadata_keys (list): list of strings to indicate which input tensors to include in output_dict
-        audio_writing_params (dict): parameters specifying how audio files are written (no audio files saved if empty)
+    Args
+    ----
+    tfrecords_regex (str): regex that globs .tfrecords files for evaluation dataset
+    batch_size (int): number of examples per batch per GPU
+    display_step (int): print out evaluation info every display_step steps
+    output_directory (str): location to load model checkpoints from
+    brain_net_ckpt_to_load (str): path to brain_network .ckpt-# to load, None checks for most recent checkpoint
+    frontend_ckpt_to_load (str): path to frontend .ckpt-# to load, None checks for most recent checkpoint
+    controller (str): specify device to host input pipeline and merge towers
+    random_seed (int): random seed to set tensorflow and numpy
+    signal_rate (int): sampling rate of input signal (Hz)
+    N_CLASSES_DICT (dict): dictionary specifying number of output classes for each task
+    TASK_LOSS_PARAMS (dict): dictionary containing the loss parameters for each task, keys are the task paths
+    ITERATOR_PARAMS (dict): parameters for building the input data iterator
+    FRONTEND_PARAMS (dict): parameters for building the frontend_model graph
+    COCH_PARAMS (dict): parameters for building the cochlear model
+    BRAIN_PARAMS (dict): parameters for building the brain network
+    maindata_keyparts (list): list of substrings to indicate which evaluation tensors to include in output_file
+    metadata_keys (list): list of strings to indicate which input tensors to include in output_dict
         
-    Returns:
-        output_dict (dict): dictionary of labels and model predictions
+    Returns
+    -------
+    output_dict (dict): dictionary of labels and model predictions
     '''
     ### RESET DEFAULT GRAPH AND SET RANDOM SEEDS ###
     tf.reset_default_graph()
     tf.random.set_random_seed(random_seed)
     np.random.seed(random_seed)
-    if BRAIN_PARAMS.get('MULTIBRAIN_PARAMS', {}):
-        num_towers = 1 # No batch multiplication in multibrain mode
-    else:
-        num_towers = len(fga.get_available_gpus()) # Used to scale the batch_size for iterator
     
+    num_towers = len(fga.get_available_gpus()) # Used to scale the batch_size for iterator
+    
+    if BRAIN_PARAMS.get('MULTIBRAIN_PARAMS', {}):
+        raise NotImplementedError("MULTIBRAIN_PARAMS is not implemented")    
+    if FRONTEND_PARAMS:
+        raise NotImplementedError("FRONTEND_PARAMS is not implemented")
+
     ### BUILD THE INPUT PIPELINE ###
     print('\n\n\n >>> building input iterator <<< \n\n\n')
     with tf.device(controller):
         # Build the one-shot iterator
-        iterator, dataset, iterator_save_obj = fga.build_tfrecords_iterator(tfrecords_regex,
-                                                                            num_epochs=1, shuffle_flag=False,
-                                                                            batch_size=batch_size*num_towers,
-                                                                            iterator_type='one-shot',
-                                                                            **ITERATOR_PARAMS)
+        iterator, dataset, iterator_save_obj = fga.build_tfrecords_iterator(
+            tfrecords_regex,
+            num_epochs=1,
+            shuffle_flag=False,
+            batch_size=batch_size*num_towers,
+            iterator_type='one-shot',
+            **ITERATOR_PARAMS)
         # Input tensor dict containing batch_size * num_towers examples:
         input_tensor_dict = iterator.get_next()
     
@@ -541,9 +469,7 @@ def run_eval_routine(tfrecords_regex, batch_size=8, display_step=5,
             batch_labels_dict[task_key] = tf.concat(batch_labels_dict[task_key], 0)
         for audio_key in batch_audio_dict.keys():
             batch_audio_dict[audio_key] = tf.concat(batch_audio_dict[audio_key], 0)
-    # TODO? evaluation could probably be faster if we didn't have to concatenate logits and labels on the CPU.
-    # Could we make the functions in `functions_evaluation` run on the GPU-split tensors?
-    if not audio_writing_params: batch_audio_dict = {} # batch_audio_dict should be empty if not saving audio files
+    batch_audio_dict = {} # batch_audio_dict should be empty if not saving audio files
     all_evaluation_measures_dict = functions_evaluation.make_task_evaluation_metrics(
         batch_out_dict, batch_labels_dict, batch_loss_dict,
         batch_audio_dict=batch_audio_dict, TASK_LOSS_PARAMS=TASK_LOSS_PARAMS)
@@ -573,29 +499,19 @@ def run_eval_routine(tfrecords_regex, batch_size=8, display_step=5,
         brain_globals = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=brain_var_scope)
         brain_locals = tf.get_collection(tf.GraphKeys.LOCAL_VARIABLES, scope=brain_var_scope)
         brain_variables =  brain_globals + brain_locals
-        saver_brain_net, out_ckpt_loc_brain_net, brain_net_ckpt = fga.build_saver(sess, brain_variables, output_directory,
-                                                                                  restore_model_path=brain_net_ckpt_to_load,
-                                                                                  ckpt_prefix_name=brain_ckpt_prefix_name)
-    if FRONTEND_PARAMS:
-        frontend_ckpt_prefix_name = FRONTEND_PARAMS.get('save_ckpt_path', 'frontend_model.ckpt')
-        frontend_var_scope = 'frontend_model'
-        frontend_globals = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=frontend_var_scope)
-        frontend_locals = tf.get_collection(tf.GraphKeys.LOCAL_VARIABLES, scope=frontend_var_scope)
-        frontend_variables =  frontend_globals + frontend_locals
-        saver_frontend, out_ckpt_loc_frontend, frontend_ckpt = fga.build_saver(sess, frontend_variables, output_directory,
-                                                                               restore_model_path=frontend_ckpt_to_load,
-                                                                               ckpt_prefix_name=frontend_ckpt_prefix_name)
+        saver_brain_net, out_ckpt_loc_brain_net, brain_net_ckpt = fga.build_saver(
+            sess,
+            brain_variables,
+            output_directory,
+            restore_model_path=brain_net_ckpt_to_load,
+            ckpt_prefix_name=brain_ckpt_prefix_name)
     
     ### PREPARE OUTPUT DICTIONARY ###
-    # TODO: possibly move much of this block to an external function
     output_dict = {}
     output_dict['tfrecords_regex'] = tfrecords_regex
     if BRAIN_PARAMS:
         output_dict['out_ckpt_loc_brain_net'] = out_ckpt_loc_brain_net
         output_dict['brain_net_ckpt'] = int(brain_net_ckpt)
-    if FRONTEND_PARAMS:
-        output_dict['out_ckpt_loc_frontend'] = out_ckpt_loc_frontend
-        output_dict['frontend_ckpt'] = int(frontend_ckpt)
     # Decide which of the tensors in all_evaluation_measures_dict should be included in the output file
     maindata_keys = []
     for key in all_evaluation_measures_dict.keys():
@@ -618,23 +534,15 @@ def run_eval_routine(tfrecords_regex, batch_size=8, display_step=5,
             all_evaluation_measures_dict[key] = tf.cast(all_evaluation_measures_dict[key], tf.float32)
     print('>>> `output_dict` structure <<<')
     for key in output_dict.keys(): print('-->', key, output_dict[key])
-    
-    ### PREPARE FILENAMES AND DIRECTORIES FOR OUTPUT AUDIO ###
-    if audio_writing_params:
-        for key in set(all_evaluation_measures_dict.keys()).intersection(['input_audio', 'frontend_audio']):
-            if not key in audio_writing_params.keys():
-                audio_writing_params[key] = 'saved_audio/' + key + '_stimulus{:03}.wav'
-            audio_writing_params[key] = os.path.join(output_directory, audio_writing_params[key])
-            if not os.path.exists(os.path.dirname(audio_writing_params[key])):
-                os.makedirs(os.path.dirname(audio_writing_params[key]))
    
-    evaluation_feed_dict = {controls_dict['batchnorm_flag_placeholder']:controls_dict['batchnorm_flag'],
-                            controls_dict['dropout_flag_placeholder']:controls_dict['dropout_flag']} 
+    evaluation_feed_dict = {
+        controls_dict['batchnorm_flag_placeholder']:controls_dict['batchnorm_flag'],
+        controls_dict['dropout_flag_placeholder']:controls_dict['dropout_flag']
+    } 
 
     ### MAIN EVALUATION LOOP ###
     print('\n\n\n >>> begin evaluation routine <<< \n\n\n')
     step, example_num = 0, 0
-    example_limit = audio_writing_params.get('example_limit', 26)
     try:
         while True:
             # Evaluate all tensors in all_evaluation_measures_dict
@@ -644,25 +552,11 @@ def run_eval_routine(tfrecords_regex, batch_size=8, display_step=5,
                 key_val = np.array(evaluated_batch[key]).tolist()
                 if not isinstance(key_val, list): key_val = [key_val] # Handles special case of non-array values
                 output_dict[key].extend(key_val)
-            # Write audio files (if audio_writing_params is non-empty)
-            if audio_writing_params and example_num < example_limit:
-                for idx_in_batch in range(evaluated_batch[key].shape[0]):
-                    if example_num >= example_limit: break
-                    for key in set(evaluated_batch.keys()).intersection(['input_audio', 'frontend_audio']):
-                        wav_fn = audio_writing_params[key].format(example_num)
-                        wav_data = evaluated_batch[key][idx_in_batch]
-                        if audio_writing_params.get('rms', False):
-                            wav_data = wav_data - np.mean(wav_data)
-                            wav_data = audio_writing_params['rms'] * wav_data / np.sqrt(np.mean(np.square(wav_data)))
-                        print(wav_fn)
-                        scipy.io.wavfile.write(wav_fn, signal_rate, wav_data)
-                    example_num += 1
             
             # Display progress
-            step+=1
+            step += 1
             if step % display_step == 0:
                 print('### batch {:08}'.format(step))
-                # TODO: this is sloppy... move to a function outside? Easiest way is to print everything... 
                 for batch_labels_key in batch_labels_dict.keys():
                     for name in list(all_evaluation_measures_dict.keys()):
                         if (batch_labels_key in name) and ('_update_op' not in name) and (':probs_out' not in name) and ('_audio' not in name):
