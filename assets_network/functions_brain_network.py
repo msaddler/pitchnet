@@ -1,13 +1,14 @@
 import os
 import sys
-import tensorflow as tf
+import json
 import functools
 import pickle
 import numpy as np
-import json
+import tensorflow as tf
+
 from functions_parameter_handling import are_identical_dicts
 
-sys.path.append('../msutil')
+sys.path.append(os.path.abspath(os.path.join(sys.path[0], '../msutil')))
 import util_stimuli
 
 

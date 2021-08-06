@@ -287,7 +287,6 @@ def run_training_routine(
                 all_print_out = sess.run([batch_loss] + print_metric_list + [update_grads], feed_dict=train_feed_dict)
                 print(disp_str.format(step, step*batch_size*num_towers, (time.time()-start_time), *all_print_out[:-1]),
                       flush=True) # don't print the grad
-                if sig_handler.should_exit(): raise SystemExit("Approaching job scheduler limit!")
 
             # ====== No-display training step (gradients should be updated) ======
             else: 
@@ -420,7 +419,7 @@ def run_eval_routine(
     BRAIN_PARAMS (dict): parameters for building the brain network
     maindata_keyparts (list): list of substrings to indicate which evaluation tensors to include in output_file
     metadata_keys (list): list of strings to indicate which input tensors to include in output_dict
-        
+
     Returns
     -------
     output_dict (dict): dictionary of labels and model predictions

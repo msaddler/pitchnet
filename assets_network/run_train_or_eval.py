@@ -75,7 +75,7 @@ def run_train_or_eval(
     # ===================================================================================================== #
     if not eval_only_mode:
         # Add train_regex to CONFIG/EXTRAS for record-keeping purposes (EXTRAS are not used by the routine)
-        CONFIG['EXTRAS']['train_regex'] = train_regex
+        CONFIG['EXTRAS']['train_regex_brain'] = train_regex
         # Write this addition to the config file
         fph.write_config_dict_to_json(
             CONFIG,

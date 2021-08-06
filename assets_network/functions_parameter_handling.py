@@ -3,6 +3,8 @@ import json
 import shutil
 import filecmp
 import copy
+from functools import reduce
+import operator
 
 
 def create_config_dict_from_kwargs(**kwargs):
@@ -60,8 +62,8 @@ def config_dict_matches_config_filename(config_dict, config_filename, ignore_con
     print("config_dict similarity check is ignoring: {}".format(ignore_config_dict_keys))
     for k in ignore_config_dict_keys:
         k_nested = k.split('/')
-        remove_from_dict(config_dict_query,k_nested)
-        remove_from_dict(config_dict_reference,k_nested)
+        remove_from_dict(config_dict_query, k_nested)
+        remove_from_dict(config_dict_reference, k_nested)
     # Return boolean indiciating if the query and the reference dictionaries are identical
     return are_identical_dicts(config_dict_query, config_dict_reference)    
 
@@ -132,3 +134,10 @@ def migrate_brain_config_standard(CONFIG, new_output_directory, force_overwrite)
                         shutil.copyfile(tmp, tmp_dest_filename)
             ignore_config_dict_keys.append('BRAIN_PARAMS/' + key)
     return CONFIG, ignore_config_dict_keys
+
+
+def get_from_dict(dataDict, mapList):
+    return reduce(operator.getitem, mapList, dataDict)
+
+def remove_from_dict(dataDict, mapList):
+    get_from_dict(dataDict, mapList[:-1]).pop(mapList[-1], None)
