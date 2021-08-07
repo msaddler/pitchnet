@@ -4,7 +4,7 @@ import json
 import numpy as np
 import tensorflow as tf
 
-import arch_generate_random_CNN
+import arch_search_generate_random_CNN
 
 sys.path.append('/code_location/multi_gpu/')
 import functions_brain_network
@@ -17,7 +17,7 @@ def generate_possible_architecture(input_shape=[None, 100, 500, 1], n_classes_di
     impossible_architecture = True
     attempt_count = 0
     while impossible_architecture:
-        network_layer_list, _ = arch_generate_random_CNN.get_random_cnn_architecture()
+        network_layer_list, _ = arch_search_generate_random_CNN.get_random_cnn_architecture()
         try:
             tf.reset_default_graph()
             input_tensor = tf.placeholder(tf.float32, shape=input_shape, name='input_tensor')
@@ -54,7 +54,7 @@ def save_network_architecture(network_layer_list, network_arch_fn):
     return network_arch_fn
 
 
-def generate_output_directory(output_dir, source_config_fn='config_arch_search_v01.json'):
+def generate_output_directory(output_dir, source_config_fn='config_arch_search_v02.json'):
     '''
     '''
     # Create output directory if it does not exist

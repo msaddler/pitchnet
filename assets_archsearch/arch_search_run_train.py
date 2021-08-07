@@ -6,7 +6,7 @@ import numpy as np
 import pdb
 import argparse
 
-import arch_generate_output_directory
+import arch_search_generate_output_directory
 
 sys.path.append('/code_location/multi_gpu/')
 import run_train_or_eval
