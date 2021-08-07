@@ -5,10 +5,9 @@ import numpy as np
 import pdb
 import scipy.signal
 
-sys.path.append('/om2/user/msaddler/python-packages/msutil')
+sys.path.append('/packages/msutil')
 import util_stimuli
 
-sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
 from dataset_util import initialize_hdf5_file, write_example_to_hdf5
 
 

@@ -4,7 +4,6 @@ import h5py
 import glob
 import numpy as np
 import argparse
-sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
 from dataset_util import get_f0_bins, f0_to_label, f0_to_octave, f0_to_normalized
 from dataset_util import label_to_f0, octave_to_f0, normalized_to_f0
 

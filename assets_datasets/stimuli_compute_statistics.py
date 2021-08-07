@@ -9,12 +9,11 @@ import copy
 import argparse
 import pdb
 
-sys.path.append('/om2/user/msaddler/python-packages/msutil')
+import dataset_util
+
+sys.path.append('/packages/msutil')
 import util_stimuli
 import util_misc
-
-sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
-import dataset_util
 
 
 def summarize_spectral_statistics(regex_fn,

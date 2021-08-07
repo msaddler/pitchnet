@@ -4,7 +4,7 @@ import numpy as np
 import glob
 import argparse
 
-sys.path.append('/om2/user/msaddler/python-packages/bez2018model')
+sys.path.append('/packages/bez2018model')
 from bez2018model_run_hdf5_dataset import parallel_run_dataset_generation
 
 

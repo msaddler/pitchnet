@@ -11,6 +11,8 @@ import pdb
 import warnings
 warnings.filterwarnings('ignore')
 
+import dataset_util
+
 # Import pystraight and librosa for `run_pystraight_analysis`
 try:
     sys.path.append('/om2/user/msaddler/python-packages/')
@@ -20,12 +22,9 @@ try:
 except ImportError as e:
     print('[FAILED] `import pystraight; import matlab.engine; import librosa`')
 
-sys.path.append('/om2/user/msaddler/python-packages/msutil')
+sys.path.append('/packages/msutil')
 import util_stimuli # note this package also imports librosa
 import util_misc
-
-sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
-import dataset_util
 
 
 def summarize_pystraight_statistics(regex_fn,
