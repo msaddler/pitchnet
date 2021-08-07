@@ -10,7 +10,7 @@ import scipy.spatial.distance
 import copy
 import util_figures_psychophysics
 
-sys.path.append('/om2/user/msaddler/python-packages/msutil')
+sys.path.append('/packages/msutil')
 import util_figures
 
 

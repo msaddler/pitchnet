@@ -11,7 +11,7 @@ import matplotlib.colors
 
 import util_human_model_comparison
 
-sys.path.append('/om2/user/msaddler/python-packages/msutil')
+sys.path.append('/packages/msutil')
 import util_figures
 
 

@@ -9,7 +9,7 @@ import scipy.optimize
 import scipy.stats
 import f0dl_bernox
 
-sys.path.append('/om2/user/msaddler/python-packages/msutil')
+sys.path.append('/packages/msutil')
 import util_misc
 
 
