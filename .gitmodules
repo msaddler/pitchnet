@@ -1,3 +1,9 @@
 [submodule "ibmHearingAid"]
 	path = ibmHearingAid
 	url = git@github.mit.edu:jfeather/ibmHearingAid.git
+[submodule "packages/bez2018model"]
+	path = packages/bez2018model
+	url = git@github.mit.edu:msaddler/bez2018model.git
+[submodule "packages/msutil"]
+	path = packages/msutil
+	url = git@github.mit.edu:msaddler/msutil.git
