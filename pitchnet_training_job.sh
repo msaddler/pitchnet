@@ -35,7 +35,7 @@ singularity exec --nv \
 -B /om2/user/msaddler/pitchnet/packages:/packages \
 -B /om2/user/msaddler/pitchnet/saved_models:/saved_models \
 /om2/user/msaddler/vagrant/tensorflow-1.13.1-pitchnet.simg \
-python /om2/user/msaddler/pitchnet/assets_network/run_train_or_eval.py $OUTDIR \
+python -u /packages/tfutil/run_train_or_eval.py $OUTDIR \
 -dt "$DATA_TRAIN" \
 -de "$DATA_EVAL" \
 -t -e -f \

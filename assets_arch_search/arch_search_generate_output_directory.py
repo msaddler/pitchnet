@@ -6,7 +6,7 @@ import tensorflow as tf
 
 import arch_search_generate_random_CNN
 
-sys.path.append('/code_location/multi_gpu/')
+sys.path.append('/packages/tfutil')
 import functions_brain_network
 import functions_parameter_handling
 

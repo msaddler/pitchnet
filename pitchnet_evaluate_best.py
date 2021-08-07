@@ -9,7 +9,7 @@ import numpy as np
 import tensorflow as tf
 from google.protobuf.json_format import MessageToJson
 
-sys.path.append('assets_network')
+sys.path.append('/packages/tfutil')
 import run_train_or_eval
 
 

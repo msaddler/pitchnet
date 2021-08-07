@@ -8,7 +8,7 @@ import argparse
 
 import arch_search_generate_output_directory
 
-sys.path.append('/code_location/multi_gpu/')
+sys.path.append('/packages/msutil')
 import run_train_or_eval
 
 

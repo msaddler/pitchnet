@@ -14,14 +14,14 @@ import pitchnet_evaluate_best
 sys.path.append('/om2/user/msaddler/pitchnet/assets_psychophysics')
 import util_figures_psychophysics
 
-sys.path.append('/om2/user/msaddler/python-packages/msutil')
+sys.path.append('/packages/msutil')
 import util_figures
 import util_misc
 
 sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
 import dataset_util
 
-sys.path.append('ibmHearingAid/multi_gpu')
+sys.path.append('/packages/tfutil')
 import functions_graph_assembly as fga
 
 
