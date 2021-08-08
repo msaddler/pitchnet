@@ -22,13 +22,12 @@ PATH_DATA="/om/user/msaddler/data_pitchnet"
 PATH_SAVED_MODELS="/om2/user/msaddler/pitchnet/saved_models"
 PATH_PACKAGES="/om2/user/msaddler/pitchnet/packages"
 
-SLURM_ARRAY_TASK_ID=302
 ZPJID=$(printf "%04d" $SLURM_ARRAY_TASK_ID)
-OUTDIR='/saved_models/arch_search_v02_topN/sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order/arch_'$ZPJID
+OUTDIR='/saved_models/arch_search_v02_topN/DEMO/arch_'$ZPJID
 DATA_TAG="sr20000_cf100_species002_spont070_BW10eN1_IHC3000Hz_IHC7order"
 # TFRECORDS_REGEX="stim_waveform.tfrecords"
 TFRECORDS_REGEX="$DATA_TAG/bez2018meanrates_*.tfrecords"
-EFN_PREFIX='DEBUG_EVAL_SOFTMAX_'
+EFN_PREFIX='EVAL_SOFTMAX_'
 OUTPUT_LOG_FN=$OUTDIR'/output_eval.log'
 
 echo "[START EVALUATION] $OUTPUT_LOG_FN"
