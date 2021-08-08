@@ -1,10 +1,10 @@
 ### Pitchnet
 
-This repository contains code and models to accompany the [manuscript] (https://doi.org/10.1101/2020.11.19.389999): "Deep neural network models reveal interplay of peripheral coding and stimulus statistics in pitch perception" by Mark R. Saddler, Ray Gonzalez, and Josh H. McDermott.
+This repository contains code and models to accompany the [manuscript](https://doi.org/10.1101/2020.11.19.389999): "Deep neural network models reveal interplay of peripheral coding and stimulus statistics in pitch perception" by Mark R. Saddler, Ray Gonzalez, and Josh H. McDermott.
 
 ### System requirements
 
-A Singularity container (tensorflow-1.13.1-pitchnet.simg) with all required software is included in this code release. The Singularity environment was built on a linux-gnu operating system (CentOS Linux 7) with Singularity version 3.4.1. To run models using the Tensorflow version included in the Singularity environment, a CUDA Version: 11.2 - supported GPU is required (estimated runtimes reported in `DEMO.ipynb` are based on one NVIDIA TITAN-Xp GPU).
+A Singularity container (tensorflow-1.13.1-pitchnet.simg) with all required software is included in this code release. The Singularity environment was built on a linux-gnu operating system (CentOS Linux 7) with Singularity version 3.4.1. To run models using the Tensorflow version included in the Singularity environment, a CUDA Version: 11.2 - supported GPU is required (estimated runtimes reported in `DEMO.ipynb` are based on one NVIDIA titan-x GPU).
 
 To run the Singularity environment and list included Python packages:
 ```
@@ -106,7 +106,7 @@ $ pip list
 
 ### Installation instructions
 
-All code except Python wrapper around the Bruce et al. (2018) Auditory Nerve Model (`/packages/bez2018model`) comes pre-compiled and can be run within the Singularity environment without additional installation. To install the auditory nerve model:
+All code except the Python wrapper around the Bruce et al. (2018) Auditory Nerve Model (`/packages/bez2018model`) comes pre-compiled and can be run within the Singularity environment without additional installation. To install the auditory nerve model:
 ```
 $ cd pitchnet
 $ singularity exec --nv -B ./packages:/packages tensorflow-1.13.1-pitchnet.simg bash
@@ -123,7 +123,7 @@ See the `DEMO.ipynb` Jupyter Notebook for a walk-through of how to generate simu
 
 ### Data and model availability
 
-To keep the size of this code release manageable, we have only included pre-trained model checkpoints for our default (maximally human-like) model. The default model consists of 10 network architectures (the 10 best-performing networks from our large-scale random DNN architecture search):
+To keep the size of this code release manageable, we have only included pre-trained model checkpoints for our default (most human-like) model. The default model consists of 10 distinct deep neural network architectures (the 10 best-performing networks from our large-scale random DNN architecture search):
 ```
 $ du -hd1 models/default/       
     24M     models/default/arch_0083
@@ -140,7 +140,7 @@ $ du -hd1 models/default/
 ```
 Model checkpoints for all other models (e.g., networks trained with altered cochlear models or sound statistics) referenced in the manuscript are available upon request to the authors.
 
-Audio and simulated auditory nerve representation datasets for training and evaluating models are also available upon request to the authors.
+All datasets used to train and evaluate models are also available upon request to the authors. Datasets can be made available as sound waveforms and/or as simulated auditory nerve representations (most of our models operate on simulated auditory nerve input):
 ```
 Main training + validation dataset (speech + instrument clips embedded in real-world background noise):
 |__ Sound waveforms only: 120G
