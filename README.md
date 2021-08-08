@@ -140,7 +140,11 @@ $ du -hd1 models/default/
 ```
 Model checkpoints for all other models (e.g., networks trained with altered cochlear models or sound statistics) referenced in the manuscript are available upon request to the authors.
 
-All datasets used to train and evaluate models are also available upon request to the authors. Datasets can be made available as sound waveforms and/or as simulated auditory nerve representations (most of our models operate on simulated auditory nerve input):
+Simulated auditory nerve representations of all datasets used to train and evaluate models are available upon request to the authors. Sound waveform datasets (which can be converted into auditory nerve representations using the released code) are available for [download](https://drive.google.com/drive/folders/1OhSzszxCnBfQ6cuJIaKuv5A_uoqks-H8?usp=sharing):
+* Pitchnet natural sounds training dataset
+    - Stimuli 0000000-1680000 are used for training
+    - Sitmuli 1680000-2100000 are held-out for validation
+* Datasets for psychophysical experiments A-E
 ```
 Main training + validation dataset (speech + instrument clips embedded in real-world background noise):
 |__ Sound waveforms only: 120G
