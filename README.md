@@ -4,7 +4,7 @@ This repository contains code and models to accompany the [manuscript](https://d
 
 ### System requirements
 
-A Singularity container (tensorflow-1.13.1-pitchnet.simg) with all required software is included in this code release. The Singularity environment was built on a linux-gnu operating system (CentOS Linux 7) with Singularity version 3.4.1. To run models using the Tensorflow version included in the Singularity environment, a CUDA Version: 11.2 - supported GPU is required (estimated runtimes reported in `DEMO.ipynb` are based on one NVIDIA titan-x GPU).
+A Singularity environment ([tensorflow-1.13.1-pitchnet.simg](https://drive.google.com/file/d/1Dvvx5D9kIiHWhHeNg2D6_SyfTFSViQz2/view?usp=sharing)) with all required software is included in this code release. The Singularity environment was built on a linux-gnu operating system (CentOS Linux 7) with Singularity version 3.4.1. To run models using the Tensorflow version included in the Singularity environment, a CUDA Version: 11.2 - supported GPU is required (estimated runtimes reported in `DEMO.ipynb` are based on one NVIDIA titan-x GPU).
 
 To run the Singularity environment and list included Python packages:
 ```
@@ -106,7 +106,7 @@ $ pip list
 
 ### Installation instructions
 
-All code except the Python wrapper around the Bruce et al. (2018) Auditory Nerve Model (`/packages/bez2018model`) comes pre-compiled and can be run within the Singularity environment without additional installation. To install the auditory nerve model:
+All code except the Python wrapper around the Bruce et al. (2018) Auditory Nerve Model (`/packages/bez2018model`) comes compiled and can be run within the Singularity environment without additional installation. To install the auditory nerve model:
 ```
 $ cd pitchnet
 $ singularity exec --nv -B ./packages:/packages tensorflow-1.13.1-pitchnet.simg bash
@@ -118,12 +118,12 @@ This will compile the Cython code for the bez2018model Python wrapper and should
 
 ### DEMO
 
-See the `DEMO.ipynb` Jupyter Notebook for a walk-through of how to generate simulated auditory nerve representations of example stimuli and evaluate our pre-trained deep neural networks on them.
+See the `DEMO.ipynb` Jupyter Notebook for a walk-through of how to generate simulated auditory nerve representations of example stimuli and evaluate our trained deep neural networks on them.
 
 
 ### Data and model availability
 
-To keep the size of this code release manageable, we have only included pre-trained model checkpoints for our default (most human-like) model. The default model consists of 10 distinct deep neural network architectures (the 10 best-performing networks from our large-scale random DNN architecture search):
+Sound waveform datasets and trained model checkpoints are available for [download from Google Drive](https://drive.google.com/drive/folders/1OhSzszxCnBfQ6cuJIaKuv5A_uoqks-H8?usp=sharing). To run code without modifying paths, downloaded models should be placed in the `pitchnet/models` directory. To keep the size of this code release manageable, we have only included trained model checkpoints for our `default` (most human-like) model (`models.zip`). The default model consists of 10 distinct deep neural network architectures (the 10 best-performing networks from our large-scale random DNN architecture search):
 ```
 $ du -hd1 models/default/       
     24M     models/default/arch_0083
@@ -138,13 +138,14 @@ $ du -hd1 models/default/
     107M    models/default/arch_0346
     3.4G    models/default/
 ```
-Model checkpoints for all other models (e.g., networks trained with altered cochlear models or sound statistics) referenced in the manuscript are available upon request to the authors.
+Models optimized for alternative sound statistics can be obtained by training the above 10 architectures on alternative datasets provided in the Google Drive. Models optimized for alternative cochleae can be obtained by training the above 10 architectures on the main training dataset in conjunction with altered auditory nerve model parameters. In practice, the training of these models incurs substantial storage (for the simulated auditory nerve representations) and computing costs, so all trained model checkpoints are available upon request to the authors.
 
-Simulated auditory nerve representations of all datasets used to train and evaluate models are available upon request to the authors. Sound waveform datasets (which can be converted into auditory nerve representations using the released code) are available for [download](https://drive.google.com/drive/folders/1OhSzszxCnBfQ6cuJIaKuv5A_uoqks-H8?usp=sharing):
-* Pitchnet natural sounds training dataset
+Sound waveform datasets (which can be converted into auditory nerve representations using the released code) are available for [download from Google Drive](https://drive.google.com/drive/folders/1OhSzszxCnBfQ6cuJIaKuv5A_uoqks-H8?usp=sharing):
+* Pitchnet natural sounds training dataset: `dataset_pitchnet_train.tar.gz`
     - Stimuli 0000000-1680000 are used for training
     - Sitmuli 1680000-2100000 are held-out for validation
-* Datasets for psychophysical experiments A-E
+* Datasets for psychophysical experiments A-E: `dataset_psychophysics.tar.gz`
+Simulated auditory nerve representations of all datasets used to train and evaluate models are also available upon request to the authors.
 ```
 Main training + validation dataset (speech + instrument clips embedded in real-world background noise):
 |__ Sound waveforms only: 120G
