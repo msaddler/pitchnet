@@ -18,7 +18,7 @@ sys.path.append('/packages/msutil')
 import util_figures
 import util_misc
 
-sys.path.append('/om4/group/mcdermott/user/msaddler/pitchnet_dataset/pitchnetDataset/pitchnetDataset')
+sys.path.append('/om2/user/msaddler/pitchnet/assets_datasets')
 import dataset_util
 
 sys.path.append('/packages/tfutil')
