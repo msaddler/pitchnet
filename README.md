@@ -1,4 +1,4 @@
-### Pitchnet
+## Pitchnet
 
 This repository contains code and models to accompany our [paper](https://doi.org/10.1101/2020.11.19.389999): "Deep neural network models reveal interplay of peripheral coding and stimulus statistics in pitch perception" by Mark R. Saddler, Ray Gonzalez, and Josh H. McDermott.
 
@@ -15,7 +15,10 @@ $ singularity exec --nv -B ./packages:/packages tensorflow-1.13.1-pitchnet.simg 
 
 ### Installation instructions
 
-Clone this repository: `git clone --recurse-submodules git@github.com:msaddler/pitchnet.git`
+Be sure to include submodules when cloning this repository:
+```
+git clone --recurse-submodules git@github.com:msaddler/pitchnet.git
+```
 
 All code except the Python wrapper around the Bruce et al. (2018) Auditory Nerve Model (`/packages/bez2018model`) comes compiled and can be run within the Singularity environment without additional installation. To install the auditory nerve model:
 ```
